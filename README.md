@@ -2,10 +2,10 @@
 
 [Shotwell](https://wiki.gnome.org/Apps/Shotwell) is a fantastic program for organizing photos
 and videos. It supports publishing media to third-party sites, however that requires
-organizing your media again there, which is time consuming. Once the media is published, any
+organizing the media again there, which is time consuming. Once the media is published, any
 metadata changes that are made in Shotwell will not be shown on that third-party site.
 
-This program exports a static mobile-friendly HTML site of your Shotwell library and makes the
+This program exports a static mobile-friendly HTML site of a Shotwell library and makes the
 media available through different views: all media over time, all events over time, year view,
 and nested tag view. Composite thumbnails of the events, years, and tags are generated using
 [Imagemagick](https://imagemagick.org/index.php) with the highest-rated media used as the input
@@ -16,7 +16,7 @@ third-party resources for the long-term preservation of the library. The use of 
 the generated site is minimized as well for the long-term preservation.
 
 I make the static-generated website available on my local LAN via my home server so that other
-members of my family can view the view my Shotwell library on their devices. 
+members of my family can view my Shotwell library on their devices. 
 
 ## Usage
 
