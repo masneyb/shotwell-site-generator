@@ -35,7 +35,7 @@ Ensure that you have the proper dependencies installed on your system:
 Backup your Shotwell database/library and then generate a static HTML site:
 
     shotwell_site_generator.py \
-                --title "Brian Masney's Photos" \
+                --title "My Photos" \
                 --input-media-path /path/to/shotwell/full-sized/images \
                 --input-database /path/to/shotwell/sqlite/database \
                 --input-thumbs-directory /path/to/shotwell/thumbs360/directory \
@@ -80,4 +80,4 @@ on your home server for the long term.
 
 ## Contact
 
-Brian Masney: [Email](mailto:masneyb@onstation.org)
+Brian Masney: [masneyb@onstation.org](mailto:masneyb@onstation.org)
