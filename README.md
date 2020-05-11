@@ -80,4 +80,4 @@ on your home server for the long term.
 
 ## Contact
 
-Brian Masney: [masneyb@onstation.org](mailto:masneyb@onstation.org)
+Brian Masney [masneyb@onstation.org](mailto:masneyb@onstation.org)
