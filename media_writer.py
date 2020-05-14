@@ -374,11 +374,25 @@ class Html:
         if "tags" not in event or not event["tags"]:
             return None
 
-        ret = "<span class='header_links'>Tags: "
+        tag_links = []
         for tag_id, tag_name in self.__cleanup_tags(event["tags"]):
-            ret += "<a href='../tag/%d.html'><span class='header_link'>%s</span></a>" % \
-                   (tag_id, html.escape(tag_name))
-        ret += "</span>"
+            tag_links.append("<a href='../tag/%d.html'><span class='header_link'>%s</span></a>" % \
+                             (tag_id, html.escape(tag_name)))
+
+        if len(tag_links) < 11:
+            return "<span class='header_links'>Tags: %s</span>" % \
+                   ("".join(tag_links))
+
+        ret = "<span id='tag_links_short' class='header_links'>" + \
+              "Tags: %s " % ("".join(tag_links[0:10])) + \
+              "<span class='more_less' onClick=\"%s\">More...</span>" % \
+              (self.__js_hide_show("tag_links_short", "tag_links_long")) + \
+              "</span>"
+        ret += "<span id='tag_links_long' class='header_links' style='display: none;'>" + \
+               "Tags: %s, " % ("".join(tag_links)) + \
+               "<span class='more_less' onClick=\"%s\">Less</span>" % \
+               (self.__js_hide_show("tag_links_long", "tag_links_short")) + \
+               "</span>"
 
         return ret
 
