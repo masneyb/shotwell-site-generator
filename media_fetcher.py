@@ -116,28 +116,30 @@ class Database:
         for row in cursor.execute(qry, str(min_rating)):
             self.__process_photo_row(all_media, row, row["filename"], False)
 
-        # Now download RAW photos...
-        qry = "SELECT PhotoTable.event_id, PhotoTable.id, " + \
-              "PhotoTable.filename as download_filename, " + \
-              "BackingPhotoTable.filepath AS filename, PhotoTable.title, PhotoTable.comment, " + \
-              "PhotoTable.filesize, PhotoTable.exposure_time, PhotoTable.rating, " + \
-              "PhotoTable.width, PhotoTable.height, PhotoTable.orientation " + \
-              "FROM PhotoTable, BackingPhotoTable " + \
-              "WHERE PhotoTable.rating >= ? AND PhotoTable.develop_embedded_id != -1 AND " + \
-              "BackingPhotoTable.id=PhotoTable.develop_embedded_id " + \
-              "ORDER BY PhotoTable.exposure_time"
-        cursor = self.conn.cursor()
-        for row in cursor.execute(qry, str(min_rating)):
-            self.__process_photo_row(all_media, row, row["download_filename"], True)
+        if self.__does_table_exist("BackingPhotoTable"):
+            # Now download RAW photos...
+            qry = "SELECT PhotoTable.event_id, PhotoTable.id, " + \
+                  "PhotoTable.filename as download_filename, " + \
+                  "BackingPhotoTable.filepath AS filename, PhotoTable.title, " + \
+                  "PhotoTable.comment, PhotoTable.filesize, PhotoTable.exposure_time, " + \
+                  "PhotoTable.rating, PhotoTable.width, PhotoTable.height, " + \
+                  "PhotoTable.orientation FROM PhotoTable, BackingPhotoTable " + \
+                  "WHERE PhotoTable.rating >= ? AND PhotoTable.develop_embedded_id != -1 AND " + \
+                  "BackingPhotoTable.id=PhotoTable.develop_embedded_id " + \
+                  "ORDER BY PhotoTable.exposure_time"
+            cursor = self.conn.cursor()
+            for row in cursor.execute(qry, str(min_rating)):
+                self.__process_photo_row(all_media, row, row["download_filename"], True)
 
-        qry = "SELECT event_id, id, filename, title, comment, filesize, exposure_time, " + \
-              "rating, clip_duration FROM VideoTable WHERE rating >= ? ORDER BY exposure_time"
-        cursor = self.conn.cursor()
-        for row in cursor.execute(qry, str(min_rating)):
-            media_id = "video-%016x" % (row["id"])
-            media = self.__add_media(all_media, row, media_id, "num_videos", row["filename"],
-                                     None, 0, self.play_icon)
-            media["clip_duration"] = row["clip_duration"]
+        if self.__does_table_exist("VideoTable"):
+            qry = "SELECT event_id, id, filename, title, comment, filesize, exposure_time, " + \
+                  "rating, clip_duration FROM VideoTable WHERE rating >= ? ORDER BY exposure_time"
+            cursor = self.conn.cursor()
+            for row in cursor.execute(qry, str(min_rating)):
+                media_id = "video-%016x" % (row["id"])
+                media = self.__add_media(all_media, row, media_id, "num_videos", row["filename"],
+                                         None, 0, self.play_icon)
+                media["clip_duration"] = row["clip_duration"]
 
     def __process_photo_row(self, all_media, row, download_source, is_raw):
         if row["orientation"] == 6:
@@ -388,3 +390,9 @@ class Database:
 
     def __get_thumbnail_fs_path(self, relpath):
         return os.path.join(self.dest_thumbs_directory, relpath)
+
+    def __does_table_exist(self, tablename):
+        qry = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?"
+        cursor = self.conn.cursor()
+        row = cursor.execute(qry, (tablename,))
+        return next(row)[0] == 1
