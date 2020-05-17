@@ -62,6 +62,7 @@ class Database:
 
             if year not in all_media["events_by_year"]:
                 all_media["events_by_year"][year] = {}
+                all_media["events_by_year"][year]["media_id"] = str(year)
                 all_media["events_by_year"][year]["title"] = year_title
                 all_media["events_by_year"][year]["comment"] = None
                 all_media["events_by_year"][year]["events"] = []
@@ -298,8 +299,9 @@ class Database:
 
         return media
 
-    def __create_event_or_tag(self, event_id):
-        return {"id": event_id, "date": None, "media": [], "stats": self.__create_new_stats()}
+    def __create_event_or_tag(self, entity_id):
+        return {"id": entity_id, "media_id": str(entity_id), "date": None, "media": [],
+                "stats": self.__create_new_stats()}
 
     def __create_new_stats(self):
         stats = {}
