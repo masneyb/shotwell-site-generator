@@ -89,7 +89,7 @@ class Html:
         all_media_index = {"year": {}, "event": {}}
         self.__write_media_html_files(["media", "index"], self.main_title, None,
                                       self.all_media["all_stats"], None, shown_media, None,
-                                      None, None, self.__all_media_indexer, all_media_index)
+                                      self.__all_media_indexer, all_media_index)
 
         return all_media_index
 
@@ -135,17 +135,9 @@ class Html:
             shown_media.sort(key=lambda media: media["media"]["exposure_time"],
                              reverse=True)
 
-            if tag["parent_tag"]:
-                back_link_descr = "Media tagged %s" % (tag["parent_tag"]["title"])
-                back_link_path = "%s.html" % (tag["parent_tag"]["id"])
-            else:
-                back_link_descr = "Tag Index"
-                back_link_path = "index.html"
-
             self.__write_media_html_files(["tag", str(tag["id"])], tag["title"], None,
                                           tag["stats"], self.__get_tag_links(tag),
-                                          shown_tags + shown_media, None, back_link_descr,
-                                          back_link_path)
+                                          shown_tags + shown_media, None, None, None)
 
         self.__write_tag_index_html_files()
 
@@ -309,6 +301,8 @@ class Html:
                "document.getElementById('%s').style.display='none';" % (hide_element)
 
     def __write_expandable_string(self, output, media_id, name, value, span_class):
+        # pylint: disable=too-many-arguments
+
         if len(value) < 60:
             output.write("<span class='%s'>%s</span>" % (span_class, html.escape(value.strip())))
         else:
@@ -351,8 +345,8 @@ class Html:
         all_year_index = {}
         self.__write_media_html_files(["year", str(year)], year, None, year_block["stats"],
                                       self.__get_year_extra_links(all_media_index, year),
-                                      shown_media, breadcrumb_config, None, None,
-                                      self.__all_year_indexer, all_year_index)
+                                      shown_media, breadcrumb_config, self.__all_year_indexer,
+                                      all_year_index)
 
         return all_year_index
 
@@ -551,8 +545,7 @@ class Html:
         output.write("</span>")
 
     def __write_media_html_files(self, current_page_link, title, comment, stats, extra_header,
-                                 all_media, breadcrumb_config, back_link_descr, back_link_path,
-                                 media_indexer=None, media_index_config=None):
+                                 all_media, breadcrumb_config, media_indexer, media_index_config):
         # pylint: disable=too-many-arguments,too-many-locals
 
         # Split the media list up into multiple HTML files if needed. The first file will
@@ -601,7 +594,7 @@ class Html:
             if breadcrumb_config:
                 self.__write_breadcrumbs(output, breadcrumb_config)
 
-            self.__write_html_footer(output, current_page_link, back_link_descr, back_link_path)
+            self.__write_html_footer(output, current_page_link)
 
     def __write_page_link(self, output, current_page_link, condition, label, page_number):
         # pylint: disable=too-many-arguments
@@ -693,12 +686,8 @@ class Html:
 
         return output
 
-    def __write_html_footer(self, output, current_page, back_link_descr, back_link_path):
+    def __write_html_footer(self, output, current_page):
         self.__write_ratings_dropdown(output, current_page)
-
-        if back_link_descr:
-            output.write("<a href='%s'><span class='breadcrumb'>%s</span></a>" % \
-                         (html.escape(back_link_path), html.escape(back_link_descr)))
 
         url = "https://github.com/masneyb/shotwell-site-generator"
         output.write("<span class='generated_at'>Site generated from " + \
