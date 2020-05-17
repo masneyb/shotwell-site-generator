@@ -249,12 +249,12 @@ class Html:
 
         if "event_id" in media and media["event_id"]:
             title = self.__cleanup_event_title(self.all_media["events_by_id"][media["event_id"]])
-            detailed.append("<a href='../event/%d.html'>%s</a>" % \
+            detailed.append("<a href='../event/%d.html'>Event: %s</a>" % \
                             (media["event_id"], html.escape(title)))
 
         if "tags" in media and media["tags"]:
             for tag_id, tag_name in self.__cleanup_tags(media["tags"]):
-                detailed.append("<a href='../tag/%d.html'>%s</a>" % \
+                detailed.append("<a href='../tag/%d.html'>Tag: %s</a>" % \
                                 (tag_id, html.escape(tag_name)))
 
         if "exif" in media:
