@@ -433,7 +433,7 @@ class Html:
               (self.__js_hide_show("event_links_short", "event_links_long")) + \
               "</span>"
         ret += "<span id='event_links_long' class='header_links' style='display: none;'>" + \
-               "Events: %s, " % ("".join(event_links)) + \
+               "Events: %s " % ("".join(event_links)) + \
                "<span class='more_less' onClick=\"%s\">Less</span>" % \
                (self.__js_hide_show("event_links_long", "event_links_short")) + \
                "</span>"
