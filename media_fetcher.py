@@ -199,11 +199,6 @@ class Database:
 
             tag = self.__create_event_or_tag(row["id"])
             tag["title"] = row["name"].split("/")[-1]
-
-            tag["long_title"] = row["name"]
-            if tag["long_title"].startswith("/"):
-                tag["long_title"] = tag["long_title"][1:].replace("/", " > ")
-
             tag["comment"] = None
             tag["media"] = []
 

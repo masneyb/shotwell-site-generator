@@ -142,12 +142,30 @@ class Html:
                 back_link_descr = "Tag Index"
                 back_link_path = "index.html"
 
-            self.__write_media_html_files(["tag", str(tag["id"])], tag["long_title"], None,
-                                          tag["stats"], self.__get_tag_event_links(tag),
+            self.__write_media_html_files(["tag", str(tag["id"])], tag["title"], None,
+                                          tag["stats"], self.__get_tag_links(tag),
                                           shown_tags + shown_media, None, back_link_descr,
                                           back_link_path)
 
         self.__write_tag_index_html_files()
+
+    def __get_tag_links(self, tag):
+        ret = ""
+
+        links = []
+        parent = tag["parent_tag"]
+        while parent:
+            links.append("<a href='../tag/%d.html'><span class='header_link'>%s</span></a>" % \
+                         (parent["id"], html.escape(parent["title"])))
+            parent = parent["parent_tag"]
+
+        links.reverse()
+
+        ret += self.__get_expandable_header_links("Tag Parents", links)
+
+        ret += self.__get_tag_event_links(tag)
+
+        return ret
 
     def __write_tag_index_html_files(self):
         shown_tags = []
@@ -435,6 +453,9 @@ class Html:
         return self.__get_expandable_header_links("Tags", tag_links)
 
     def __get_expandable_header_links(self, label, links):
+        if not links:
+            return ""
+
         if len(links) < 11:
             return "<span class='header_links'>%s: %s</span>" % \
                    (label, "".join(links))
@@ -462,7 +483,7 @@ class Html:
                 event_ids.add(media["event_id"])
 
         if not event_ids:
-            return None
+            return ""
 
         events = [self.all_media["events_by_id"][event_id] for event_id in event_ids]
         events.sort(key=lambda event: event["date"], reverse=True)
