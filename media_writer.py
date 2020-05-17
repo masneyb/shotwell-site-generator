@@ -98,7 +98,7 @@ class Html:
 
             year = self.__get_date_parts(media["media"]["exposure_time"])["year"]
             if year not in config:
-                config[year] = page_number
+                config[year] = {"page": page_number, "media_id": media["media"]["media_id"]}
 
     def write_tag_html_files(self):
         for tag in self.all_media["tags_by_id"].values():
@@ -175,7 +175,12 @@ class Html:
     def __write_media_block(self, output, media, link, show_daterange):
         output.write("<span class='media'>")
 
-        output.write("<a href='%s'>" % (html.escape(link)))
+        if "media_id" in media:
+            output.write("<a name='%s' href='%s'>" % \
+                         (html.escape(media["media_id"]), html.escape(link)))
+        else:
+            output.write("<a href='%s'>" % (html.escape(link)))
+
         output.write("<span class='media_thumb'><img src='../../thumbnails/%s'/></span>" % \
                      (html.escape(media["thumbnail_path"])))
 
@@ -312,9 +317,10 @@ class Html:
 
         extra_links = ""
         if year in all_media_year_index:
-            url_parts = self.__get_page_url_parts(["media", "index"], all_media_year_index[year])
-            extra_links = "<span class='header_links'><a href='../media/%s.html'>" % \
-                          (url_parts[-1]) + \
+            url_parts = self.__get_page_url_parts(["media", "index"],
+                                                  all_media_year_index[year]["page"])
+            extra_links = "<span class='header_links'><a href='../media/%s.html#%s'>" % \
+                          (url_parts[-1], all_media_year_index[year]["media_id"]) + \
                           "<span class='header_link'>Browse media around this year</span>" + \
                           "</a></span>"
 
