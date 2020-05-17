@@ -197,10 +197,11 @@ class Html:
         output.write("<span class='media_thumb'><img src='../../thumbnails/%s'/></span>" % \
                      (html.escape(media["thumbnail_path"])))
 
-        if media["title"]:
-            output.write("<span class='media_title'>%s</span>" % (html.escape(media["title"])))
-
         output.write("</a>")
+
+        if media["title"]:
+            self.__write_expandable_string(output, media["media_id"], "title", media["title"],
+                                           "media_title")
 
         if "stats" in media:
             output.write("<span class='media_stats'>%s</span>" % \
@@ -213,7 +214,8 @@ class Html:
                     output.write("<span class='media_date'>%s</span>" % (html.escape(date_range)))
 
         if media["comment"]:
-            self.__write_comment(output, media["id"], media["comment"], "media_comment")
+            self.__write_expandable_string(output, media["id"], "comment", media["comment"],
+                                           "media_comment")
 
         self.__write_media_metadata(output, media)
 
@@ -288,23 +290,23 @@ class Html:
         return "document.getElementById('%s').style.display='block'; " % (show_element) + \
                "document.getElementById('%s').style.display='none';" % (hide_element)
 
-    def __write_comment(self, output, media_id, comment, span_class):
-        if len(comment) < 40:
-            output.write("<span class='%s'>%s</span>" % (span_class, html.escape(comment.strip())))
+    def __write_expandable_string(self, output, media_id, name, value, span_class):
+        if len(value) < 60:
+            output.write("<span class='%s'>%s</span>" % (span_class, html.escape(value.strip())))
         else:
-            short_id = 'comment%s_short' % (media_id)
-            long_id = 'comment%s_long' % (media_id)
+            short_id = '%s%s_short' % (name, media_id)
+            long_id = '%s%s_long' % (name, media_id)
 
-            output.write("<span id='%s' class='%s comment_more_less'" % (short_id, span_class) + \
+            output.write("<span id='%s' class='%s value_more_less'" % (short_id, span_class) + \
                          " onClick=\"%s\">" % (self.__js_hide_show(short_id, long_id)) + \
-                         html.escape(comment[0:30].strip()) +
+                         html.escape(value[0:50].strip()) +
                          " <span class='more_less'>More...</span>" + \
                          "</span>")
 
-            output.write("<span id='%s' class='%s comment_more_less'" % (long_id, span_class) + \
+            output.write("<span id='%s' class='%s value_more_less'" % (long_id, span_class) + \
                          " onClick=\"%s\"" % (self.__js_hide_show(long_id, short_id)) + \
                          " style='display: none;'>" + \
-                         html.escape(comment.strip()).replace("\n", "<br/>") +
+                         html.escape(value.strip()).replace("\n", "<br/>") +
                          " <span class='more_less'>Less</span>" + \
                          "</span>")
 
@@ -674,7 +676,7 @@ class Html:
                              (html.escape(date_range)))
 
         if comment:
-            self.__write_comment(output, "title", comment, "event_comment")
+            self.__write_expandable_string(output, "title", "comment", comment, "event_comment")
 
         return output
 
