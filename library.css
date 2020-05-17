@@ -28,6 +28,7 @@ a {
 .summary_stats, .date_range, .event_comment, .header_links {
 	display: block;
 	font-size: 80%;
+	padding: 1px;
 }
 
 .header_link {
