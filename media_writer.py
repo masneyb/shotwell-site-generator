@@ -442,7 +442,7 @@ class Html:
               (self.__js_hide_show("tag_links_short", "tag_links_long")) + \
               "</span>"
         ret += "<span id='tag_links_long' class='header_links' style='display: none;'>" + \
-               "Tags: %s, " % ("".join(tag_links)) + \
+               "Tags: %s " % ("".join(tag_links)) + \
                "<span class='more_less' onClick=\"%s\">Less</span>" % \
                (self.__js_hide_show("tag_links_long", "tag_links_short")) + \
                "</span>"
