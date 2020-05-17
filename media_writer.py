@@ -60,8 +60,8 @@ class Html:
             shown_media.append({"media": year_block, "link": "%s.html" % (year),
                                 "show_daterange": False})
 
-        self.__write_media_html_files(["year", "index"], self.main_title, None,
-                                      self.all_media["all_stats"], None, shown_media, None,
+        self.__write_media_html_files(["year", "index"], "%s: All Years" % (self.main_title),
+                                      None, self.all_media["all_stats"], None, shown_media, None,
                                       None, None)
 
         # Now generate the individual year pages. Reverse the year list again so that the
@@ -87,8 +87,8 @@ class Html:
         shown_media.sort(key=lambda media: media["media"]["exposure_time"], reverse=True)
 
         all_media_index = {"year": {}, "event": {}}
-        self.__write_media_html_files(["media", "index"], self.main_title, None,
-                                      self.all_media["all_stats"], None, shown_media, None,
+        self.__write_media_html_files(["media", "index"], "%s: All Media" % (self.main_title),
+                                      None, self.all_media["all_stats"], None, shown_media, None,
                                       self.__all_media_indexer, all_media_index)
 
         return all_media_index
@@ -135,8 +135,8 @@ class Html:
             shown_media.sort(key=lambda media: media["media"]["exposure_time"],
                              reverse=True)
 
-            self.__write_media_html_files(["tag", str(tag["id"])], tag["title"], None,
-                                          tag["stats"], self.__get_tag_links(tag),
+            self.__write_media_html_files(["tag", str(tag["id"])], "Tag: %s" % (tag["title"]),
+                                          None, tag["stats"], self.__get_tag_links(tag),
                                           shown_tags + shown_media, None, None, None)
 
         self.__write_tag_index_html_files()
@@ -171,8 +171,8 @@ class Html:
 
         shown_tags.sort(key=lambda media: media["media"]["title"])
 
-        self.__write_media_html_files(["tag", "index"], self.main_title, None,
-                                      self.all_media["all_stats"], None, shown_tags, None,
+        self.__write_media_html_files(["tag", "index"], "%s: All Tags" % (self.main_title),
+                                      None, self.all_media["all_stats"], None, shown_tags, None,
                                       None, None)
 
     def __write_main_view_links(self, output, current_view, show_current_link):
@@ -343,7 +343,8 @@ class Html:
         breadcrumb_config["to_html_filename"] = lambda year: "%s.html" % (year)
 
         all_year_index = {}
-        self.__write_media_html_files(["year", str(year)], year, None, year_block["stats"],
+        self.__write_media_html_files(["year", str(year)], "Year: %s" % (year), None,
+                                      year_block["stats"],
                                       self.__get_year_extra_links(all_media_index, year),
                                       shown_media, breadcrumb_config, self.__all_year_indexer,
                                       all_year_index)
@@ -378,8 +379,8 @@ class Html:
 
         shown_media.sort(key=lambda media: media["media"]["date"], reverse=True)
 
-        self.__write_media_html_files(["event", "index"], self.main_title, None,
-                                      self.all_media["all_stats"], None, shown_media, None,
+        self.__write_media_html_files(["event", "index"], "%s: All Events" % (self.main_title),
+                                      None, self.all_media["all_stats"], None, shown_media, None,
                                       None, None)
 
     def __write_event_html_files(self, all_years, current_year_index, all_media_index,
@@ -409,8 +410,9 @@ class Html:
                 relpath = "../../original/%s" % (media["filename"])
                 shown_media.append({"media": media, "link": relpath, "show_daterange": True})
 
-            self.__write_media_html_files(["event", str(event["id"])], event["title"],
-                                          event["comment"], event["stats"],
+            self.__write_media_html_files(["event", str(event["id"])],
+                                          "Event: %s" % (event["title"]), event["comment"],
+                                          event["stats"],
                                           self.__get_event_extra_links(event, all_media_index,
                                                                        all_year_index, year),
                                           shown_media, breadcrumb_config, None, None)
