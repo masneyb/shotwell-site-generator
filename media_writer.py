@@ -578,7 +578,8 @@ class Html:
                 output.write(extra_header)
 
             if comment:
-                self.__write_expandable_string(output, "title", "comment", comment, "event_comment")
+                self.__write_expandable_string(output, "title", "comment",
+                                               "Comment: %s" % (comment), "event_comment")
 
             self.__write_main_view_links(output, current_page_link[0],
                                          current_page_link[1] != "index" or page_number > 1)
