@@ -432,19 +432,25 @@ class Html:
             tag_links.append("<a href='../tag/%d.html'><span class='header_link'>%s</span></a>" % \
                              (tag_id, html.escape(tag_name)))
 
-        if len(tag_links) < 11:
-            return "<span class='header_links'>Tags: %s</span>" % \
-                   ("".join(tag_links))
+        return self.__get_expandable_header_links("Tags", tag_links)
 
-        ret = "<span id='tag_links_short' class='header_links'>" + \
-              "Tags: %s " % ("".join(tag_links[0:10])) + \
+    def __get_expandable_header_links(self, label, links):
+        if len(links) < 11:
+            return "<span class='header_links'>%s: %s</span>" % \
+                   (label, "".join(links))
+
+        short_id = '%s_short' % (label)
+        long_id = '%s_long' % (label)
+
+        ret = "<span id='%s' class='header_links'>" % (short_id)+ \
+              "%s: %s " % (label, "".join(links[0:10])) + \
               "<span class='more_less' onClick=\"%s\">More...</span>" % \
-              (self.__js_hide_show("tag_links_short", "tag_links_long")) + \
+              (self.__js_hide_show(short_id, long_id)) + \
               "</span>"
-        ret += "<span id='tag_links_long' class='header_links' style='display: none;'>" + \
-               "Tags: %s " % ("".join(tag_links)) + \
+        ret += "<span id='%s' class='header_links' style='display: none;'>" % (long_id) + \
+               "%s: %s " % (label, "".join(links)) + \
                "<span class='more_less' onClick=\"%s\">Less</span>" % \
-               (self.__js_hide_show("tag_links_long", "tag_links_short")) + \
+               (self.__js_hide_show(long_id, short_id)) + \
                "</span>"
 
         return ret
@@ -471,21 +477,7 @@ class Html:
                                "</span>" + \
                                "</a>")
 
-        if len(event_links) < 11:
-            return "<span class='header_links'>Events: %s</span>" % ("".join(event_links))
-
-        ret = "<span id='event_links_short' class='header_links'>" + \
-              "Events: %s " % ("".join(event_links[0:10])) + \
-              "<span class='more_less' onClick=\"%s\">More...</span>" % \
-              (self.__js_hide_show("event_links_short", "event_links_long")) + \
-              "</span>"
-        ret += "<span id='event_links_long' class='header_links' style='display: none;'>" + \
-               "Events: %s " % ("".join(event_links)) + \
-               "<span class='more_less' onClick=\"%s\">Less</span>" % \
-               (self.__js_hide_show("event_links_long", "event_links_short")) + \
-               "</span>"
-
-        return ret
+        return self.__get_expandable_header_links("Events", event_links)
 
     def __cleanup_event_title(self, event):
         return event["title"] if event["title"] else "Unnamed %s" % (event["id"])
