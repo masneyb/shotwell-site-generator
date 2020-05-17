@@ -564,10 +564,13 @@ class Html:
 
             output = self.__write_html_header(self.__get_page_url_parts(current_page_link,
                                                                         page_number),
-                                              title, comment, stats, page_date_range)
+                                              title, stats, page_date_range)
 
             if extra_header:
                 output.write(extra_header)
+
+            if comment:
+                self.__write_expandable_string(output, "title", "comment", comment, "event_comment")
 
             self.__write_main_view_links(output, current_page_link[0],
                                          current_page_link[1] != "index" or page_number > 1)
@@ -638,7 +641,7 @@ class Html:
 
         return this_page
 
-    def __write_html_header(self, path_subparts, title, comment, stats, page_date_range):
+    def __write_html_header(self, path_subparts, title, stats, page_date_range):
         # pylint: disable=too-many-arguments
         path = os.path.join(*[self.html_basedir, *path_subparts]) + ".html"
 
@@ -674,9 +677,6 @@ class Html:
                              (html.escape(page_date_range)))
                 output.write("<span class='date_range'>%s (overall)</span>" % \
                              (html.escape(date_range)))
-
-        if comment:
-            self.__write_expandable_string(output, "title", "comment", comment, "event_comment")
 
         return output
 
