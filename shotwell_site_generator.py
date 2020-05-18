@@ -51,7 +51,7 @@ def process_photos(options):
         photos = media_writer.Html(all_media, options.dest_directory, rating, all_media_ratings,
                                    options.title, options.years_prior_are_approximate,
                                    options.main_page_extra_link, options.main_page_extra_link_descr,
-                                   options.max_media_per_page)
+                                   options.max_media_per_page, options.expand_all_elements)
 
         all_media_year_index = photos.write_all_media_index_file()
         photos.write_year_and_event_html_files(all_media_year_index)
@@ -105,6 +105,7 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--main-page-extra-link-descr")
     ARGPARSER.add_argument("--max-media-per-page", type=int, default=50)
     ARGPARSER.add_argument("--default-view", default="media")
-    ARGPARSER.add_argument("--ratings-to-skip", nargs='+', default=[])
-    ARGPARSER.add_argument("--tags-to-skip", nargs='+', default=[])
+    ARGPARSER.add_argument("--ratings-to-skip", nargs="+", default=[])
+    ARGPARSER.add_argument("--tags-to-skip", nargs="+", default=[])
+    ARGPARSER.add_argument("--expand-all-elements", action="store_true", default=False)
     process_photos(ARGPARSER.parse_args(sys.argv[1:]))

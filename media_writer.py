@@ -29,7 +29,7 @@ class Html:
     # pylint: disable=too-many-instance-attributes
     def __init__(self, all_media, dest_directory, min_media_rating, all_media_ratings,
                  main_title, years_prior_are_approximate, main_page_extra_link,
-                 main_page_extra_link_descr, max_media_per_page):
+                 main_page_extra_link_descr, max_media_per_page, expand_all_elements):
         # pylint: disable=too-many-arguments
         self.all_media = all_media
         self.html_basedir = os.path.join(dest_directory, str(min_media_rating))
@@ -40,6 +40,7 @@ class Html:
         self.main_page_extra_link = main_page_extra_link
         self.main_page_extra_link_descr = main_page_extra_link_descr
         self.max_media_per_page = max_media_per_page
+        self.expand_all_elements = expand_all_elements
         self.generated_at = datetime.datetime.now(dateutil.tz.tzlocal()) \
             .strftime("%B %-d, %Y %H:%M:%S %Z")
 
@@ -306,15 +307,23 @@ class Html:
         short_id = '%s_short' % (name)
         long_id = '%s_long' % (name)
 
+        if self.expand_all_elements:
+            short_display = "none"
+            long_display = "block"
+        else:
+            short_display = "block"
+            long_display = "none"
+
         ret = "<span id='%s' class='%s value_more_less'" % (short_id, span_class) + \
-              " onClick=\"%s\">" % (self.__js_hide_show(short_id, long_id)) + \
+              " onClick=\"%s\"" % (self.__js_hide_show(short_id, long_id)) + \
+               " style='display: %s;'>" % (short_display) + \
               short_value + \
               " <span class='more_less'>More...</span>" + \
               "</span>"
 
         ret += "<span id='%s' class='%s value_more_less'" % (long_id, span_class) + \
                " onClick=\"%s\"" % (self.__js_hide_show(long_id, short_id)) + \
-               " style='display: none;'>" + \
+               " style='display: %s;'>" % (long_display) + \
                long_value + \
                " <span class='more_less'>Less</span>" + \
                "</span>"
