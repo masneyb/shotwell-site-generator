@@ -295,7 +295,7 @@ class Html:
             short_value = html.escape(value)
             long_value = None
         else:
-            short_value = html.escape(value[0:50].strip())
+            short_value = html.escape(value[0:50].strip() + "...")
             long_value = html.escape(value).replace("\n", "<br/>")
 
         return self.__get_expandable_element(name, short_value, long_value, span_class)
@@ -314,18 +314,16 @@ class Html:
             short_display = "block"
             long_display = "none"
 
-        ret = "<span id='%s' class='%s value_more_less'" % (short_id, span_class) + \
-              " onClick=\"%s\"" % (self.__js_hide_show(short_id, long_id)) + \
-               " style='display: %s;'>" % (short_display) + \
-              short_value + \
-              " <span class='more_less'>More...</span>" + \
+        ret = "<span id='%s' class='%s' style='display: %s;'>%s" % \
+              (short_id, span_class, short_display, short_value) + \
+              " &nbsp; <span class='more_less' onClick=\"%s\">More</span>" % \
+              (self.__js_hide_show(short_id, long_id)) + \
               "</span>"
 
-        ret += "<span id='%s' class='%s value_more_less'" % (long_id, span_class) + \
-               " onClick=\"%s\"" % (self.__js_hide_show(long_id, short_id)) + \
-               " style='display: %s;'>" % (long_display) + \
-               long_value + \
-               " <span class='more_less'>Less</span>" + \
+        ret += "<span id='%s' class='%s' style='display: %s;'>%s" % \
+               (long_id, span_class, long_display, long_value) + \
+               " &nbsp; <span class='more_less' onClick=\"%s\">Less</span>" % \
+               (self.__js_hide_show(long_id, short_id)) + \
                "</span>"
 
         return ret
