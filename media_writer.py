@@ -210,8 +210,8 @@ class Html:
         output.write("</a>")
 
         if media["title"]:
-            self.__write_expandable_string(output, media["media_id"], "title", media["title"],
-                                           "media_title")
+            output.write(self.__get_expandable_string("title%s" % (media["media_id"]),
+                                                      media["title"], "media_title"))
 
         if "stats" in media:
             output.write("<span class='media_stats'>%s</span>" % \
@@ -224,8 +224,8 @@ class Html:
                     output.write("<span class='media_date'>%s</span>" % (html.escape(date_range)))
 
         if media["comment"]:
-            self.__write_expandable_string(output, media["id"], "comment", media["comment"],
-                                           "media_comment")
+            output.write(self.__get_expandable_string("comment%s" % (media["id"]),
+                                                      media["comment"], "media_comment"))
 
         self.__write_media_metadata(output, media)
 
@@ -267,21 +267,9 @@ class Html:
             return
 
         sep = " &nbsp; "
-        if not detailed:
-            output.write("<span class='media_metadata'>%s</span>" % (sep.join(summary)))
-            return
-
-        short_id = 'meta%s_short' % (media["media_id"])
-        long_id = 'meta%s_long' % (media["media_id"])
-        output.write("<span id='%s' class='media_metadata'>%s" % (short_id, sep.join(summary)) + \
-                     "%s<span class='more_less' onClick=\"%s\">More</span>" % \
-                     (sep, self.__js_hide_show(short_id, long_id)) + \
-                     "</span>")
-        output.write("<span id='%s' class='media_metadata' style='display: none;'>%s" % \
-                     (long_id, sep.join(summary + detailed)) + \
-                     "%s<span class='more_less' onClick=\"%s\">Less</span>" % \
-                     (sep, self.__js_hide_show(long_id, short_id)) + \
-                     "</span>")
+        output.write(self.__get_expandable_element("meta%s" % (media["media_id"]),
+                                                   sep.join(summary), sep.join(summary + detailed),
+                                                   "media_metadata"))
 
     def __write_ratings_dropdown(self, output, current_html_basename):
         output.write("<span class='media_ratings'>Photo Rating: ")
@@ -300,27 +288,38 @@ class Html:
         return "document.getElementById('%s').style.display='block'; " % (show_element) + \
                "document.getElementById('%s').style.display='none';" % (hide_element)
 
-    def __write_expandable_string(self, output, media_id, name, value, span_class):
-        # pylint: disable=too-many-arguments
-
-        if len(value) < 60:
-            output.write("<span class='%s'>%s</span>" % (span_class, html.escape(value.strip())))
+    def __get_expandable_string(self, name, value, span_class):
+        value = value.strip()
+        if len(value) < 60 and "\n" not in value:
+            short_value = html.escape(value)
+            long_value = None
         else:
-            short_id = '%s%s_short' % (name, media_id)
-            long_id = '%s%s_long' % (name, media_id)
+            short_value = html.escape(value[0:50].strip())
+            long_value = html.escape(value).replace("\n", "<br/>")
 
-            output.write("<span id='%s' class='%s value_more_less'" % (short_id, span_class) + \
-                         " onClick=\"%s\">" % (self.__js_hide_show(short_id, long_id)) + \
-                         html.escape(value[0:50].strip()) +
-                         " <span class='more_less'>More...</span>" + \
-                         "</span>")
+        return self.__get_expandable_element(name, short_value, long_value, span_class)
 
-            output.write("<span id='%s' class='%s value_more_less'" % (long_id, span_class) + \
-                         " onClick=\"%s\"" % (self.__js_hide_show(long_id, short_id)) + \
-                         " style='display: none;'>" + \
-                         html.escape(value.strip()).replace("\n", "<br/>") +
-                         " <span class='more_less'>Less</span>" + \
-                         "</span>")
+    def __get_expandable_element(self, name, short_value, long_value, span_class):
+        if not long_value or short_value == long_value:
+            return "<span class='%s'>%s</span>" % (span_class, short_value)
+
+        short_id = '%s_short' % (name)
+        long_id = '%s_long' % (name)
+
+        ret = "<span id='%s' class='%s value_more_less'" % (short_id, span_class) + \
+              " onClick=\"%s\">" % (self.__js_hide_show(short_id, long_id)) + \
+              short_value + \
+              " <span class='more_less'>More...</span>" + \
+              "</span>"
+
+        ret += "<span id='%s' class='%s value_more_less'" % (long_id, span_class) + \
+               " onClick=\"%s\"" % (self.__js_hide_show(long_id, short_id)) + \
+               " style='display: none;'>" + \
+               long_value + \
+               " <span class='more_less'>Less</span>" + \
+               "</span>"
+
+        return ret
 
     def __write_year_html_file(self, all_years, current_year_index, all_media_index):
         year = all_years[current_year_index]
@@ -452,25 +451,10 @@ class Html:
         if not links:
             return ""
 
-        if len(links) < 11:
-            return "<span class='header_links'>%s: %s</span>" % \
-                   (label, "".join(links))
-
-        short_id = '%s_short' % (label)
-        long_id = '%s_long' % (label)
-
-        ret = "<span id='%s' class='header_links'>" % (short_id)+ \
-              "%s: %s " % (label, "".join(links[0:10])) + \
-              "<span class='more_less' onClick=\"%s\">More...</span>" % \
-              (self.__js_hide_show(short_id, long_id)) + \
-              "</span>"
-        ret += "<span id='%s' class='header_links' style='display: none;'>" % (long_id) + \
-               "%s: %s " % (label, "".join(links)) + \
-               "<span class='more_less' onClick=\"%s\">Less</span>" % \
-               (self.__js_hide_show(long_id, short_id)) + \
-               "</span>"
-
-        return ret
+        return self.__get_expandable_element(label.replace(" ", "_").lower(),
+                                             "%s: %s" % (label, "".join(links[0:10])),
+                                             "%s: %s" % (label, "".join(links)),
+                                             "header_links")
 
     def __get_tag_event_links(self, tag):
         event_ids = set([])
@@ -578,8 +562,9 @@ class Html:
                 output.write(extra_header)
 
             if comment:
-                self.__write_expandable_string(output, "title", "comment",
-                                               "Comment: %s" % (comment), "event_comment")
+                output.write(self.__get_expandable_string("titlecomment",
+                                                          "Comment: %s" % (comment),
+                                                          "event_comment"))
 
             self.__write_main_view_links(output, current_page_link[0],
                                          current_page_link[1] != "index" or page_number > 1)
