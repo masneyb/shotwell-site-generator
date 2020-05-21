@@ -174,7 +174,9 @@ class Html:
         shown_tags.sort(key=lambda media: media["media"]["title"])
 
         self.__write_media_html_files(["tag", "index"], "%s: All Tags" % (self.main_title),
-                                      None, self.all_media["all_stats"], None, shown_tags, None,
+                                      None, self.all_media["all_stats"],
+                                      self.__get_popular_tag_header_links(self.all_media["tags"]),
+                                      shown_tags, None,
                                       None, None)
 
     def __write_main_view_links(self, output, current_view, show_current_link):
@@ -366,7 +368,7 @@ class Html:
             ret += self.__get_all_media_link(all_media_index["year"][year], "year")
             ret += "</span>"
 
-        ret += self.__get_event_and_year_tag_header_links(self.all_media["events_by_year"][year])
+        ret += self.__get_popular_tag_header_links(self.all_media["events_by_year"][year]["tags"])
 
 
         return ret
@@ -443,20 +445,20 @@ class Html:
 
         ret += "</span>"
 
-        ret += self.__get_event_and_year_tag_header_links(event)
+        ret += self.__get_popular_tag_header_links(event["tags"])
 
         return ret
 
-    def __get_event_and_year_tag_header_links(self, entity):
-        if "tags" not in entity or not entity["tags"]:
+    def __get_popular_tag_header_links(self, tags):
+        if not tags:
             return ""
 
         cleaned_tags = {}
-        for tag_id, tag_name in self.__cleanup_tags(entity["tags"]):
+        for tag_id, tag_name in self.__cleanup_tags(tags):
             cleaned_tags[tag_id] = tag_name
 
         tag_counts = []
-        tmp_tag_counts = [*Counter(entity["tags"]).items()]
+        tmp_tag_counts = [*Counter(tags).items()]
         for (tag_id, count) in tmp_tag_counts:
             if tag_id not in cleaned_tags:
                 continue
@@ -466,7 +468,7 @@ class Html:
         tag_counts.sort(key=lambda tag: (-tag[2], tag[1]))
 
         tag_links = []
-        for tag in tag_counts:
+        for tag in tag_counts[0:150]:
             tag_links.append("<a href='../tag/%d.html'><span class='header_link'>%s</span></a>" % \
                              (tag[0], html.escape(tag[1])))
 

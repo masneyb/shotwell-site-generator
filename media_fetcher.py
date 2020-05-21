@@ -40,7 +40,8 @@ class Database:
 
     def get_all_media(self, min_rating):
         all_media = {"events_by_year": {}, "all_stats": self.__create_new_stats(),
-                     "events_by_id": {}, "media_by_id": {}, "tags_by_id": {}}
+                     "events_by_id": {}, "media_by_id": {}, "tags_by_id": {},
+                     "tags": []}
 
         self.__fetch_media(all_media, min_rating)
         self.__fetch_events(all_media)
@@ -221,6 +222,7 @@ class Database:
                 media = all_media["media_by_id"][media_id]
                 tag["media"].append(media)
 
+                all_media["tags"].append(row["id"])
                 all_media["media_by_id"][media["media_id"]]["tags"].add(row["id"])
                 all_media["events_by_year"][media["year"]]["tags"].append(row["id"])
                 all_media["events_by_id"][media["event_id"]]["tags"].append(row["id"])
