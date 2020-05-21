@@ -474,6 +474,11 @@ class Html:
         if not links:
             return ""
 
+        if len(links) <= 11:
+            return self.__get_expandable_element(label.replace(" ", "_").lower(),
+                                                 "%s: %s" % (label, "".join(links)), None,
+                                                 "header_links", None)
+
         more_label = "+%s more" % (len(links) - 10)
         return self.__get_expandable_element(label.replace(" ", "_").lower(),
                                              "%s: %s" % (label, "".join(links[0:10])),
