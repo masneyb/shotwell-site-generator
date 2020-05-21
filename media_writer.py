@@ -30,7 +30,8 @@ class Html:
     # pylint: disable=too-many-instance-attributes
     def __init__(self, all_media, dest_directory, min_media_rating, all_media_ratings,
                  main_title, years_prior_are_approximate, main_page_extra_link,
-                 main_page_extra_link_descr, max_media_per_page, expand_all_elements):
+                 main_page_extra_link_descr, max_media_per_page, expand_all_elements,
+                 version_label):
         # pylint: disable=too-many-arguments
         self.all_media = all_media
         self.html_basedir = os.path.join(dest_directory, str(min_media_rating))
@@ -42,6 +43,7 @@ class Html:
         self.main_page_extra_link_descr = main_page_extra_link_descr
         self.max_media_per_page = max_media_per_page
         self.expand_all_elements = expand_all_elements
+        self.version_label = version_label
         self.generated_at = datetime.datetime.now(dateutil.tz.tzlocal()) \
             .strftime("%B %-d, %Y %H:%M:%S %Z")
 
@@ -713,8 +715,8 @@ class Html:
         url = "https://github.com/masneyb/shotwell-site-generator"
         output.write("<span class='generated_at'>Site generated from " + \
                      "<a href='https://wiki.gnome.org/Apps/Shotwell'>Shotwell</a> " + \
-                     "library at %s by <a href='%s'>shotwell-site-generator</a>.</span>" % \
-                     (html.escape(self.generated_at), url))
+                     "library at %s by <a href='%s'>shotwell-site-generator</a> %s.</span>" % \
+                     (html.escape(self.generated_at), url, self.version_label))
 
         output.write("</body>")
         output.write("</html>")
