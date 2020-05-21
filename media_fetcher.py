@@ -66,7 +66,7 @@ class Database:
                 all_media["events_by_year"][year]["comment"] = None
                 all_media["events_by_year"][year]["events"] = []
                 all_media["events_by_year"][year]["stats"] = self.__create_new_stats()
-                all_media["events_by_year"][year]["tags"] = set([])
+                all_media["events_by_year"][year]["tags"] = []
 
             all_media["events_by_year"][year]["events"].append(event)
             self.__sum_stats(all_media["events_by_year"][year]["stats"], event["stats"])
@@ -179,7 +179,7 @@ class Database:
             event["title"] = row["name"]
             event["comment"] = row["comment"]
             event["primary_source_id"] = row["primary_source_id"]
-            event["tags"] = set([])
+            event["tags"] = []
 
             thumbnail_basename = "%d.png" % (row["id"])
             dir_shard = self.__get_dir_hash(thumbnail_basename)
@@ -220,9 +220,11 @@ class Database:
                 media = all_media["media_by_id"][media_id]
                 tag["media"].append(media)
 
-                all_media["events_by_year"][media["year"]]["tags"].add((row["id"], row["name"]))
                 all_media["media_by_id"][media["media_id"]]["tags"].add((row["id"], row["name"]))
-                all_media["events_by_id"][media["event_id"]]["tags"].add((row["id"], row["name"]))
+                all_media["events_by_year"][media["year"]]["tags"] \
+                    .append((row["id"], row["name"]))
+                all_media["events_by_id"][media["event_id"]]["tags"] \
+                    .append((row["id"], row["name"]))
 
                 num_media_stat = "num_videos" if media_id.startswith("video") else "num_photos"
                 self.__add_media_to_stats(tag["stats"], num_media_stat, media)

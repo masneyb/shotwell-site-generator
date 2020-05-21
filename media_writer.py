@@ -19,6 +19,7 @@
 import datetime
 import html
 import os
+from collections import Counter
 import dateutil.tz
 import humanize
 from common import add_date_to_stats
@@ -446,16 +447,28 @@ class Html:
 
         return ret
 
-    def __get_event_and_year_tag_header_links(self, event):
-        if "tags" not in event or not event["tags"]:
+    def __get_event_and_year_tag_header_links(self, entity):
+        if "tags" not in entity or not entity["tags"]:
             return ""
 
-        tag_links = []
-        for tag_id, tag_name in self.__cleanup_tags(event["tags"]):
-            tag_links.append("<a href='../tag/%d.html'><span class='header_link'>%s</span></a>" % \
-                             (tag_id, html.escape(tag_name)))
+        cleaned_tags = {}
+        for tag_id, tag_name in self.__cleanup_tags(entity["tags"]):
+            cleaned_tags[tag_id] = tag_name
 
-        return self.__get_expandable_header_links("Tags", tag_links)
+        tag_counts = [*Counter(entity["tags"]).items()]
+        tag_counts.sort(key=lambda tag: (-tag[1], tag[0][1]))
+
+        tag_links = []
+        for tag in tag_counts:
+            tag_id = tag[0][0]
+
+            if tag_id not in cleaned_tags:
+                continue
+
+            tag_links.append("<a href='../tag/%d.html'><span class='header_link'>%s</span></a>" % \
+                             (tag_id, html.escape(cleaned_tags[tag_id])))
+
+        return self.__get_expandable_header_links("Popular Tags", tag_links)
 
     def __get_expandable_header_links(self, label, links):
         if not links:
