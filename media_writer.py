@@ -270,7 +270,7 @@ class Html:
         sep = " &nbsp; "
         output.write(self.__get_expandable_element("meta%s" % (media["media_id"]),
                                                    sep.join(summary), sep.join(summary + detailed),
-                                                   "media_metadata"))
+                                                   "media_metadata", "More"))
 
     def __write_ratings_dropdown(self, output, current_html_basename):
         output.write("<span class='media_ratings'>Photo Rating: ")
@@ -298,9 +298,9 @@ class Html:
             short_value = html.escape(value[0:50].strip() + "...")
             long_value = html.escape(value).replace("\n", "<br/>")
 
-        return self.__get_expandable_element(name, short_value, long_value, span_class)
+        return self.__get_expandable_element(name, short_value, long_value, span_class, "More")
 
-    def __get_expandable_element(self, name, short_value, long_value, span_class):
+    def __get_expandable_element(self, name, short_value, long_value, span_class, more_label):
         if not long_value or short_value == long_value:
             return "<span class='%s'>%s</span>" % (span_class, short_value)
 
@@ -316,8 +316,8 @@ class Html:
 
         ret = "<span id='%s' class='%s' style='display: %s;'>%s" % \
               (short_id, span_class, short_display, short_value) + \
-              " &nbsp; <span class='more_less' onClick=\"%s\">More</span>" % \
-              (self.__js_hide_show(short_id, long_id)) + \
+              " &nbsp; <span class='more_less' onClick=\"%s\">%s</span>" % \
+              (self.__js_hide_show(short_id, long_id), more_label) + \
               "</span>"
 
         ret += "<span id='%s' class='%s' style='display: %s;'>%s" % \
@@ -461,10 +461,11 @@ class Html:
         if not links:
             return ""
 
+        more_label = "+%s more" % (len(links) - 10)
         return self.__get_expandable_element(label.replace(" ", "_").lower(),
                                              "%s: %s" % (label, "".join(links[0:10])),
                                              "%s: %s" % (label, "".join(links)),
-                                             "header_links")
+                                             "header_links", more_label)
 
     def __get_tag_event_links(self, tag):
         event_ids = set([])
