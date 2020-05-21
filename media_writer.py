@@ -455,18 +455,21 @@ class Html:
         for tag_id, tag_name in self.__cleanup_tags(entity["tags"]):
             cleaned_tags[tag_id] = tag_name
 
-        tag_counts = [*Counter(entity["tags"]).items()]
-        tag_counts.sort(key=lambda tag: (-tag[1], tag[0][1]))
-
-        tag_links = []
-        for tag in tag_counts:
-            tag_id = tag[0][0]
-
+        tag_counts = []
+        tmp_tag_counts = [*Counter(entity["tags"]).items()]
+        for (tag_tuple, count) in tmp_tag_counts:
+            tag_id = tag_tuple[0]
             if tag_id not in cleaned_tags:
                 continue
 
+            tag_counts.append((tag_id, cleaned_tags[tag_id], count))
+
+        tag_counts.sort(key=lambda tag: (-tag[2], tag[1]))
+
+        tag_links = []
+        for tag in tag_counts:
             tag_links.append("<a href='../tag/%d.html'><span class='header_link'>%s</span></a>" % \
-                             (tag_id, html.escape(cleaned_tags[tag_id])))
+                             (tag[0], html.escape(tag[1])))
 
         return self.__get_expandable_header_links("Popular Tags", tag_links)
 
