@@ -457,8 +457,7 @@ class Html:
 
         tag_counts = []
         tmp_tag_counts = [*Counter(entity["tags"]).items()]
-        for (tag_tuple, count) in tmp_tag_counts:
-            tag_id = tag_tuple[0]
+        for (tag_id, count) in tmp_tag_counts:
             if tag_id not in cleaned_tags:
                 continue
 
@@ -782,7 +781,8 @@ class Html:
         all_tags = set(taglist)
         tag_name_to_id = {}
 
-        for tag_id, tag_name in all_tags:
+        for tag_id in all_tags:
+            tag_name = self.all_media["tags_by_id"][tag_id]["full_title"]
             if not tag_name.startswith("/"):
                 continue
 
@@ -795,9 +795,9 @@ class Html:
 
         for tag_name in tags_to_remove:
             tag_id = tag_name_to_id[tag_name]
-            all_tags.remove((tag_id, tag_name))
+            all_tags.remove(tag_id)
 
-        ret = [(tag_id, tag_name.split("/")[-1]) for tag_id, tag_name in all_tags]
+        ret = [(tag_id, self.all_media["tags_by_id"][tag_id]["title"]) for tag_id in all_tags]
         ret.sort(key=lambda tag: tag[1])
 
         return ret

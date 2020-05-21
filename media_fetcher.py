@@ -201,6 +201,7 @@ class Database:
 
             tag = self.__create_event_or_tag(row["id"])
             tag["title"] = row["name"].split("/")[-1]
+            tag["full_title"] = row["name"]
             tag["comment"] = None
             tag["media"] = []
 
@@ -220,11 +221,9 @@ class Database:
                 media = all_media["media_by_id"][media_id]
                 tag["media"].append(media)
 
-                all_media["media_by_id"][media["media_id"]]["tags"].add((row["id"], row["name"]))
-                all_media["events_by_year"][media["year"]]["tags"] \
-                    .append((row["id"], row["name"]))
-                all_media["events_by_id"][media["event_id"]]["tags"] \
-                    .append((row["id"], row["name"]))
+                all_media["media_by_id"][media["media_id"]]["tags"].add(row["id"])
+                all_media["events_by_year"][media["year"]]["tags"].append(row["id"])
+                all_media["events_by_id"][media["event_id"]]["tags"].append(row["id"])
 
                 num_media_stat = "num_videos" if media_id.startswith("video") else "num_photos"
                 self.__add_media_to_stats(tag["stats"], num_media_stat, media)
