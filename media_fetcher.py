@@ -44,7 +44,6 @@ class Database:
 
         self.__fetch_media(all_media, min_rating)
         self.__fetch_events(all_media)
-        self.__fetch_tags(all_media)
 
         for event in all_media["events_by_id"].values():
             if event["date"] is None:
@@ -67,10 +66,13 @@ class Database:
                 all_media["events_by_year"][year]["comment"] = None
                 all_media["events_by_year"][year]["events"] = []
                 all_media["events_by_year"][year]["stats"] = self.__create_new_stats()
+                all_media["events_by_year"][year]["tags"] = set([])
 
             all_media["events_by_year"][year]["events"].append(event)
             self.__sum_stats(all_media["events_by_year"][year]["stats"], event["stats"])
             self.__sum_stats(all_media["all_stats"], event["stats"])
+
+        self.__fetch_tags(all_media)
 
         thumbnail_basedir = os.path.join(self.dest_thumbs_directory, "year")
         if not os.path.isdir(thumbnail_basedir):
@@ -218,6 +220,7 @@ class Database:
                 media = all_media["media_by_id"][media_id]
                 tag["media"].append(media)
 
+                all_media["events_by_year"][media["year"]]["tags"].add((row["id"], row["name"]))
                 all_media["media_by_id"][media["media_id"]]["tags"].add((row["id"], row["name"]))
                 all_media["events_by_id"][media["event_id"]]["tags"].add((row["id"], row["name"]))
 
@@ -269,7 +272,11 @@ class Database:
         media["title"] = row["title"]
         media["comment"] = row["comment"]
         media["filesize"] = row["filesize"]
+
         media["exposure_time"] = row["exposure_time"]
+        date = datetime.datetime.fromtimestamp(row["exposure_time"])
+        media["year"] = date.strftime("%Y")
+
         media["rating"] = row["rating"]
         media["tags"] = set([])
         media["shotwell_thumbnail_path"] = self.__get_shotwell_thumbnail_path(media_id)

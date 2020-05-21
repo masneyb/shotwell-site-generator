@@ -137,12 +137,12 @@ class Html:
                              reverse=True)
 
             self.__write_media_html_files(["tag", str(tag["id"])], "Tag: %s" % (tag["title"]),
-                                          None, tag["stats"], self.__get_tag_links(tag),
+                                          None, tag["stats"], self.__get_tag_page_header_links(tag),
                                           shown_tags + shown_media, None, None, None)
 
         self.__write_tag_index_html_files()
 
-    def __get_tag_links(self, tag):
+    def __get_tag_page_header_links(self, tag):
         ret = ""
 
         links = []
@@ -358,12 +358,15 @@ class Html:
         return all_year_index
 
     def __get_year_extra_links(self, all_media_index, year):
-        ret = "<span class='header_links'>"
+        ret = ""
 
         if year in all_media_index["year"]:
+            ret += "<span class='header_links'>"
             ret += self.__get_all_media_link(all_media_index["year"][year], "year")
+            ret += "</span>"
 
-        ret += "</span>"
+        ret += self.__get_event_and_year_tag_header_links(self.all_media["events_by_year"][year])
+
 
         return ret
 
@@ -439,11 +442,11 @@ class Html:
 
         ret += "</span>"
 
-        ret += self.__get_event_tag_links(event)
+        ret += self.__get_event_and_year_tag_header_links(event)
 
         return ret
 
-    def __get_event_tag_links(self, event):
+    def __get_event_and_year_tag_header_links(self, event):
         if "tags" not in event or not event["tags"]:
             return ""
 
