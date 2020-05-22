@@ -347,7 +347,8 @@ class Database:
                                         metadata["Exif.GPSInfo.GPSLatitudeRef"].value)
             lon = self.__convert_ddmmss(metadata["Exif.GPSInfo.GPSLongitude"].value,
                                         metadata["Exif.GPSInfo.GPSLongitudeRef"].value)
-            ret.append("GPS %.5f,%.5f" % (lat, lon))
+            if lat != 0.0 and lon != 0.0:
+                ret.append("GPS %.5f,%.5f" % (lat, lon))
 
         aperture = metadata.get_aperture()
         if aperture:
