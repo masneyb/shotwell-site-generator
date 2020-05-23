@@ -742,10 +742,15 @@ class Html:
         min_parts = self.__get_date_parts(min_timestamp)
         max_parts = self.__get_date_parts(max_timestamp)
 
-        if min_parts != max_parts and min_parts["month"] and \
-           min_parts["year"] == max_parts["year"] and min_parts["month"] == max_parts["month"]:
-            return "%s %s-%s, %s" % \
-                   (min_parts["month"], min_parts["day"], max_parts["day"], min_parts["year"])
+        if min_parts != max_parts and min_parts["month"]:
+            if min_parts["year"] == max_parts["year"] and min_parts["month"] == max_parts["month"]:
+                return "%s %s-%s, %s" % \
+                       (min_parts["month"], min_parts["day"], max_parts["day"], min_parts["year"])
+
+            if min_parts["year"] == max_parts["year"]:
+                return "%s %s-%s %s, %s" % \
+                       (min_parts["month"], min_parts["day"], max_parts["month"], max_parts["day"],
+                        min_parts["year"])
 
         min_str = self.__get_date_string(min_parts)
         max_str = self.__get_date_string(max_parts)
