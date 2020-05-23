@@ -604,6 +604,9 @@ class Html:
             self.__write_main_view_links(output, current_page_link[0],
                                          current_page_link[1] != "index" or page_number > 1)
 
+            if len(media_chunks) > 1:
+                self.__write_page_links(output, current_page_link, page_number, len(media_chunks))
+
             if media_indexer:
                 media_indexer(media_index_config, page_number, media_on_page)
 
