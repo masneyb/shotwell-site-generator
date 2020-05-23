@@ -631,7 +631,7 @@ class Html:
     def __write_page_links(self, output, current_page_link, page_number, total_pages):
         output.write("<span class='breadcrumbs'>")
 
-        if total_pages > 3:
+        if total_pages > 2:
             self.__write_page_link(output, current_page_link, page_number > 1, "|&lt;", 1)
 
         if total_pages > 25:
@@ -651,7 +651,7 @@ class Html:
             self.__write_page_link(output, current_page_link, page_number <= total_pages - 10,
                                    "&gt;&gt;&gt;&gt;", page_number + 10)
 
-        if total_pages > 3:
+        if total_pages > 2:
             self.__write_page_link(output, current_page_link, page_number < total_pages, "&gt;|",
                                    total_pages)
 
