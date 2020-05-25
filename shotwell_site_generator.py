@@ -104,7 +104,7 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--years-prior-are-approximate", default="2000")
     ARGPARSER.add_argument("--main-page-extra-link")
     ARGPARSER.add_argument("--main-page-extra-link-descr")
-    ARGPARSER.add_argument("--max-media-per-page", type=int, default=50)
+    ARGPARSER.add_argument("--max-media-per-page", type=int, default=24)
     ARGPARSER.add_argument("--default-view", default="media")
     ARGPARSER.add_argument("--ratings-to-skip", nargs="+", default=[])
     ARGPARSER.add_argument("--tags-to-skip", nargs="+", default=[])
