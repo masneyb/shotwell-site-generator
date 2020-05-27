@@ -224,7 +224,10 @@ class Database:
 
                 all_media["tags"].append(row["id"])
                 all_media["media_by_id"][media["media_id"]]["tags"].add(row["id"])
-                all_media["events_by_year"][media["year"]]["tags"].append(row["id"])
+
+                if media["year"] in all_media["events_by_year"]:
+                    all_media["events_by_year"][media["year"]]["tags"].append(row["id"])
+
                 all_media["events_by_id"][media["event_id"]]["tags"].append(row["id"])
 
                 num_media_stat = "num_videos" if media_id.startswith("video") else "num_photos"
