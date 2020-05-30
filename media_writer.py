@@ -303,9 +303,11 @@ class Html:
             short_value = html.escape(value[0:50].strip() + "...")
             long_value = html.escape(value).replace("\n", "<br/>")
 
-        return self.__get_expandable_element(name, short_value, long_value, span_class, "More")
+        return self.__get_expandable_element(name, short_value, long_value, span_class, "More",
+                                             True)
 
-    def __get_expandable_element(self, name, short_value, long_value, span_class, more_label):
+    def __get_expandable_element(self, name, short_value, long_value, span_class, more_label,
+                                 full_onclick=False):
         if not long_value or short_value == long_value:
             return "<span class='%s'>%s</span>" % (span_class, short_value)
 
@@ -319,16 +321,28 @@ class Html:
             short_display = "block"
             long_display = "none"
 
-        ret = "<span id='%s' class='%s' style='display: %s;'>%s" % \
-              (short_id, span_class, short_display, short_value) + \
-              " &nbsp; <span class='more_less' onClick=\"%s\">%s</span>" % \
-              (self.__js_hide_show(short_id, long_id), more_label) + \
+        if full_onclick:
+            span_class += " clickable"
+            short_outer_onclick = " onClick=\"%s\"" % (self.__js_hide_show(short_id, long_id))
+            long_outer_onclick = " onClick=\"%s\"" % (self.__js_hide_show(long_id, short_id))
+
+            short_inner_onclick = ""
+            long_inner_onclick = ""
+        else:
+            short_outer_onclick = ""
+            long_outer_onclick = ""
+
+            short_inner_onclick = " onClick=\"%s\"" % (self.__js_hide_show(short_id, long_id))
+            long_inner_onclick = " onClick=\"%s\"" % (self.__js_hide_show(long_id, short_id))
+
+        ret = "<span id='%s' class='%s' style='display: %s;'%s>%s" % \
+              (short_id, span_class, short_display, short_outer_onclick, short_value) + \
+              " &nbsp; <span class='more_less'%s>%s</span>" % (short_inner_onclick, more_label) + \
               "</span>"
 
-        ret += "<span id='%s' class='%s' style='display: %s;'>%s" % \
-               (long_id, span_class, long_display, long_value) + \
-               " &nbsp; <span class='more_less' onClick=\"%s\">Less</span>" % \
-               (self.__js_hide_show(long_id, short_id)) + \
+        ret += "<span id='%s' class='%s' style='display: %s;'%s>%s" % \
+               (long_id, span_class, long_display, long_outer_onclick, long_value) + \
+               " &nbsp; <span class='more_less'%s>Less</span>" % (long_inner_onclick) + \
                "</span>"
 
         return ret

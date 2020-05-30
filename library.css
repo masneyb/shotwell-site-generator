@@ -95,6 +95,10 @@ a {
 	cursor: pointer;
 }
 
+.clickable {
+	cursor: pointer;
+}
+
 .generated_at {
 	display: block;
 	font-size: 70%;
