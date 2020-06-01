@@ -21,7 +21,7 @@ import hashlib
 import logging
 import os
 import pyexiv2
-from common import add_date_to_stats
+from common import add_date_to_stats, cleanup_event_title
 
 class Database:
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
@@ -84,7 +84,8 @@ class Database:
             fspath = self.__get_thumbnail_fs_path(year_block["thumbnail_path"])
             candidate_photos = self._get_year_candidate_composite_photos(all_media,
                                                                          year_block["events"])
-            self.thumbnailer.create_composite_media_thumbnail(candidate_photos, fspath)
+            self.thumbnailer.create_composite_media_thumbnail("year %s" % (year),
+                                                              candidate_photos, fspath)
 
             year_block["events"].sort(key=lambda event: event["date"])
 
@@ -186,7 +187,8 @@ class Database:
             dir_shard = self.__get_dir_hash(thumbnail_basename)
             event["thumbnail_path"] = "event/%s/%s" % (dir_shard, thumbnail_basename)
             fspath = self.__get_thumbnail_fs_path(event["thumbnail_path"])
-            self.thumbnailer.create_composite_media_thumbnail(event["media"], fspath)
+            descr = "event %s" % (cleanup_event_title(event))
+            self.thumbnailer.create_composite_media_thumbnail(descr, event["media"], fspath)
 
         self.__fetch_event_max_dates(all_media)
 
@@ -237,7 +239,8 @@ class Database:
             dir_shard = self.__get_dir_hash(thumbnail_basename)
             tag["thumbnail_path"] = "tag/%s/%s" % (dir_shard, thumbnail_basename)
             fspath = self.__get_thumbnail_fs_path(tag["thumbnail_path"])
-            self.thumbnailer.create_composite_media_thumbnail(tag["media"], fspath)
+            self.thumbnailer.create_composite_media_thumbnail("tag %s" % (tag["full_title"]),
+                                                              tag["media"], fspath)
 
             all_media["tags_by_id"][row["id"]] = tag
             tags_by_name[row["name"]] = tag

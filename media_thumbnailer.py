@@ -28,7 +28,7 @@ class Imagemagick:
         self.thumbnail_size = thumbnail_size
         self.dest_thumbs_directory = dest_thumbs_directory
 
-    def create_composite_media_thumbnail(self, source_media, dest_filename):
+    def create_composite_media_thumbnail(self, title, source_media, dest_filename):
         base_dir = os.path.dirname(dest_filename)
         if not os.path.isdir(base_dir):
             os.makedirs(base_dir)
@@ -45,13 +45,14 @@ class Imagemagick:
             return
 
         if not source_media:
-            logging.warning("Creating empty thumbnail %s due to no media", dest_filename)
+            logging.warning("Creating empty thumbnail %s due to no media in %s",
+                            dest_filename, title)
             cmd = ["convert", "-size", self.thumbnail_size, "xc:lightgray", dest_filename]
             subprocess.run(cmd, check=False)
             pathlib.Path(tn_idx_file).write_text(tn_idx_contents)
             return
 
-        logging.info("Generating thumbnail %s", dest_filename)
+        logging.info("Generating composite thumbnail for %s: %s", title, dest_filename)
 
         max_photos, tile_size, geometry = self.__get_montage_tile_props(len(source_media))
         source_media = source_media[0:max_photos]
@@ -132,7 +133,7 @@ class Imagemagick:
         subprocess.run(resize_cmd, check=False)
 
 class Noop:
-    def create_composite_media_thumbnail(self, source_media, dest_filename):
+    def create_composite_media_thumbnail(self, title, source_media, dest_filename):
         pass
 
     def create_rounded_and_square_thumbnail(self, source_image, rotate, resized_image,

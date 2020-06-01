@@ -22,7 +22,7 @@ import os
 from collections import Counter
 import dateutil.tz
 import humanize
-from common import add_date_to_stats
+from common import add_date_to_stats, cleanup_event_title
 
 YEAR_FRAME_SIZE = 4
 
@@ -254,7 +254,7 @@ class Html:
             detailed.append("%sx%s" % (media["width"], media["height"]))
 
         if "event_id" in media and media["event_id"]:
-            title = self.__cleanup_event_title(self.all_media["events_by_id"][media["event_id"]])
+            title = cleanup_event_title(self.all_media["events_by_id"][media["event_id"]])
             detailed.append("<a href='../event/%d.html'>Event: %s</a>" % \
                             (media["event_id"], html.escape(title)))
 
@@ -419,7 +419,7 @@ class Html:
 
         for current_event_index, event in enumerate(year_block["events"]):
             breadcrumb_config = {}
-            breadcrumb_config["to_html_label"] = self.__cleanup_event_title
+            breadcrumb_config["to_html_label"] = cleanup_event_title
             breadcrumb_config["to_html_filename"] = lambda evt: "%s.html" % (evt["id"])
 
             breadcrumb_config["current_index"] = current_event_index
@@ -521,16 +521,13 @@ class Html:
         for event in events:
             event_links.append("<a href='../event/%d.html'>" % (event["id"]) + \
                                "<span class='header_link'>%s (%s)" % \
-                               (html.escape(self.__cleanup_event_title(event)),
+                               (html.escape(cleanup_event_title(event)),
                                 self.__get_date_range(event["stats"]["min_date"],
                                                       event["stats"]["max_date"])) + \
                                "</span>" + \
                                "</a>")
 
         return self.__get_expandable_header_links("Events", event_links)
-
-    def __cleanup_event_title(self, event):
-        return event["title"] if event["title"] else "Unnamed %s" % (event["id"])
 
     def __write_breadcrumbs(self, output, breadcrumb_config):
         current_index = breadcrumb_config["current_index"]

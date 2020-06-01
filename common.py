@@ -29,3 +29,6 @@ def add_date_to_stats(stats, date):
         stats["max_date"] = date
     else:
         stats["max_date"] = max(stats["max_date"], date)
+
+def cleanup_event_title(event):
+    return event["title"] if event["title"] else "Unnamed %s" % (event["id"])
