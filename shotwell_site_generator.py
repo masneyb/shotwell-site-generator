@@ -38,7 +38,8 @@ def process_photos(options):
 
         if rating == 0:
             thumbnailer = media_thumbnailer.Imagemagick(options.thumbnail_size,
-                                                        dest_thumbs_directory)
+                                                        dest_thumbs_directory,
+                                                        options.remove_stale_thumbnails)
         else:
             thumbnailer = media_thumbnailer.Noop()
 
@@ -60,6 +61,8 @@ def process_photos(options):
 
         write_redirect(os.path.join(options.dest_directory, str(rating), "index.html"),
                        "%s/index.html" % (options.default_view))
+
+        thumbnailer.remove_thumbnails()
 
     write_redirect(os.path.join(options.dest_directory, "index.html"),
                    "0/%s/index.html" % (options.default_view))
@@ -109,5 +112,6 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--ratings-to-skip", nargs="+", default=[])
     ARGPARSER.add_argument("--tags-to-skip", nargs="+", default=[])
     ARGPARSER.add_argument("--expand-all-elements", action="store_true", default=False)
+    ARGPARSER.add_argument("--remove-stale-thumbnails", action="store_true", default=False)
     ARGPARSER.add_argument("--version-label")
     process_photos(ARGPARSER.parse_args(sys.argv[1:]))

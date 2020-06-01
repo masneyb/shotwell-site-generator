@@ -24,9 +24,11 @@ import subprocess
 COMPOSITE_FRAME_SIZE = 4
 
 class Imagemagick:
-    def __init__(self, thumbnail_size, dest_thumbs_directory):
+    def __init__(self, thumbnail_size, dest_thumbs_directory, remove_stale_thumbnails):
         self.thumbnail_size = thumbnail_size
         self.dest_thumbs_directory = dest_thumbs_directory
+        self.remove_stale_thumbnails = remove_stale_thumbnails
+        self.generated_thumbnails = set([])
 
     def create_composite_media_thumbnail(self, title, source_media, dest_filename):
         base_dir = os.path.dirname(dest_filename)
@@ -41,6 +43,10 @@ class Imagemagick:
         # regenerated.
         tn_idx_file = "%s.idx" % (dest_filename)
         tn_idx_contents = ','.join([media["media_id"] for media in source_media])
+
+        self.generated_thumbnails.add(dest_filename)
+        self.generated_thumbnails.add(tn_idx_file)
+
         if self.__is_thumbnail_up_to_date(dest_filename, tn_idx_file, tn_idx_contents):
             return
 
@@ -107,6 +113,8 @@ class Imagemagick:
         if not os.path.isfile(source_image):
             logging.warning("Cannot find filename %s", source_image)
             return
+
+        self.generated_thumbnails.add(resized_image)
         if os.path.isfile(resized_image):
             return
 
@@ -132,10 +140,26 @@ class Imagemagick:
                        "-compose", "CopyOpacity", "-composite", resized_image]
         subprocess.run(resize_cmd, check=False)
 
+    def remove_thumbnails(self):
+        for root, _, filenames in os.walk(self.dest_thumbs_directory):
+            for filename in filenames:
+                path = os.path.join(root, filename)
+                if path in self.generated_thumbnails:
+                    continue
+
+                if self.remove_stale_thumbnails:
+                    logging.info("Removing stale thumbnail %s", path)
+                    os.unlink(path)
+                else:
+                    logging.warning("Thumbnail %s is no longer used.", path)
+
 class Noop:
     def create_composite_media_thumbnail(self, title, source_media, dest_filename):
         pass
 
     def create_rounded_and_square_thumbnail(self, source_image, rotate, resized_image,
                                             overlay_icon):
+        pass
+
+    def remove_thumbnails(self):
         pass
