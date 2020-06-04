@@ -64,7 +64,10 @@ class Database:
                     all_media["events_by_year"][year]["tags"] = []
 
                 all_media["events_by_year"][year]["events"].append(event)
-                self.__sum_stats(all_media["events_by_year"][year]["stats"], event["stats"])
+
+                for media in event["media"]:
+                    if media["year"] == year:
+                        self.__add_media_to_stats(all_media["events_by_year"][year]["stats"], media)
 
             self.__sum_stats(all_media["all_stats"], event["stats"])
 
@@ -142,8 +145,8 @@ class Database:
             cursor = self.conn.cursor()
             for row in cursor.execute(qry, str(min_rating)):
                 media_id = "video-%016x" % (row["id"])
-                media = self.__add_media(all_media, row, media_id, "num_videos", row["filename"],
-                                         None, 0, self.play_icon)
+                media = self.__add_media(all_media, row, media_id, row["filename"], None, 0,
+                                         self.play_icon)
                 media["clip_duration"] = row["clip_duration"]
 
     def __process_photo_row(self, all_media, row, download_source, is_raw):
@@ -164,8 +167,8 @@ class Database:
             overlay_icon = None
 
         media_id = "thumb%016x" % (row["id"])
-        media = self.__add_media(all_media, row, media_id, "num_photos", download_source,
-                                 row["filename"], rotate, overlay_icon)
+        media = self.__add_media(all_media, row, media_id, download_source, row["filename"],
+                                 rotate, overlay_icon)
         media["exif"] = self.__get_photo_metadata(row["filename"])
         media["width"] = row["width"]
         media["height"] = row["height"]
@@ -255,8 +258,7 @@ class Database:
                 all_media["events_by_year"][media["year"]]["tags"].append(row["id"])
                 all_media["events_by_id"][media["event_id"]]["tags"].append(row["id"])
 
-                num_media_stat = "num_videos" if media_id.startswith("video") else "num_photos"
-                self.__add_media_to_stats(tag["stats"], num_media_stat, media)
+                self.__add_media_to_stats(tag["stats"], media)
 
             thumbnail_basename = "%d.png" % (tag["id"])
             dir_shard = self.__get_dir_hash(thumbnail_basename)
@@ -292,8 +294,8 @@ class Database:
         else:
             event["date"] = max(event["date"], date)
 
-    def __add_media(self, all_media, row, media_id, num_media_stat, download_source,
-                    thumbnail_source, rotate, overlay_icon):
+    def __add_media(self, all_media, row, media_id, download_source, thumbnail_source, rotate,
+                    overlay_icon):
         # pylint: disable=too-many-arguments
 
         media = {}
@@ -334,7 +336,7 @@ class Database:
             # Points to thumbnail for that year. Will be filled in later.
             event["years"][media["year"]] = None
 
-        self.__add_media_to_stats(event["stats"], num_media_stat, media)
+        self.__add_media_to_stats(event["stats"], media)
 
         return media
 
@@ -369,7 +371,8 @@ class Database:
         add_date_to_stats(total_stats, stats["min_date"])
         add_date_to_stats(total_stats, stats["max_date"])
 
-    def __add_media_to_stats(self, stats, num_media_stat, media):
+    def __add_media_to_stats(self, stats, media):
+        num_media_stat = "num_videos" if media["media_id"].startswith("video") else "num_photos"
         stats[num_media_stat] += 1
 
         stats["total_filesize"] += media["filesize"]
