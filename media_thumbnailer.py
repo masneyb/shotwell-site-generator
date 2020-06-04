@@ -36,7 +36,8 @@ class Imagemagick:
             os.makedirs(base_dir)
 
         source_media = sorted(source_media,
-                              key=lambda media: (media["rating"], media["exposure_time"]),
+                              key=lambda media: (media["rating"] + media["extra_rating"],
+                                                 media["exposure_time"]),
                               reverse=True)
 
         # Write a separate index file for each thumbnail to determine if the thumbnail needs

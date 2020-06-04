@@ -177,8 +177,11 @@ class Database:
             event = self.__get_event(row["id"], all_media)
             event["title"] = row["name"]
             event["comment"] = row["comment"]
-            event["primary_source_id"] = row["primary_source_id"]
             event["tags"] = []
+
+            event["primary_source_id"] = row["primary_source_id"]
+            if event["primary_source_id"] in all_media["media_by_id"]:
+                all_media["media_by_id"][event["primary_source_id"]]["extra_rating"] += 1
 
             thumbnail_basename = "%d.png" % (row["id"])
             dir_shard = self.__get_dir_hash(thumbnail_basename)
@@ -281,6 +284,10 @@ class Database:
         media["year"] = date.strftime("%Y")
 
         media["rating"] = row["rating"]
+        # When generating composite thumbnails, give photos that are used as an event thumbnail in
+        # Shotwell an extra star rating.
+        media["extra_rating"] = 0
+
         media["tags"] = set([])
         media["shotwell_thumbnail_path"] = self.__get_shotwell_thumbnail_path(media_id)
 
