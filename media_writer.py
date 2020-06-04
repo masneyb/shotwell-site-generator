@@ -62,6 +62,7 @@ class Html:
                 continue
 
             shown_media.append({"media": year_block, "link": "%s.html" % (year),
+                                "thumbnail_path": year_block["thumbnail_path"],
                                 "show_daterange": False})
 
         self.__write_media_html_files(["year", "index"], "%s: All Years" % (self.main_title),
@@ -85,7 +86,9 @@ class Html:
         for event in self.all_media["events_by_id"].values():
             for media in event["media"]:
                 relpath = "../../original/%s" % (media["filename"])
-                shown_media.append({"media": media, "link": relpath, "show_daterange": True})
+                shown_media.append({"media": media, "link": relpath,
+                                    "thumbnail_path": media["thumbnail_path"],
+                                    "show_daterange": True})
 
         shown_media.sort(key=lambda media: media["media"]["exposure_time"], reverse=True)
 
@@ -125,6 +128,7 @@ class Html:
             for media in tag["child_tags"]:
                 shown_tags.append({"media": media,
                                    "link": "%s.html" % (media["id"]),
+                                   "thumbnail_path": media["thumbnail_path"],
                                    "show_daterange": True})
 
             shown_tags.sort(key=lambda media: media["media"]["title"])
@@ -133,6 +137,7 @@ class Html:
             for media in tag["media"]:
                 shown_media.append({"media": media,
                                     "link": "../../original/%s" % (media["filename"]),
+                                    "thumbnail_path": media["thumbnail_path"],
                                     "show_daterange": False})
 
             shown_media.sort(key=lambda media: media["media"]["exposure_time"],
@@ -170,6 +175,7 @@ class Html:
 
             shown_tags.append({"media": tag,
                                "link": "%s.html" % (tag["id"]),
+                               "thumbnail_path": tag["thumbnail_path"],
                                "show_daterange": True})
 
         shown_tags.sort(key=lambda media: media["media"]["title"])
@@ -200,7 +206,7 @@ class Html:
 
         output.write("</span>")
 
-    def __write_media_block(self, output, media, link, show_daterange):
+    def __write_media_block(self, output, media, thumbnail_path, link, show_daterange):
         output.write("<span class='media'>")
 
         if "media_id" in media:
@@ -210,7 +216,7 @@ class Html:
             output.write("<a href='%s'>" % (html.escape(link)))
 
         output.write("<span class='media_thumb'><img src='../../thumbnails/%s'/></span>" % \
-                     (html.escape(media["thumbnail_path"])))
+                     (html.escape(thumbnail_path)))
 
         output.write("</a>")
 
@@ -357,6 +363,7 @@ class Html:
 
             event_html_filename = str(event["id"])
             shown_media.append({"media": event, "link": "../event/%s.html" % (event_html_filename),
+                                "thumbnail_path": event["years"][year],
                                 "show_daterange": True})
 
         breadcrumb_config = {}
@@ -401,6 +408,7 @@ class Html:
                 continue
 
             shown_media.append({"media": event, "link": "%d.html" % (event["id"]),
+                                "thumbnail_path": event["thumbnail_path"],
                                 "show_daterange": True})
 
         shown_media.sort(key=lambda media: media["media"]["date"], reverse=True)
@@ -434,7 +442,9 @@ class Html:
             shown_media = []
             for media in event["media"]:
                 relpath = "../../original/%s" % (media["filename"])
-                shown_media.append({"media": media, "link": relpath, "show_daterange": True})
+                shown_media.append({"media": media, "link": relpath,
+                                    "thumbnail_path": media["thumbnail_path"],
+                                    "show_daterange": True})
 
             self.__write_media_html_files(["event", str(event["id"])],
                                           "Event: %s" % (event["title"]), event["comment"],
@@ -620,8 +630,8 @@ class Html:
                 media_indexer(media_index_config, page_number, media_on_page)
 
             for media in media_on_page:
-                self.__write_media_block(output, media["media"], media["link"],
-                                         media["show_daterange"])
+                self.__write_media_block(output, media["media"], media["thumbnail_path"],
+                                         media["link"], media["show_daterange"])
 
             if len(media_chunks) > 1:
                 self.__write_page_links(output, current_page_link, page_number, len(media_chunks))

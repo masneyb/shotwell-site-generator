@@ -53,7 +53,7 @@ class Database:
 
             event["media"].sort(key=lambda media: media["exposure_time"])
 
-            for year in event["years"]:
+            for year in event["years"].keys():
                 if year not in all_media["events_by_year"]:
                     all_media["events_by_year"][year] = {}
                     all_media["events_by_year"][year]["media_id"] = str(year)
@@ -183,14 +183,40 @@ class Database:
             if event["primary_source_id"] in all_media["media_by_id"]:
                 all_media["media_by_id"][event["primary_source_id"]]["extra_rating"] += 1
 
-            thumbnail_basename = "%d.png" % (row["id"])
-            dir_shard = self.__get_dir_hash(thumbnail_basename)
-            event["thumbnail_path"] = "event/%s/%s" % (dir_shard, thumbnail_basename)
-            fspath = self.__get_thumbnail_fs_path(event["thumbnail_path"])
-            descr = "event %s" % (cleanup_event_title(event))
-            self.thumbnailer.create_composite_media_thumbnail(descr, event["media"], fspath)
+            basedir = "event/%s" % (self.__get_dir_hash(str(row["id"])))
+            # Overall event thumbnail across all years
+            event["thumbnail_path"] = self.__generate_event_thumbnail(basedir, event, None)
+
+            if len(event["years"]) == 1:
+                # Event only spans one year, so use the already generated thumbnail.
+                year = list(event["years"].keys())[0]
+                event["years"][year] = event["thumbnail_path"]
+            else:
+                # Each year gets its own event thumbnail
+                for year in event["years"].keys():
+                    event["years"][year] = self.__generate_event_thumbnail(basedir, event, year)
 
         self.__fetch_event_max_dates(all_media)
+
+    def __generate_event_thumbnail(self, basedir, event, year):
+        candidate_media = []
+        for media in event["media"]:
+            if not year or media["year"] == year:
+                candidate_media.append(media)
+
+        if not year:
+            thumbnail_basename = "%d.png" % (event["id"])
+            descr = "event %s (all years)" % (cleanup_event_title(event))
+        else:
+            thumbnail_basename = "%d_%s.png" % (event["id"], year)
+            descr = "event %s, year %s" % (cleanup_event_title(event), year)
+
+        thumbnail_path = "%s/%s" % (basedir, thumbnail_basename)
+        fspath = self.__get_thumbnail_fs_path(thumbnail_path)
+
+        self.thumbnailer.create_composite_media_thumbnail(descr, candidate_media, fspath)
+
+        return thumbnail_path
 
     def __fetch_tags(self, all_media):
         tags_by_name = {}
@@ -304,7 +330,9 @@ class Database:
 
         event = self.__get_event(row["event_id"], all_media)
         event["media"].append(media)
-        event["years"].add(media["year"])
+        if media["year"] not in event["years"]:
+            # Points to thumbnail for that year. Will be filled in later.
+            event["years"][media["year"]] = None
 
         self.__add_media_to_stats(event["stats"], num_media_stat, media)
 
@@ -315,7 +343,7 @@ class Database:
             return all_media["events_by_id"][event_id]
 
         event = self.__create_event_or_tag(event_id)
-        event["years"] = set([])
+        event["years"] = {}
         event["date"] = None
         all_media["events_by_id"][event_id] = event
 
