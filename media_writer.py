@@ -82,11 +82,10 @@ class Html:
 
     def write_all_media_index_file(self):
         shown_media = []
-        for year in self.all_media["events_by_year"].values():
-            for event in year["events"]:
-                for media in event["media"]:
-                    relpath = "../../original/%s" % (media["filename"])
-                    shown_media.append({"media": media, "link": relpath, "show_daterange": True})
+        for event in self.all_media["events_by_id"].values():
+            for media in event["media"]:
+                relpath = "../../original/%s" % (media["filename"])
+                shown_media.append({"media": media, "link": relpath, "show_daterange": True})
 
         shown_media.sort(key=lambda media: media["media"]["exposure_time"], reverse=True)
 
@@ -349,8 +348,7 @@ class Html:
 
     def __write_year_html_file(self, all_years, current_year_index, all_media_index):
         year = all_years[current_year_index]
-        events_by_year = self.all_media["events_by_year"]
-        year_block = events_by_year[year]
+        year_block = self.all_media["events_by_year"][year]
 
         shown_media = []
         for event in year_block["events"]:
@@ -397,13 +395,13 @@ class Html:
 
     def __write_event_index_file(self):
         shown_media = []
-        for year in self.all_media["events_by_year"].values():
-            for event in year["events"]:
-                if not self.__has_shown_media(event["stats"]) and self.min_media_rating > 0:
-                    continue
+        for event in self.all_media["events_by_id"].values():
+            if event["date"] is None or \
+               (not self.__has_shown_media(event["stats"]) and self.min_media_rating > 0):
+                continue
 
-                shown_media.append({"media": event, "link": "%d.html" % (event["id"]),
-                                    "show_daterange": True})
+            shown_media.append({"media": event, "link": "%d.html" % (event["id"]),
+                                "show_daterange": True})
 
         shown_media.sort(key=lambda media: media["media"]["date"], reverse=True)
 

@@ -53,24 +53,19 @@ class Database:
 
             event["media"].sort(key=lambda media: media["exposure_time"])
 
-            if event["id"] == -1:
-                year = ""
-                year_title = "No Event"
-            else:
-                date = datetime.datetime.fromtimestamp(event["date"])
-                year = year_title = date.strftime("%Y")
+            for year in event["years"]:
+                if year not in all_media["events_by_year"]:
+                    all_media["events_by_year"][year] = {}
+                    all_media["events_by_year"][year]["media_id"] = str(year)
+                    all_media["events_by_year"][year]["title"] = str(year)
+                    all_media["events_by_year"][year]["comment"] = None
+                    all_media["events_by_year"][year]["events"] = []
+                    all_media["events_by_year"][year]["stats"] = self.__create_new_stats()
+                    all_media["events_by_year"][year]["tags"] = []
 
-            if year not in all_media["events_by_year"]:
-                all_media["events_by_year"][year] = {}
-                all_media["events_by_year"][year]["media_id"] = str(year)
-                all_media["events_by_year"][year]["title"] = year_title
-                all_media["events_by_year"][year]["comment"] = None
-                all_media["events_by_year"][year]["events"] = []
-                all_media["events_by_year"][year]["stats"] = self.__create_new_stats()
-                all_media["events_by_year"][year]["tags"] = []
+                all_media["events_by_year"][year]["events"].append(event)
+                self.__sum_stats(all_media["events_by_year"][year]["stats"], event["stats"])
 
-            all_media["events_by_year"][year]["events"].append(event)
-            self.__sum_stats(all_media["events_by_year"][year]["stats"], event["stats"])
             self.__sum_stats(all_media["all_stats"], event["stats"])
 
         self.__fetch_tags(all_media)
@@ -82,16 +77,17 @@ class Database:
         for year, year_block in all_media["events_by_year"].items():
             year_block["thumbnail_path"] = "year/%s" % ("%s.png" % (year))
             fspath = self.__get_thumbnail_fs_path(year_block["thumbnail_path"])
-            candidate_photos = self._get_year_candidate_composite_photos(all_media,
-                                                                         year_block["events"])
+            candidate_photos = self.__get_year_candidate_composite_photos(all_media,
+                                                                          year,
+                                                                          year_block["events"])
             self.thumbnailer.create_composite_media_thumbnail("year %s" % (year),
                                                               candidate_photos, fspath)
 
-            year_block["events"].sort(key=lambda event: event["date"])
+            year_block["events"].sort(key=lambda event: event["stats"]["min_date"], reverse=True)
 
         return all_media
 
-    def _get_year_candidate_composite_photos(self, all_media, events):
+    def __get_year_candidate_composite_photos(self, all_media, year, events):
         ret = []
 
         # First try to see if there's enough events in the year. Use the primary photo
@@ -100,14 +96,18 @@ class Database:
             if event["primary_source_id"] not in all_media["media_by_id"]:
                 continue
 
-            ret.append(all_media["media_by_id"][event["primary_source_id"]])
+            media = all_media["media_by_id"][event["primary_source_id"]]
+            if media["year"] == year:
+                ret.append(all_media["media_by_id"][event["primary_source_id"]])
 
         if len(ret) < 10:
             # If there's not enough events for the year, then use all photos to fill out
             # the thumbnail a little more.
             ret = []
             for event in events:
-                ret = ret + event["media"]
+                for media in event["media"]:
+                    if media["year"] == year:
+                        ret.append(media)
 
         return ret
 
@@ -174,10 +174,7 @@ class Database:
         qry = "SELECT id, name, comment, primary_source_id FROM EventTable"
         cursor = self.conn.cursor()
         for row in cursor.execute(qry):
-            if row["id"] not in all_media["events_by_id"]:
-                all_media["events_by_id"][row["id"]] = self.__create_event_or_tag(row["id"])
-
-            event = all_media["events_by_id"][row["id"]]
+            event = self.__get_event(row["id"], all_media)
             event["title"] = row["name"]
             event["comment"] = row["comment"]
             event["primary_source_id"] = row["primary_source_id"]
@@ -226,10 +223,7 @@ class Database:
 
                 all_media["tags"].append(row["id"])
                 all_media["media_by_id"][media["media_id"]]["tags"].add(row["id"])
-
-                if media["year"] in all_media["events_by_year"]:
-                    all_media["events_by_year"][media["year"]]["tags"].append(row["id"])
-
+                all_media["events_by_year"][media["year"]]["tags"].append(row["id"])
                 all_media["events_by_id"][media["event_id"]]["tags"].append(row["id"])
 
                 num_media_stat = "num_videos" if media_id.startswith("video") else "num_photos"
@@ -301,17 +295,27 @@ class Database:
 
         all_media["media_by_id"][media_id] = media
 
-        if row["event_id"] not in all_media["events_by_id"]:
-            all_media["events_by_id"][row["event_id"]] = self.__create_event_or_tag(row["event_id"])
-
-        event = all_media["events_by_id"][row["event_id"]]
+        event = self.__get_event(row["event_id"], all_media)
         event["media"].append(media)
+        event["years"].add(media["year"])
+
         self.__add_media_to_stats(event["stats"], num_media_stat, media)
 
         return media
 
+    def __get_event(self, event_id, all_media):
+        if event_id in all_media["events_by_id"]:
+            return all_media["events_by_id"][event_id]
+
+        event = self.__create_event_or_tag(event_id)
+        event["years"] = set([])
+        event["date"] = None
+        all_media["events_by_id"][event_id] = event
+
+        return event
+
     def __create_event_or_tag(self, entity_id):
-        return {"id": entity_id, "media_id": str(entity_id), "date": None, "media": [],
+        return {"id": entity_id, "media_id": str(entity_id), "media": [],
                 "stats": self.__create_new_stats()}
 
     def __create_new_stats(self):
