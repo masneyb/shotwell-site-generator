@@ -278,21 +278,21 @@ class Database:
         # Ensure that events are sorted consistently across all of the different rating views
         # by fetching the maximum dates from the photo and video tables.
 
-        qry = "SELECT EventTable.id, MAX(PhotoTable.exposure_time) AS max_date " + \
+        qry = "SELECT EventTable.id, MIN(PhotoTable.exposure_time) AS max_date " + \
               "FROM PhotoTable, EventTable WHERE EventTable.id=PhotoTable.event_id " + \
               "GROUP BY EventTable.id"
         cursor = self.conn.cursor()
         for row in cursor.execute(qry):
-            self.__populate_max_event_date(all_media["events_by_id"][row["id"]], row["max_date"])
+            self.__populate_min_event_date(all_media["events_by_id"][row["id"]], row["max_date"])
 
-        qry = "SELECT EventTable.id, MAX(VideoTable.exposure_time) AS max_date " + \
+        qry = "SELECT EventTable.id, MIN(VideoTable.exposure_time) AS max_date " + \
               "FROM VideoTable, EventTable WHERE EventTable.id=VideoTable.event_id " + \
               "GROUP BY EventTable.id"
         cursor = self.conn.cursor()
         for row in cursor.execute(qry):
-            self.__populate_max_event_date(all_media["events_by_id"][row["id"]], row["max_date"])
+            self.__populate_min_event_date(all_media["events_by_id"][row["id"]], row["max_date"])
 
-    def __populate_max_event_date(self, event, date):
+    def __populate_min_event_date(self, event, date):
         if event["date"] is None:
             event["date"] = date
         else:
