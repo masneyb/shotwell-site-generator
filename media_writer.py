@@ -73,12 +73,15 @@ class Html:
         # breadcrumbs at the bottom of the generated year pages are correct.
         all_years.reverse()
 
+        all_year_index = {}
         for current_year_index, year in enumerate(all_years):
-            all_year_index = self.__write_year_html_file(all_years, current_year_index,
-                                                         all_media_index)
-            self.__write_event_html_files(all_years, current_year_index, all_media_index,
-                                          all_year_index)
+            all_year_index[year] = self.__write_year_html_file(all_years, current_year_index,
+                                                               all_media_index)
 
+        years = list(all_year_index.keys())
+        years.sort()
+
+        self.__write_event_html_files(all_media_index, all_year_index, years)
         self.__write_event_index_file()
 
     def write_all_media_index_file(self):
@@ -417,28 +420,8 @@ class Html:
                                       None, self.all_media["all_stats"], None, shown_media, None,
                                       None, None)
 
-    def __write_event_html_files(self, all_years, current_year_index, all_media_index,
-                                 all_year_index):
-        year = all_years[current_year_index]
-        events_by_year = self.all_media["events_by_year"]
-        year_block = events_by_year[year]
-
-        for current_event_index, event in enumerate(year_block["events"]):
-            breadcrumb_config = {}
-            breadcrumb_config["to_html_label"] = cleanup_event_title
-            breadcrumb_config["to_html_filename"] = lambda evt: "%s.html" % (evt["id"])
-
-            breadcrumb_config["current_index"] = current_event_index
-            breadcrumb_config["all_items"] = events_by_year[year]["events"]
-
-            if current_year_index > 0:
-                prev_year = all_years[current_year_index - 1]
-                breadcrumb_config["previous_group"] = events_by_year[prev_year]["events"][-1]
-
-            if current_year_index < len(all_years) - 1:
-                next_year = all_years[current_year_index + 1]
-                breadcrumb_config["next_group"] = events_by_year[next_year]["events"][0]
-
+    def __write_event_html_files(self, all_media_index, all_year_index, years):
+        for event in self.all_media["events_by_id"].values():
             shown_media = []
             for media in event["media"]:
                 relpath = "../../original/%s" % (media["filename"])
@@ -450,24 +433,31 @@ class Html:
                                           "Event: %s" % (event["title"]), event["comment"],
                                           event["stats"],
                                           self.__get_event_extra_links(event, all_media_index,
-                                                                       all_year_index, year),
-                                          shown_media, breadcrumb_config, None, None)
+                                                                       all_year_index, years),
+                                          shown_media, None, None, None)
 
-    def __get_event_extra_links(self, event, all_media_index, all_year_index, year):
+    def __get_event_extra_links(self, event, all_media_index, all_year_index, years):
         ret = "<span class='header_links'>"
 
         if event["id"] in all_media_index["event"]:
             ret += self.__get_all_media_link(all_media_index["event"][event["id"]], "event")
 
-        if event["id"] in all_year_index:
-            url_parts = self.__get_page_url_parts(["year", year],
-                                                  all_year_index[event["id"]]["page"])
-            ret += "<a href='../year/%s.html#%s'>" % (url_parts[-1],
-                                                      all_year_index[event["id"]]["media_id"]) + \
-                   "<span class='header_link'>All events in %s</span>" % (year) + \
-                   "</a>"
-
         ret += "</span>"
+
+        year_links = []
+        for year in years:
+            if not event["id"] in all_year_index[year]:
+                continue
+
+            idx = all_year_index[year][event["id"]]
+            url_parts = self.__get_page_url_parts(["year", year], idx["page"])
+
+            year_links.append("<a href='../year/%s.html#%s'>" % \
+                              (url_parts[-1], idx["media_id"]) + \
+                              "<span class='header_link'>%s</span>" % (year) + \
+                              "</a>")
+
+        ret += self.__get_expandable_header_links("Years with this event", year_links)
 
         ret += self.__get_popular_tag_header_links(event["tags"])
 
