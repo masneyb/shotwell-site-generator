@@ -63,7 +63,7 @@ class Html:
 
             shown_media.append({"media": year_block, "link": "%s.html" % (year),
                                 "thumbnail_path": year_block["thumbnail_path"],
-                                "show_daterange": False})
+                                "stats": year_block["stats"], "show_daterange": False})
 
         self.__write_media_html_files(["year", "index"], "%s: All Years" % (self.main_title),
                                       None, self.all_media["all_stats"], None, shown_media, None,
@@ -91,7 +91,7 @@ class Html:
                 relpath = "../../original/%s" % (media["filename"])
                 shown_media.append({"media": media, "link": relpath,
                                     "thumbnail_path": media["thumbnail_path"],
-                                    "show_daterange": True})
+                                    "stats": None, "show_daterange": True})
 
         shown_media.sort(key=lambda media: media["media"]["exposure_time"], reverse=True)
 
@@ -132,7 +132,7 @@ class Html:
                 shown_tags.append({"media": media,
                                    "link": "%s.html" % (media["id"]),
                                    "thumbnail_path": media["thumbnail_path"],
-                                   "show_daterange": True})
+                                   "stats": media["stats"], "show_daterange": True})
 
             shown_tags.sort(key=lambda media: media["media"]["title"])
 
@@ -141,7 +141,7 @@ class Html:
                 shown_media.append({"media": media,
                                     "link": "../../original/%s" % (media["filename"]),
                                     "thumbnail_path": media["thumbnail_path"],
-                                    "show_daterange": False})
+                                    "stats": None, "show_daterange": False})
 
             shown_media.sort(key=lambda media: media["media"]["exposure_time"],
                              reverse=True)
@@ -179,7 +179,7 @@ class Html:
             shown_tags.append({"media": tag,
                                "link": "%s.html" % (tag["id"]),
                                "thumbnail_path": tag["thumbnail_path"],
-                               "show_daterange": True})
+                               "stats": tag["stats"], "show_daterange": True})
 
         shown_tags.sort(key=lambda media: media["media"]["title"])
 
@@ -209,7 +209,7 @@ class Html:
 
         output.write("</span>")
 
-    def __write_media_block(self, output, media, thumbnail_path, link, show_daterange):
+    def __write_media_block(self, output, media, thumbnail_path, stats, link, show_daterange):
         output.write("<span class='media'>")
 
         if "media_id" in media:
@@ -227,13 +227,13 @@ class Html:
             output.write(self.__get_expandable_string("title%s" % (media["media_id"]),
                                                       media["title"], "media_title"))
 
-        if "stats" in media:
+        if stats:
             output.write("<span class='media_stats'>%s</span>" % \
-                         (self.__get_stats_description(media["stats"])))
+                         (self.__get_stats_description(stats)))
 
             if show_daterange:
-                date_range = self.__get_date_range(media["stats"]["min_date"],
-                                                   media["stats"]["max_date"])
+                date_range = self.__get_date_range(stats["min_date"],
+                                                   stats["max_date"])
                 if date_range:
                     output.write("<span class='media_date'>%s</span>" % (html.escape(date_range)))
 
@@ -366,7 +366,8 @@ class Html:
 
             event_html_filename = str(event["id"])
             shown_media.append({"media": event, "link": "../event/%s.html" % (event_html_filename),
-                                "thumbnail_path": event["years"][year],
+                                "thumbnail_path": event["years"][year]["thumbnail_path"],
+                                "stats": event["years"][year]["stats"],
                                 "show_daterange": True})
 
         breadcrumb_config = {}
@@ -412,7 +413,7 @@ class Html:
 
             shown_media.append({"media": event, "link": "%d.html" % (event["id"]),
                                 "thumbnail_path": event["thumbnail_path"],
-                                "show_daterange": True})
+                                "stats": event["stats"], "show_daterange": True})
 
         shown_media.sort(key=lambda media: media["media"]["date"], reverse=True)
 
@@ -427,7 +428,7 @@ class Html:
                 relpath = "../../original/%s" % (media["filename"])
                 shown_media.append({"media": media, "link": relpath,
                                     "thumbnail_path": media["thumbnail_path"],
-                                    "show_daterange": True})
+                                    "stats": None, "show_daterange": True})
 
             self.__write_media_html_files(["event", str(event["id"])],
                                           "Event: %s" % (event["title"]), event["comment"],
@@ -621,7 +622,7 @@ class Html:
 
             for media in media_on_page:
                 self.__write_media_block(output, media["media"], media["thumbnail_path"],
-                                         media["link"], media["show_daterange"])
+                                         media["stats"], media["link"], media["show_daterange"])
 
             if len(media_chunks) > 1:
                 self.__write_page_links(output, current_page_link, page_number, len(media_chunks))

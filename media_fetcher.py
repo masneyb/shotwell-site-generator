@@ -186,14 +186,15 @@ class Database:
             if event["primary_source_id"] in all_media["media_by_id"]:
                 all_media["media_by_id"][event["primary_source_id"]]["extra_rating"] += 1
 
-            basedir = "event/%s" % (self.__get_dir_hash(str(row["id"])))
             # Overall event thumbnail across all years
-            event["thumbnail_path"] = self.__generate_event_thumbnail(basedir, event, None)
+            basedir = "event/%s" % (self.__get_dir_hash(str(row["id"])))
+            overall_thumbnail = self.__generate_event_thumbnail(basedir, event, None)
+            event["thumbnail_path"] = overall_thumbnail["thumbnail_path"]
 
             if len(event["years"]) == 1:
                 # Event only spans one year, so use the already generated thumbnail.
                 year = list(event["years"].keys())[0]
-                event["years"][year] = event["thumbnail_path"]
+                event["years"][year] = overall_thumbnail
             else:
                 # Each year gets its own event thumbnail
                 for year in event["years"].keys():
@@ -202,10 +203,13 @@ class Database:
         self.__fetch_event_max_dates(all_media)
 
     def __generate_event_thumbnail(self, basedir, event, year):
+        stats = self.__create_new_stats()
+
         candidate_media = []
         for media in event["media"]:
             if not year or media["year"] == year:
                 candidate_media.append(media)
+                self.__add_media_to_stats(stats, media)
 
         if not year:
             thumbnail_basename = "%d.png" % (event["id"])
@@ -219,7 +223,7 @@ class Database:
 
         self.thumbnailer.create_composite_media_thumbnail(descr, candidate_media, fspath)
 
-        return thumbnail_path
+        return {"thumbnail_path": thumbnail_path, "stats": stats}
 
     def __fetch_tags(self, all_media):
         tags_by_name = {}
