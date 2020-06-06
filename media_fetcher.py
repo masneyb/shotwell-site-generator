@@ -118,7 +118,7 @@ class Database:
         # Download regular photos...
         qry = "SELECT event_id, id, filename, title, comment, filesize, exposure_time, " + \
               "rating, width, height, orientation FROM PhotoTable " + \
-              "WHERE rating >= ? AND develop_embedded_id = -1 " + \
+              "WHERE rating >= ? AND develop_embedded_id = -1 AND event_id != -1 " + \
               "ORDER BY PhotoTable.exposure_time"
         cursor = self.conn.cursor()
         for row in cursor.execute(qry, str(min_rating)):
@@ -133,7 +133,8 @@ class Database:
                   "PhotoTable.rating, PhotoTable.width, PhotoTable.height, " + \
                   "PhotoTable.orientation FROM PhotoTable, BackingPhotoTable " + \
                   "WHERE PhotoTable.rating >= ? AND PhotoTable.develop_embedded_id != -1 AND " + \
-                  "BackingPhotoTable.id=PhotoTable.develop_embedded_id " + \
+                  "BackingPhotoTable.id=PhotoTable.develop_embedded_id AND " + \
+                  "PhotoTable.event_id != -1 " + \
                   "ORDER BY PhotoTable.exposure_time"
             cursor = self.conn.cursor()
             for row in cursor.execute(qry, str(min_rating)):
@@ -141,7 +142,8 @@ class Database:
 
         if self.__does_table_exist("VideoTable"):
             qry = "SELECT event_id, id, filename, title, comment, filesize, exposure_time, " + \
-                  "rating, clip_duration FROM VideoTable WHERE rating >= ? ORDER BY exposure_time"
+                  "rating, clip_duration FROM VideoTable WHERE rating >= ? AND event_id != -1 " + \
+                  "ORDER BY exposure_time"
             cursor = self.conn.cursor()
             for row in cursor.execute(qry, str(min_rating)):
                 media_id = "video-%016x" % (row["id"])
