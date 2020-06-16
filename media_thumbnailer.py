@@ -35,10 +35,8 @@ class Imagemagick:
         if not os.path.isdir(base_dir):
             os.makedirs(base_dir)
 
-        source_media = sorted(source_media,
-                              key=lambda media: (media["rating"] + media["extra_rating"],
-                                                 media["exposure_time"]),
-                              reverse=True)
+        max_photos, tile_size, geometry = self.__get_montage_tile_props(len(source_media))
+        source_media = self.__get_composite_thumbnail_media(source_media, max_photos)
 
         # Write a separate index file for each thumbnail to determine if the thumbnail needs
         # regenerated.
@@ -61,9 +59,6 @@ class Imagemagick:
 
         logging.info("Generating composite thumbnail for %s: %s", title, dest_filename)
 
-        max_photos, tile_size, geometry = self.__get_montage_tile_props(len(source_media))
-        source_media = source_media[0:max_photos]
-
         file_ops = []
         for media in source_media:
             file_ops += ["(", media["shotwell_thumbnail_path"],
@@ -76,6 +71,42 @@ class Imagemagick:
         subprocess.run(cmd, check=False)
 
         pathlib.Path(tn_idx_file).write_text(tn_idx_contents)
+
+    def __get_composite_thumbnail_media(self, source_media, max_photos):
+        # Group the media by rating (largest to smallest). For each rating, if there is more
+        # media available than available slots, then grab every nth media to get a more
+        # representative sample over time for the composite thumbnail.
+
+        source_media_by_rating = {}
+        for media in source_media:
+            rating = media["rating"] + media["extra_rating"]
+            if rating not in source_media_by_rating:
+                source_media_by_rating[rating] = []
+
+            source_media_by_rating[rating].append(media)
+
+        all_ratings = list(source_media_by_rating.keys())
+        all_ratings.sort(reverse=True)
+
+        ret = []
+        remaining_spots = max_photos
+        for rating in all_ratings:
+            source_media_by_rating[rating].sort(key=lambda media: media["exposure_time"],
+                                                reverse=True)
+
+            num_media = len(source_media_by_rating[rating])
+            if num_media <= remaining_spots:
+                media_to_add = source_media_by_rating[rating]
+            else:
+                media_to_add = source_media_by_rating[rating][::int(num_media / remaining_spots)]
+                media_to_add = media_to_add[0:remaining_spots]
+
+            ret += media_to_add
+            remaining_spots -= len(media_to_add)
+            if remaining_spots == 0:
+                break
+
+        return ret
 
     def __is_thumbnail_up_to_date(self, thumbnail, tn_idx_file, tn_idx_contents):
         if not os.path.isfile(thumbnail):
