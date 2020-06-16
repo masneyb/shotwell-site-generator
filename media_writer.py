@@ -210,6 +210,8 @@ class Html:
         output.write("</span>")
 
     def __write_media_block(self, output, media, thumbnail_path, stats, link, show_daterange):
+        # pylint: disable=too-many-arguments
+
         output.write("<span class='media'>")
 
         if "media_id" in media:
@@ -316,6 +318,8 @@ class Html:
 
     def __get_expandable_element(self, name, short_value, long_value, span_class, more_label,
                                  full_onclick=False):
+        # pylint: disable=too-many-arguments,too-many-locals
+
         if not long_value or short_value == long_value:
             return "<span class='%s'>%s</span>" % (span_class, short_value)
 
