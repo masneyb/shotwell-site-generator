@@ -122,12 +122,10 @@ class Html:
 
             year = self.__get_date_parts(media["media"]["exposure_time"])["year"]
             if year not in config["year"]:
-                config["year"][year] = {"page": page_number,
-                                        "media_id": media["media"]["media_id"]}
+                config["year"][year] = {"page": page_number}
 
             if "event_id" in media["media"] and media["media"]["event_id"] not in config["event"]:
-                config["event"][media["media"]["event_id"]] = \
-                        {"page": page_number, "media_id": media["media"]["media_id"]}
+                config["event"][media["media"]["event_id"]] = {"page": page_number}
 
     def __all_event_indexer(self, config, page_number, media_on_page):
         for media in media_on_page:
@@ -136,14 +134,11 @@ class Html:
 
             year = self.__get_date_parts(media["media"]["exposure_time"])["year"]
             if year not in config[media["media"]["event_id"]]:
-                config[media["media"]["event_id"]][year] = \
-                        {"page": page_number, "media_id": media["media"]["media_id"]}
+                config[media["media"]["event_id"]][year] = {"page": page_number}
 
     def __all_year_indexer(self, config, page_number, media_on_page):
         for media in media_on_page:
-            if media["media"]["id"] not in config:
-                config[media["media"]["id"]] = {"page": page_number,
-                                                "media_id": media["media"]["id"]}
+            config[media["media"]["id"]] = {"page": page_number}
 
     def write_tag_html_files(self):
         for tag in self.all_media["tags_by_id"].values():
@@ -396,7 +391,7 @@ class Html:
             if all_event_index:
                 event_idx = all_event_index[event["id"]][year]
                 link = self.__get_page_url_with_anchor(["event", str(event["id"])],
-                                                       event_idx["page"], event_idx["media_id"])
+                                                       event_idx["page"])
             else:
                 link = "../event/%s.html" % (event["id"])
 
@@ -434,8 +429,8 @@ class Html:
         return ret
 
     def __get_all_media_link(self, link, description):
-        return "<a href='%s'>" % (self.__get_page_url_with_anchor(["media", "index"], link["page"],
-                                                                  link["media_id"])) + \
+        return "<a href='%s'>" % (self.__get_page_url_with_anchor(["media", "index"],
+                                                                  link["page"])) + \
                "<span class='header_link'>Other media near this %s</span>" % (description) + \
                "</a>"
 
@@ -493,7 +488,7 @@ class Html:
                     continue
 
                 idx = all_year_index[year][event["id"]]
-                link = self.__get_page_url_with_anchor(["year", year], idx["page"], idx["media_id"])
+                link = self.__get_page_url_with_anchor(["year", year], idx["page"])
                 year_links.append("<a href='%s'>" % (link) + \
                                   "<span class='header_link'>%s</span>" % (year) + \
                                   "</a>")
@@ -723,11 +718,8 @@ class Html:
 
         return this_page
 
-    def __get_page_url_with_anchor(self, current_page_link, page_number, anchor):
-        if page_number > 1:
-            current_page_link = self.__get_page_url_parts(current_page_link, page_number)
-            return "../%s/%s.html#%s" % (current_page_link[0], current_page_link[1], anchor)
-
+    def __get_page_url_with_anchor(self, current_page_link, page_number):
+        current_page_link = self.__get_page_url_parts(current_page_link, page_number)
         return "../%s/%s.html" % (current_page_link[0], current_page_link[1])
 
     def __write_html_header(self, path_subparts, title, stats, page_date_range):
