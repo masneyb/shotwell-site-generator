@@ -395,9 +395,8 @@ class Html:
             # FIXME - not needed once indexer is extracted out into a separate layer
             if all_event_index:
                 event_idx = all_event_index[event["id"]][year]
-                url_parts = self.__get_page_url_parts(["event", str(event["id"])],
-                                                      event_idx["page"])
-                link = "../event/%s.html#%s" % (url_parts[-1], event_idx["media_id"])
+                link = self.__get_page_url_with_anchor(["event", str(event["id"])],
+                                                       event_idx["page"], event_idx["media_id"])
             else:
                 link = "../event/%s.html" % (event["id"])
 
@@ -435,8 +434,8 @@ class Html:
         return ret
 
     def __get_all_media_link(self, link, description):
-        url_parts = self.__get_page_url_parts(["media", "index"], link["page"])
-        return "<a href='../media/%s.html#%s'>" % (url_parts[-1], link["media_id"]) + \
+        return "<a href='%s'>" % (self.__get_page_url_with_anchor(["media", "index"], link["page"],
+                                                                  link["media_id"])) + \
                "<span class='header_link'>Other media near this %s</span>" % (description) + \
                "</a>"
 
@@ -486,7 +485,7 @@ class Html:
 
         ret += "</span>"
 
-        # FIXME - not needed once indexer is extracted out into a separate layer
+        # FIXME - if statement not needed once indexer is extracted out into a separate layer
         if all_year_index:
             year_links = []
             for year in years:
@@ -494,10 +493,8 @@ class Html:
                     continue
 
                 idx = all_year_index[year][event["id"]]
-                url_parts = self.__get_page_url_parts(["year", year], idx["page"])
-
-                year_links.append("<a href='../year/%s.html#%s'>" % \
-                                  (url_parts[-1], idx["media_id"]) + \
+                link = self.__get_page_url_with_anchor(["year", year], idx["page"], idx["media_id"])
+                year_links.append("<a href='%s'>" % (link) + \
                                   "<span class='header_link'>%s</span>" % (year) + \
                                   "</a>")
 
@@ -725,6 +722,13 @@ class Html:
         this_page[-1] += "_%d" % (page_number)
 
         return this_page
+
+    def __get_page_url_with_anchor(self, current_page_link, page_number, anchor):
+        if page_number > 1:
+            current_page_link = self.__get_page_url_parts(current_page_link, page_number)
+            return "../%s/%s.html#%s" % (current_page_link[0], current_page_link[1], anchor)
+
+        return "../%s/%s.html" % (current_page_link[0], current_page_link[1])
 
     def __write_html_header(self, path_subparts, title, stats, page_date_range):
         # pylint: disable=too-many-arguments
