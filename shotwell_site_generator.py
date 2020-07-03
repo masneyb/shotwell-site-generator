@@ -69,10 +69,11 @@ def process_photos(options):
 
     shutil.copyfile(options.css, os.path.join(options.dest_directory, "library.css"))
 
-    media_symlink = os.path.join(options.dest_directory, "original")
-    if os.path.islink(media_symlink):
-        os.unlink(media_symlink)
-    os.symlink(options.input_media_path, media_symlink)
+    if not options.skip_original_symlink:
+        media_symlink = os.path.join(options.dest_directory, "original")
+        if os.path.islink(media_symlink):
+            os.unlink(media_symlink)
+        os.symlink(options.input_media_path, media_symlink)
 
 def get_ratings(ratings_to_skip):
     if "0" in ratings_to_skip:
@@ -113,5 +114,6 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--tags-to-skip", nargs="+", default=[])
     ARGPARSER.add_argument("--expand-all-elements", action="store_true", default=False)
     ARGPARSER.add_argument("--remove-stale-thumbnails", action="store_true", default=False)
+    ARGPARSER.add_argument("--skip-original-symlink", action="store_true", default=False)
     ARGPARSER.add_argument("--version-label")
     process_photos(ARGPARSER.parse_args(sys.argv[1:]))
