@@ -65,9 +65,9 @@ def process_photos(options):
         write_redirect(os.path.join(options.dest_directory, str(rating), "index.html"),
                        "%s/index.html" % (options.default_view))
 
-        if options.slideshow_html:
-            shutil.copyfile(options.slideshow_html, os.path.join(options.dest_directory,
-                                                                 str(rating), "slideshow.html"))
+        if options.screensaver_html:
+            shutil.copyfile(options.screensaver_html, os.path.join(options.dest_directory,
+                                                                   str(rating), "screensaver.html"))
 
         thumbnailer.remove_thumbnails()
 
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--panorama-icon")
     ARGPARSER.add_argument("--play-icon")
     ARGPARSER.add_argument("--raw-icon")
-    ARGPARSER.add_argument("--slideshow-html")
+    ARGPARSER.add_argument("--screensaver-html")
     ARGPARSER.add_argument("--thumbnail-size", default="360x360")
     ARGPARSER.add_argument("--years-prior-are-approximate", default="2000")
     ARGPARSER.add_argument("--main-page-extra-link")

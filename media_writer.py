@@ -222,8 +222,8 @@ class Html:
                              "<span class='main_view%s'>%s</span>" % (extra_css, view[1]) + \
                              "</a></span>")
 
-        output.write("<span><a href='../slideshow.html'>" + \
-                     "<span class='main_view'>Slideshow</span>" + \
+        output.write("<span><a href='../screensaver.html'>" + \
+                     "<span class='main_view'>Screensaver</span>" + \
                      "</a></span>")
 
         if self.main_page_extra_link:
