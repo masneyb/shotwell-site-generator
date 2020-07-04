@@ -92,15 +92,13 @@ on your home server for the long term.
 
 The screensaver.html file takes the following optional HTTP query parameters:
 
-- &min_time=UNIX_TIMESTAMP, &max_time=UNIX_TIMESTAMP - optional date range to limit the photos
-  to. If unset, then all media within that rating is shown.
+- &min_time=XXX, &max_time=XXX - optional date range to limit the photos to. If unset, then
+  all media within that rating is shown. Otherwise expects an ISO8601-formatted date
+  (i.e. 2020-07-01T00:00:00).
 - &json_update_secs=XXX - the number of seconds when the media.json file is updated. Defaults to
   21600 (6 hours).
 - &photo_update_secs=XXX - the number of seconds when the next photo is shown. Defaults to 10
   seconds.
-
-For example, the path `/5/screensaver.html?min_time=946684800&photo_update_secs=2` will show photos
-rated 5 stars since Jan 1st, 2000, and update the photo every 2 seconds.
 
 ## Contact
 

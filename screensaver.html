@@ -2,21 +2,26 @@
   <body style="text-align:center; background:black;">
     <img id="image" style="width:100%; height:100%; object-fit:contain;"/>
     <script>
-      function getIntQueryParameter(name, default_value) {
+      function getQueryParameter(name, default_value) {
         var urlParams = new URLSearchParams(window.location.search);
-        return urlParams.has(name) ? parseInt(urlParams.get(name), 10) : default_value;
+        return urlParams.has(name) ? urlParams.get(name) : default_value;
+      }
+
+      function getIntQueryParameter(name, default_value) {
+        var val = getQueryParameter(name, null);
+        return val != null ? parseInt(val, 10) : default_value;
       }
 
       function isValidMedia(media) {
         if (media["media_id"].startsWith("video"))
           return false;
 
-        var minTime = getIntQueryParameter("min_time", null);
-        if (minTime != null && media["exposure_time"] < minTime)
+        var minTime = getQueryParameter("min_time", "");
+        if (minTime != "" && media["exposure_time"].localeCompare(minTime) < 0)
           return false;
 
-        var maxTime = getIntQueryParameter("max_time", null);
-        if (maxTime != null && media["exposure_time"] > maxTime)
+        var maxTime = getIntQueryParameter("max_time", "");
+        if (maxTime != "" && media["exposure_time"].localeCompare(maxTime) > 0)
           return false;
 
 	return true;

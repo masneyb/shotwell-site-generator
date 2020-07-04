@@ -222,7 +222,9 @@ class Html:
                              "<span class='main_view%s'>%s</span>" % (extra_css, view[1]) + \
                              "</a></span>")
 
-        output.write("<span><a href='../screensaver.html'>" + \
+        url_params = "min_time=%s&max_time=&photo_update_secs=10" % \
+                     (datetime.datetime.fromtimestamp(self.all_media["all_stats"]["min_date"]))
+        output.write("<span><a href='../screensaver.html?%s'>" % (url_params) + \
                      "<span class='main_view'>Screensaver</span>" + \
                      "</a></span>")
 
@@ -871,8 +873,7 @@ class Html:
     def __has_shown_media(self, stats):
         return stats["num_photos"] > 0 or stats["num_videos"] > 0
 
-COPY_MEDIA_FIELDS = ["thumbnail_path", "title", "comment", "media_id", "rating", "event_id",
-                     "exposure_time"]
+COPY_MEDIA_FIELDS = ["thumbnail_path", "title", "comment", "media_id", "rating", "event_id"]
 
 class Json:
     # pylint: disable=too-few-public-methods
@@ -891,6 +892,8 @@ class Json:
                         item[field] = media[field]
 
                 item["thumbnail_path"] = "../thumbnails/" + item["thumbnail_path"]
+                item["exposure_time"] = datetime.datetime.fromtimestamp(media["exposure_time"]) \
+                                            .isoformat()
                 shown_media.append(item)
 
         shown_media.sort(key=lambda media: media["exposure_time"], reverse=True)
