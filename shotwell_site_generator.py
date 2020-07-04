@@ -59,8 +59,15 @@ def process_photos(options):
         photos.write_year_and_event_html_files(all_media_year_index)
         photos.write_tag_html_files()
 
+        json_writer = media_writer.Json(all_media, options.dest_directory, rating)
+        json_writer.write()
+
         write_redirect(os.path.join(options.dest_directory, str(rating), "index.html"),
                        "%s/index.html" % (options.default_view))
+
+        if options.slideshow_html:
+            shutil.copyfile(options.slideshow_html, os.path.join(options.dest_directory,
+                                                                 str(rating), "slideshow.html"))
 
         thumbnailer.remove_thumbnails()
 
@@ -104,6 +111,7 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--panorama-icon")
     ARGPARSER.add_argument("--play-icon")
     ARGPARSER.add_argument("--raw-icon")
+    ARGPARSER.add_argument("--slideshow-html")
     ARGPARSER.add_argument("--thumbnail-size", default="360x360")
     ARGPARSER.add_argument("--years-prior-are-approximate", default="2000")
     ARGPARSER.add_argument("--main-page-extra-link")

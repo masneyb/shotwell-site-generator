@@ -41,6 +41,7 @@ Backup your Shotwell database/library and then generate a static HTML site:
                 --input-thumbs-directory /path/to/shotwell/thumbs360/directory \
                 --dest-directory /path/to/generated/html/site \
                 --css library.css \
+                --slideshow-html slideshow.html \
                 --panorama-icon images/panorama-icon.png \
                 --play-icon images/play-icon.png \
                 --raw-icon images/raw-icon.png \

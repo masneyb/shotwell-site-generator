@@ -20,6 +20,7 @@ import datetime
 import html
 import os
 from collections import Counter
+import json
 import dateutil.tz
 import humanize
 from common import add_date_to_stats, cleanup_event_title
@@ -865,3 +866,32 @@ class Html:
 
     def __has_shown_media(self, stats):
         return stats["num_photos"] > 0 or stats["num_videos"] > 0
+
+COPY_MEDIA_FIELDS = ["thumbnail_path", "title", "comment", "media_id", "rating", "event_id",
+                     "exposure_time"]
+
+class Json:
+    # pylint: disable=too-few-public-methods
+    def __init__(self, all_media, dest_directory, min_media_rating):
+        # pylint: disable=too-many-arguments
+        self.all_media = all_media
+        self.json_basedir = os.path.join(dest_directory, str(min_media_rating))
+
+    def write(self):
+        shown_media = []
+        for event in self.all_media["events_by_id"].values():
+            for media in event["media"]:
+                item = {"link": "../../original/%s" % (media["filename"])}
+                for field in COPY_MEDIA_FIELDS:
+                    if field in media and media[field] is not None:
+                        item[field] = media[field]
+
+                item["thumbnail_path"] = "../../thumbnails/" + item["thumbnail_path"]
+                shown_media.append(item)
+
+        shown_media.sort(key=lambda media: media["exposure_time"], reverse=True)
+
+        ret = {"media": shown_media}
+
+        with open(os.path.join(self.json_basedir, "media.json"), "w") as outfile:
+            outfile.write(json.dumps(ret, indent="\t"))
