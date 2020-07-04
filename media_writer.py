@@ -881,12 +881,12 @@ class Json:
         shown_media = []
         for event in self.all_media["events_by_id"].values():
             for media in event["media"]:
-                item = {"link": "../../original/%s" % (media["filename"])}
+                item = {"link": "../original/%s" % (media["filename"])}
                 for field in COPY_MEDIA_FIELDS:
                     if field in media and media[field] is not None:
                         item[field] = media[field]
 
-                item["thumbnail_path"] = "../../thumbnails/" + item["thumbnail_path"]
+                item["thumbnail_path"] = "../thumbnails/" + item["thumbnail_path"]
                 shown_media.append(item)
 
         shown_media.sort(key=lambda media: media["exposure_time"], reverse=True)
