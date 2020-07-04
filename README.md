@@ -15,6 +15,9 @@ The generated site is fully self contained and does not require Internet access 
 third-party resources for the long-term preservation of the library. The use of Javascript on
 the generated site is minimized as well for the long-term preservation.
 
+It also generates a slideshow so that you can setup a browser in kiosk mode on a small single
+board computer like a Raspberry Pi and use it as a photo frame at your house.
+
 I make the static-generated website available on my local LAN via my home server so that other
 members of my family can view my Shotwell library on their devices. 
 
@@ -53,16 +56,22 @@ The following files and directories will be generated in the path specified by
     0/                  # Generated site for media rated 0+ stars
     0/event/
     0/media/
+    0/media.json	# JSON file with all media rated 0+ stars
+    0/slideshow.html	# Slideshow for media rated 0+ stars
     0/tag/
     0/year/
     4/                  # Generated site for media rated 4+ stars
     4/event/
     4/media/
+    4/media.json	# JSON file with all media rated 4+ stars
+    4/slideshow.html	# Slideshow for media rated 4+ stars
     4/tag/
     4/year/
     5/                  # Generated site for media rated 5 stars
     5/event/
     5/media/
+    5/media.json	# JSON file with all media rated 5 stars
+    5/slideshow.html	# Slideshow for media rated 5 stars
     5/tag/
     5/year/
     original@           # Symlink to --input-database path for downloading full-sized media
@@ -78,6 +87,20 @@ Open the top level index.html file in your browser to view your library. You can
 into the dest-directory and run `python3 -mhttp.server 8000` to make the files available on your
 local LAN over port 8000. You should consider running nginx or Apache if you want to run this
 on your home server for the long term.
+
+## Slideshow HTML query parameters
+
+The slideshow.html file takes the following optional HTTP query parameters:
+
+- &min_time=UNIX_TIMESTAMP, &max_time=UNIX_TIMESTAMP - optional date range to limit the photos
+  to. If unset, then all media within that rating is shown.
+- &json_update_secs=XXX - the number of seconds when the media.json file is updated. Defaults to
+  21600 (6 hours).
+- &photo_update_secs=XXX - the number of seconds when the next photo is shown. Defaults to 10
+  seconds.
+
+For example, the path `/5/slideshow.html?min_time=946684800&photo_update_secs=2` will show photos
+rated 5 stars since Jan 1st, 2000, and update the photo every 2 seconds.
 
 ## Contact
 
