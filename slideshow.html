@@ -23,6 +23,9 @@
       }
 
       function updateImage() {
+        if (all_media == null)
+          return;
+
         var num = null;
         do {
            num = Math.round(Math.random() * all_media["media"].length);
@@ -32,18 +35,27 @@
       }
 
       var all_media = null;
-      var xmlhttp = new XMLHttpRequest();
-      xmlhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-          all_media = JSON.parse(this.responseText);
-          updateImage();
-        }
-      };
-      xmlhttp.open("GET", "media.json", true);
-      xmlhttp.send(); 
 
-      var updateTime = getIntQueryParameter("update_time", 10000);
-      setInterval(updateImage, updateTime);
+      function updateJson() {
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+            all_media = JSON.parse(this.responseText);
+            updateImage();
+          }
+        };
+
+        // Add current timstamp to query to avoid caching
+        xmlhttp.open("GET", "media.json?ts=" + Date.now(), true);
+        xmlhttp.send();
+      }
+
+      var jsonUpdateSecs = getIntQueryParameter("json_update_secs", 21600); // 6 hours
+      setInterval(updateJson, jsonUpdateSecs * 1000);
+      updateJson();
+
+      var photoUpdateSecs = getIntQueryParameter("photo_update_secs", 10); // 10 secs
+      setInterval(updateImage, photoUpdateSecs * 1000);
     </script>
   </body>
 </html>
