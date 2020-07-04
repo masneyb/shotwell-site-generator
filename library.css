@@ -19,6 +19,7 @@ a {
 
 .main_view {
 	padding: 10px;
+	white-space: nowrap;
 }
 
 .main_view_selected {
