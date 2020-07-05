@@ -24,7 +24,7 @@
         if (maxTime != "" && media["exposure_time"].localeCompare(maxTime) > 0)
           return false;
 
-	return true;
+        return true;
       }
 
       var allMedia = null;
@@ -75,11 +75,13 @@
         xmlhttp.send();
       }
 
-      var jsonUpdateSecs = getIntQueryParameter("json_update_secs", 21600); // 6 hours
+      // 6 hours
+      var jsonUpdateSecs = getIntQueryParameter("json_update_secs", 21600);
       setInterval(updateJson, jsonUpdateSecs * 1000);
       updateJson();
 
-      var photoUpdateSecs = getIntQueryParameter("photo_update_secs", 10); // 10 secs
+      // 10 seconds
+      var photoUpdateSecs = getIntQueryParameter("photo_update_secs", 10);
       setInterval(updateImage, photoUpdateSecs * 1000);
     </script>
   </body>
