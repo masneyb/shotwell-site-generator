@@ -23,7 +23,7 @@
         if (minTime != "" && media["exposure_time"].localeCompare(minTime) < 0)
           return false;
 
-        var maxTime = getIntQueryParameter("max_time", "");
+        var maxTime = getQueryParameter("max_time", "");
         if (maxTime != "" && media["exposure_time"].localeCompare(maxTime) > 0)
           return false;
 
