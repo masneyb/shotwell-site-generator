@@ -88,18 +88,6 @@ into the dest-directory and run `python3 -mhttp.server 8000` to make the files a
 local LAN over port 8000. You should consider running nginx or Apache if you want to run this
 on your home server for the long term.
 
-## Screensaver HTML query parameters
-
-The screensaver.html file takes the following optional HTTP query parameters:
-
-- &min_time=XXX, &max_time=XXX - optional date range to limit the photos to. If unset, then
-  all media within that rating is shown. Otherwise expects an ISO8601-formatted date
-  (i.e. 2020-07-01T00:00:00).
-- &json_update_secs=XXX - the number of seconds when the media.json file is updated. Defaults to
-  21600 (6 hours).
-- &photo_update_secs=XXX - the number of seconds when the next photo is shown. Defaults to 10
-  seconds.
-
 ## Contact
 
 Brian Masney [masneyb@onstation.org](mailto:masneyb@onstation.org)
