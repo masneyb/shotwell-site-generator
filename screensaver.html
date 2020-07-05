@@ -2,14 +2,14 @@
   <body style="text-align:center; background:black;">
     <img id="image" style="width:100%; height:100%; object-fit:contain;"/>
     <script>
-      function getQueryParameter(name, default_value) {
+      function getQueryParameter(name, defaultValue) {
         var urlParams = new URLSearchParams(window.location.search);
-        return urlParams.has(name) ? urlParams.get(name) : default_value;
+        return urlParams.has(name) ? urlParams.get(name) : defaultValue;
       }
 
-      function getIntQueryParameter(name, default_value) {
+      function getIntQueryParameter(name, defaultValue) {
         var val = getQueryParameter(name, null);
-        return val != null ? parseInt(val, 10) : default_value;
+        return val != null ? parseInt(val, 10) : defaultValue;
       }
 
       function isValidMedia(media) {
@@ -27,25 +27,45 @@
 	return true;
       }
 
-      function updateImage() {
-        if (all_media == null)
-          return;
+      var allMedia = null;
+      var curIdx = 0;
 
-        var num = null;
-        do {
-           num = Math.round(Math.random() * all_media["media"].length);
-        } while (!isValidMedia(all_media["media"][num]));
-
-        document.getElementById("image").src = all_media["media"][num].link;
+      function shuffleMedia() {
+        for (var i = allMedia.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * i);
+          const tmp = allMedia[i];
+          allMedia[i] = allMedia[j];
+          allMedia[j] = tmp;
+        }
       }
 
-      var all_media = null;
+      function updateImage() {
+        if (allMedia == null || allMedia.length == 0)
+          return;
+
+        document.getElementById("image").src = allMedia[curIdx].link;
+
+        curIdx++;
+        if (curIdx == allMedia.length) {
+           curIdx = 0;
+           shuffleMedia();
+        }
+      }
 
       function updateJson() {
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange = function() {
           if (this.readyState == 4 && this.status == 200) {
-            all_media = JSON.parse(this.responseText);
+            var loadedMedia = JSON.parse(this.responseText);
+            allMedia = [];
+            for (var i = 0; i < loadedMedia["media"].length; i++) {
+              if (!isValidMedia(loadedMedia["media"][i]))
+                continue;
+
+              allMedia.push(loadedMedia["media"][i]);
+            }
+
+            shuffleMedia();
             updateImage();
           }
         };
