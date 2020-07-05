@@ -1,5 +1,6 @@
 body {
 	text-align: center;
+	margin: 0px;
 }
 
 a {
@@ -13,13 +14,13 @@ a {
 }
 
 .main_views {
-	padding: 10px;
+	padding-top: 10px;
+	padding-bottom: 10px;
 	display: block;
 }
 
 .main_view {
 	padding: 10px;
-	white-space: nowrap;
 }
 
 .main_view_selected {
@@ -29,7 +30,8 @@ a {
 .summary_stats, .date_range, .event_comment, .header_links {
 	display: block;
 	font-size: 80%;
-	padding: 1px;
+	padding-top: 1px;
+	padding-bottom: 1px;
 }
 
 .header_link {
@@ -72,7 +74,8 @@ a {
 
 .breadcrumbs {
 	display: block;
-	padding: 5px;
+	padding-top: 5px;
+	padding-bottom: 5px;
 }
 
 .breadcrumb, .breadcrumb_inactive {
@@ -85,7 +88,8 @@ a {
 }
 
 .media_ratings {
-	padding: 5px;
+	padding-top: 5px;
+	padding-bottom: 5px;
 	display: block;
 }
 
