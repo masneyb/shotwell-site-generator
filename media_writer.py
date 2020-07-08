@@ -741,12 +741,14 @@ class Html:
 
         output.write("<html lang='en'>")
         output.write("<head>")
-        output.write("<link rel='stylesheet' type='text/css' href='../../library.css'/></head>")
+        output.write("<link rel='stylesheet' type='text/css' href='../../library.css'/>")
         output.write("<meta name='viewport' content='width=device-width'/>")
         output.write("<meta charset='UTF-8'/>")
 
         if title:
             output.write("<title>%s</title>" % (html.escape(title)))
+
+        output.write("</head>")
 
         output.write("<body>")
 
