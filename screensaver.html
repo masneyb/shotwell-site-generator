@@ -94,6 +94,9 @@
       var pageReloadSecs = getIntQueryParameter("page_reload_secs", 21600);
       window.setTimeout(window.location.reload.bind(window.location),
                         pageReloadSecs * 1000);
+
+      if (getIntQueryParameter("kiosk", 0) == 1)
+        document.body.style.cursor = "none";
     </script>
   </body>
 </html>
