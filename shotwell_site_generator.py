@@ -65,14 +65,14 @@ def process_photos(options):
         write_redirect(os.path.join(options.dest_directory, str(rating), "index.html"),
                        "%s/index.html" % (options.default_view))
 
-        if options.screensaver_html:
-            shutil.copyfile(options.screensaver_html, os.path.join(options.dest_directory,
-                                                                   str(rating), "screensaver.html"))
-
         thumbnailer.remove_thumbnails()
 
     write_redirect(os.path.join(options.dest_directory, "index.html"),
                    "0/%s/index.html" % (options.default_view))
+
+    if options.screensaver_html:
+        shutil.copyfile(options.screensaver_html, os.path.join(options.dest_directory,
+                                                               "screensaver.html"))
 
     shutil.copyfile(options.css, os.path.join(options.dest_directory, "library.css"))
 

@@ -76,8 +76,9 @@
           }
         };
 
+        var db = getQueryParameter("db", "5/media.json");
         // Add current timstamp to query to avoid caching
-        xmlhttp.open("GET", "media.json?ts=" + Date.now(), true);
+        xmlhttp.open("GET", `${db}?ts=${Date.now()}`, true);
         xmlhttp.send();
       }
 

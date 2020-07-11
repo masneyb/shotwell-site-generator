@@ -222,9 +222,10 @@ class Html:
                              "<span class='main_view%s'>%s</span>" % (extra_css, view[1]) + \
                              "</a></span>")
 
-        url_params = "min_time=%s&max_time=&photo_update_secs=10" % \
-                     (datetime.datetime.fromtimestamp(self.all_media["all_stats"]["min_date"]))
-        output.write("<span><a href='../screensaver.html?%s'>" % (url_params) + \
+        url_params = "min_time=%s&max_time=&photo_update_secs=10&db=%s/media.json" % \
+                     (datetime.datetime.fromtimestamp(self.all_media["all_stats"]["min_date"]),
+                      self.min_media_rating)
+        output.write("<span><a href='../../screensaver.html?%s'>" % (url_params) + \
                      "<span class='main_view'>Screensaver</span>" + \
                      "</a></span>")
 
