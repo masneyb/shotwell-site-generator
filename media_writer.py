@@ -876,32 +876,64 @@ class Html:
     def __has_shown_media(self, stats):
         return stats["num_photos"] > 0 or stats["num_videos"] > 0
 
-COPY_MEDIA_FIELDS = ["thumbnail_path", "title", "comment", "media_id", "rating", "event_id"]
-
 class Json:
     # pylint: disable=too-few-public-methods
     def __init__(self, all_media, dest_directory, min_media_rating):
         # pylint: disable=too-many-arguments
         self.all_media = all_media
         self.json_basedir = os.path.join(dest_directory, str(min_media_rating))
+        self.min_media_rating = min_media_rating
 
     def write(self):
         shown_media = []
-        for event in self.all_media["events_by_id"].values():
-            for media in event["media"]:
-                item = {"link": "../original/%s" % (media["filename"])}
-                for field in COPY_MEDIA_FIELDS:
-                    if field in media and media[field] is not None:
-                        item[field] = media[field]
+        shown_events = []
 
-                item["thumbnail_path"] = "../thumbnails/" + item["thumbnail_path"]
+        for event in self.all_media["events_by_id"].values():
+            if not event["stats"]["min_date"]:
+                continue
+
+            item = self._copy_fields(["title", "comment", "id", "date"], event)
+            item["thumbnail_path"] = "thumbnails/" + event["thumbnail_path"]
+            item["link"] = "%s/event/%s.html" % (self.min_media_rating, event["id"])
+            item["min_date"] = datetime.datetime.fromtimestamp(event["stats"]["min_date"]).isoformat()
+            item["max_date"] = datetime.datetime.fromtimestamp(event["stats"]["max_date"]).isoformat()
+            shown_events.append(item)
+
+            for media in event["media"]:
+                item = self._copy_fields(["title", "comment", "media_id", "rating", "event_id"],
+                                         media)
+                item["link"] = "original/%s" % (media["filename"])
+                item["thumbnail_path"] = "thumbnails/" + media["thumbnail_path"]
                 item["exposure_time"] = datetime.datetime.fromtimestamp(media["exposure_time"]) \
                                             .isoformat()
+                item["tags"] = list(media["tags"])
                 shown_media.append(item)
 
-        shown_media.sort(key=lambda media: media["exposure_time"], reverse=True)
+        shown_tags = []
 
-        ret = {"media": shown_media}
+        for tag in self.all_media["tags_by_id"].values():
+            item = self._copy_fields(["title", "full_title", "id"], tag)
+            item["thumbnail_path"] = "thumbnails/" + tag["thumbnail_path"]
+            item["link"] = "%s/tag/%s.html" % (self.min_media_rating, tag["id"])
+            if tag["parent_tag"]:
+                item["parent_tag_id"] = tag["parent_tag"]["id"]
+            else:
+                item["parent_tag_id"] = None
+            shown_tags.append(item)
+
+        shown_events.sort(key=lambda event: event["date"], reverse=True)
+        shown_media.sort(key=lambda media: media["exposure_time"], reverse=True)
+        shown_tags.sort(key=lambda tag: tag["full_title"])
+
+        ret = {"media": shown_media, "events": shown_events, "tags": shown_tags}
 
         with open(os.path.join(self.json_basedir, "media.json"), "w") as outfile:
             outfile.write(json.dumps(ret, indent="\t"))
+
+    def _copy_fields(self, copy_these_fields, source):
+        item = {}
+        for field in copy_these_fields:
+            if field in source and source[field]:
+                item[field] = source[field]
+
+        return item
