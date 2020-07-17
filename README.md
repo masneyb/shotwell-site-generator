@@ -38,16 +38,12 @@ Ensure that you have the proper dependencies installed on your system:
 Backup your Shotwell database/library and then generate a static HTML site:
 
     shotwell_site_generator.py \
-                --title "My Photos" \
-                --input-media-path /path/to/shotwell/full-sized/images \
                 --input-database /path/to/shotwell/sqlite/database \
+                --input-media-path /path/to/shotwell/full-sized/images \
                 --input-thumbs-directory /path/to/shotwell/thumbs360/directory \
                 --dest-directory /path/to/generated/html/site \
-                --css library.css \
-                --screensaver-html screensaver.html \
-                --panorama-icon images/panorama-icon.png \
-                --play-icon images/play-icon.png \
-                --raw-icon images/raw-icon.png \
+                --src-assets-directory /path/to/this/repo \
+                --title "My Photos" \
                 --ratings-to-skip 1 2 3 # optional
 
 The following files and directories will be generated in the path specified by

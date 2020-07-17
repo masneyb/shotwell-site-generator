@@ -1,0 +1,412 @@
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width"/>
+    <meta charset="UTF-8"/>
+    <title>Search</title>
+    <link rel="stylesheet" type="text/css" href="library.css"/>
+    <script type="text/javascript" src="search.js"></script>
+  </head>
+
+  <body>
+    <span id="title" class="page_title">Search</span>
+    <span class="summary_stats"></span>
+    <span class="header_links">
+      <a id="screensaver_link">
+        <span class="header_link">Screensaver with only these photos</span>
+      </a>
+    </span>
+    <span class="header_links">
+      <a href="#" onclick="shuffleArray(allMedia); showMedia(1);">
+        <span class="header_link">Shuffle media in search results</span>
+      </a>
+    </span>
+
+    <span class="main_views">
+      <span><a href="0/media/index.html"><span class="main_view">Date</span></a></span>
+      <span><a href="0/event/index.html"><span class="main_view">Event</span></a></span>
+      <span><a href="0/year/index.html"><span class="main_view">Year</span></a></span>
+      <span><a href="0/tag/index.html"><span class="main_view">Tag</span></a></span>
+      <span>
+        <a href="search.html"><span class="main_view main_view_selected">Search</span></a>
+      </span>
+    </span>
+
+    <span class="breadcrumbs">
+      <a href="#" onClick="showMedia(currentPageNumber - 1)">
+        <span class="breadcrumb">&lt;&lt;</span>
+      </a>
+      <span class="breadcrumb" id="page_info"></span>
+      <a href="#" onClick="showMedia(currentPageNumber + 1)">
+        <span class="breadcrumb">&gt;&gt;</span>
+      </a>
+    </span>
+
+    <span id="search_criterias"></span>
+    <span class="search_controls">
+      <input type="button" onClick="addSearchInputRow();" value="+"></input>
+      <select id="match_policy" onChange="updateSearchCriteria();">
+        <option value="any">Match Any</option>
+        <option value="all">Match All</option>
+        <option value="none">Match None</option>
+      </select>
+      <input type="button" onClick="updateSearchCriteria();" value="Search"></input>
+    </span>
+
+    <div id="all_media"></div>
+
+    <span class="breadcrumbs">
+      <a href="#" onClick="showMedia(currentPageNumber - 1)">
+        <span class="breadcrumb">&lt;&lt;</span>
+      </a>
+      <span class="breadcrumb" id="page_info"></span>
+      <a href="#" onClick="showMedia(currentPageNumber + 1)">
+        <span class="breadcrumb">&gt;&gt;</span>
+      </a>
+    </span>
+
+    <span class="generated_at">Site generated from
+      <a href="https://wiki.gnome.org/Apps/Shotwell">Shotwell</a> library at
+      <span id="generated_timestamp"></span> by
+      <a href="https://github.com/masneyb/shotwell-site-generator">shotwell-site-generator</a>
+      <span id="app_version"></span>.
+    </span>
+
+    <template id="media_template">
+      <span class="media">
+        <a>
+          <span class="media_thumb">
+            <img></img>
+          </span>
+        </a>
+        <span class="media_title"></span>
+        <span class="media_stats"></span>
+      </span>
+    </template>
+
+    <template id="search_criteria_row">
+      <span class="search_criteria">
+        <select class="search_field"></select>
+        <select class="search_op"></select>
+        <span class="search_values"></span>
+        <input class="search_delete_row" type="button" value="X"></input>
+      </span>
+    </template>
+
+    <script type="text/javascript">
+      var allMedia = null;
+      var eventNames = null;
+      var tagNames = null;
+      var currentPageNumber = 1;
+      var nextSearchInput = 0;
+
+      function getPrettyFileSize(size) {
+        if (size > 1024*1024*1024)
+          return `${(size / (1024*1024*1024)).toFixed(1)} GiB`;
+        if (size > 1024*1024)
+          return `${(size / (1024*1024)).toFixed(1)} MiB`;
+        if (size > 1024)
+          return `${(size / (1024)).toFixed(1)} KiB`;
+
+        return `${size} bytes`;
+      }
+
+      function createMediaStatsHtml(entity) {
+        var ret = []
+        if (entity.num_photos > 0)
+          ret.push(`<span class="stat">${entity.num_photos.toLocaleString()} photos</span>`);
+
+        if (entity.num_videos > 0)
+          ret.push(`<span class="stat">${entity.num_videos.toLocaleString()} videos</span>`);
+
+        if ("exposure_time_pretty" in entity)
+          ret.push(`<span class="stat">${entity.exposure_time_pretty}</span>`);
+
+        if (entity.filesize)
+          ret.push(`<span class="stat">${getPrettyFileSize(entity.filesize)}</span>`);
+
+        if (entity.clip_duration)
+          ret.push(`<span class="stat">${entity.clip_duration}</span>`);
+
+        if (entity.date_range)
+          ret.push(`<span class="stat">${entity.date_range}</span>`);
+
+        if (entity.event_id)
+          ret.push('<span class="stat">Event: ' +
+                   `<a href="0/event/${entity.event_id}.html">${eventNames[entity.event_id]}</a>` +
+                   '</span>');
+
+        if (entity.tags) {
+          for (var tag_id of entity.tags) {
+            ret.push('<span class="stat">Tag: ' +
+                     `<a href="0/tag/${tag_id}.html">${tagNames[tag_id]}</a>` +
+                     '</span>');
+          }
+        }
+
+        return ret.join(" &nbsp; ");
+      }
+
+      function createAllStatsHtml() {
+        var totalsByTypes = {};
+
+        for (const media of allMedia) {
+          if (!(media.type in totalsByTypes))
+            totalsByTypes[media.type] = 1;
+          else
+            totalsByTypes[media.type]++;
+        }
+
+        ret = []
+        if ("photo" in totalsByTypes)
+          ret.push(`<span class="stat">${totalsByTypes["photo"].toLocaleString()} photos</span>`);
+        if ("video" in totalsByTypes)
+          ret.push(`<span class="stat">${totalsByTypes["video"].toLocaleString()} videos</span>`);
+        if ("events" in totalsByTypes)
+          ret.push(`<span class="stat">${totalsByTypes["events"].toLocaleString()} events</span>`);
+        if ("tags" in totalsByTypes)
+          ret.push(`<span class="stat">${totalsByTypes["tags"].toLocaleString()} tags</span>`);
+
+        return ret.join(", ");
+      }
+
+      function showMedia(pageNumber) {
+        var allMediaEle = document.querySelector("#all_media");
+
+        if (allMedia == null) {
+          removeAllChildren(allMediaEle);
+          return;
+        }
+
+        const pageSize = getIntQueryParameter("page_size", 24);
+        const totalPages = Math.ceil(allMedia.length / pageSize);
+        if (pageNumber < 1 || pageNumber > totalPages)
+          return;
+
+        removeAllChildren(allMediaEle);
+
+        var template = document.querySelector("#media_template");
+        var startIdx = (pageNumber - 1) * pageSize;
+
+        for (const media of allMedia.slice(startIdx, startIdx + pageSize)) {
+          var clone = template.content.cloneNode(true);
+
+          clone.querySelector("a").href = media.link;
+          clone.querySelector("img").src = media.thumbnail_path;
+          if (media.title)
+            clone.querySelector(".media_title").innerText = media.title;
+
+          clone.querySelector(".media_stats").innerHTML = createMediaStatsHtml(media);
+
+          allMediaEle.appendChild(clone);
+        }
+
+        document.querySelector("#screensaver_link").href =
+            `screensaver.html${window.location.search}&photo_update_secs=10`;
+        document.querySelector(".summary_stats").innerHTML = createAllStatsHtml();
+        for (ele of document.querySelectorAll("#page_info"))
+          ele.innerText = `Page ${pageNumber.toLocaleString()} of ${totalPages.toLocaleString()}`;
+
+        currentPageNumber = pageNumber;
+
+        window.scrollTo(0, 0);
+      }
+
+      function populateSearchFields(idx) {
+        var searchEles = document.querySelector(`#search_criteria${idx}`);
+        var select = searchEles.querySelector(".search_field");
+        removeAllChildren(select);
+
+        for (var field of searchFields) {
+          var option = document.createElement("option");
+          option.textContent = option.value = field.title;
+          select.appendChild(option);
+        }
+
+        searchFieldChanged(idx);
+      }
+
+      function searchFieldChanged(idx) {
+        var searchEles = document.querySelector(`#search_criteria${idx}`);
+        var field = searchFields[searchEles.querySelector(".search_field").selectedIndex];
+
+        var select = searchEles.querySelector(".search_op");
+        removeAllChildren(select);
+
+        for (var op of field.search.ops) {
+          var option = document.createElement("option");
+          option.textContent = option.value = op.descr;
+          select.appendChild(option);
+        }
+
+        removeAllChildren(searchEles.querySelector(".search_values"));
+
+        searchOpChanged(idx);
+      }
+
+      function updateCritieraIfValuesPopulated(idx) {
+        var searchEles = document.querySelector(`#search_criteria${idx}`);
+        for (child of searchEles.querySelector(".search_values").children) {
+          if (child.value == "")
+            return;
+        }
+
+        updateSearchCriteria();
+      }
+
+      function removeAllChildren(node) {
+        while (node.firstChild) {
+          node.removeChild(node.firstChild);
+        }
+      }
+
+      function searchOpChanged(idx) {
+        var searchEles = document.querySelector(`#search_criteria${idx}`);
+        var field = searchFields[searchEles.querySelector(".search_field").selectedIndex];
+        var op = field.search.ops[searchEles.querySelector(".search_op").selectedIndex];
+
+        var values = searchEles.querySelector(".search_values");
+        if (op.numValues == values.children.length)
+          return;
+
+        removeAllChildren(values);
+
+        for (var i = 0; i < op.numValues; i++) {
+          if ("validValues" in field) {
+            var select = document.createElement("select");
+            for (validValue of field.validValues) {
+              var option = document.createElement("option");
+              option.value = validValue[1];
+              option.innerHTML = validValue[0];
+              select.appendChild(option);
+            }
+            select.addEventListener("change", function() { updateCritieraIfValuesPopulated(idx); });
+            values.appendChild(select);
+          } else {
+            var input = document.createElement("input");
+            input.className = `search_value${i}`;
+            input.type = "text";
+            input.size = 10;
+            input.addEventListener("change", function() { updateCritieraIfValuesPopulated(idx); });
+            values.appendChild(input);
+          }
+        }
+      }
+
+      function addSearchInputRow() {
+        var template = document.querySelector("#search_criteria_row");
+
+        var row = template.content.cloneNode(true);
+        row.querySelector(".search_criteria").id = `search_criteria${nextSearchInput}`;
+
+        var fieldOnChange = function(idx) {
+          return function() {
+            searchFieldChanged(idx);
+            updateCritieraIfValuesPopulated(idx);
+          }
+        };
+        row.querySelector(".search_field").addEventListener("change",
+                                                            fieldOnChange(nextSearchInput));
+
+        var opOnChange = function(idx) {
+          return function() {
+            searchOpChanged(idx);
+            updateCritieraIfValuesPopulated(idx);
+          }
+        };
+        row.querySelector(".search_op").addEventListener("change", opOnChange(nextSearchInput));
+
+        var delRow = function(idx) {
+          return function() {
+            var ele = document.querySelector(`#search_criteria${idx}`);
+            ele.remove();
+            updateSearchCriteria();
+          }
+        };
+        row.querySelector(".search_delete_row").addEventListener("click", delRow(nextSearchInput));
+
+        document.querySelector("#search_criterias").appendChild(row);
+        populateSearchFields(nextSearchInput++);
+      }
+
+      function updateSearchCriteria() {
+        searchArgs = []
+        for (critChild of document.querySelector("#search_criterias").children) {
+          const field = critChild.querySelector(".search_field").value;
+          const op = critChild.querySelector(".search_op").value;
+
+          var search = `${field},${op}`;
+          for (valChild of critChild.querySelector(".search_values").children) {
+            search += `,${valChild.value}`;
+          }
+          searchArgs.push(`search=${encodeURIComponent(search)}`);
+        }
+
+        const matchPolicy = document.querySelector("#match_policy").value;
+        window.location.href = `search.html?${searchArgs.join("&")}&match_policy=${matchPolicy}`;
+      }
+
+      function populateSearchValuesFromUrl() {
+        var urlParams = new URLSearchParams(window.location.search);
+        for (const searchCriteria of urlParams.getAll("search")) {
+          var curIdx = nextSearchInput;
+          addSearchInputRow();
+
+          var parts = searchCriteria.split(",");
+          if (parts.length < 2)
+            continue;
+
+          var searchEles = document.querySelector(`#search_criteria${curIdx}`);
+
+          var fieldEle = searchEles.querySelector(".search_field");
+          fieldEle.value = parts[0];
+          searchFieldChanged(curIdx);
+          var field = searchFields[fieldEle.selectedIndex];
+
+          var opEle = searchEles.querySelector(".search_op")
+          opEle.value = parts[1];
+          searchOpChanged(curIdx);
+          var op = field.search.ops[opEle.selectedIndex];
+
+          for (i = 0; i < Math.min(parts.length - 2, op.numValues); i++) {
+            searchEles.querySelector(".search_values").children[i].value = parts[i + 2];
+          }
+        }
+
+        var matchPolicy = getQueryParameter("match_policy", "all"); // any,none,all
+        document.querySelector(`#match_policy`).value = matchPolicy;
+
+        if (nextSearchInput == 0)
+          addSearchInputRow();
+      }
+
+      var xmlhttp = new XMLHttpRequest();
+      xmlhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          var resp = JSON.parse(this.responseText);
+
+          eventNames = {}
+          for (evt of resp["events"]) {
+            eventNames[evt["id"]] = "title" in evt ? evt["title"] : `Unnamed ${event["id"]}`;
+          }
+
+          tagNames = {}
+          for (tag of resp["tags"]) {
+            tagNames[tag["id"]] = tag["title"];
+          }
+
+          document.title = document.querySelector("#title").innerText = `${resp["title"]}: Search`;
+          document.querySelector("#generated_timestamp").innerText = resp["generated_at"];
+          document.querySelector("#app_version").innerText = resp["version_label"];
+
+          allMedia = performSearch(resp);
+          showMedia(1);
+        }
+      };
+
+      xmlhttp.open("GET", "media.json", true);
+      xmlhttp.send();
+
+      populateSearchValuesFromUrl();
+    </script>
+  </body>
+</html>

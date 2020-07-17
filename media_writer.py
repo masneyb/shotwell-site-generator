@@ -27,26 +27,94 @@ from common import add_date_to_stats, cleanup_event_title
 
 YEAR_FRAME_SIZE = 4
 
-class Html:
-    # pylint: disable=too-many-instance-attributes
-    def __init__(self, all_media, dest_directory, min_media_rating, all_media_ratings,
-                 main_title, years_prior_are_approximate, main_page_extra_link,
-                 main_page_extra_link_descr, max_media_per_page, expand_all_elements,
-                 version_label):
-        # pylint: disable=too-many-arguments
+class CommonWriter:
+    # pylint: disable=too-few-public-methods
+
+    def __init__(self, all_media, main_title, years_prior_are_approximate, version_label):
         self.all_media = all_media
-        self.html_basedir = os.path.join(dest_directory, str(min_media_rating))
-        self.min_media_rating = min_media_rating
-        self.all_media_ratings = all_media_ratings
         self.main_title = main_title
         self.years_prior_are_approximate = years_prior_are_approximate
-        self.main_page_extra_link = main_page_extra_link
-        self.main_page_extra_link_descr = main_page_extra_link_descr
-        self.max_media_per_page = max_media_per_page
-        self.expand_all_elements = expand_all_elements
         self.version_label = version_label
         self.generated_at = datetime.datetime.now(dateutil.tz.tzlocal()) \
             .strftime("%B %-d, %Y %H:%M:%S %Z")
+
+    def _get_date_parts(self, timestamp):
+        date = datetime.datetime.fromtimestamp(timestamp)
+        if self.years_prior_are_approximate and date.year < int(self.years_prior_are_approximate):
+            return {"year": str(date.year), "month": None, "day": None}
+
+        return {"year": str(date.year), "month": date.strftime("%b"), "day": str(date.day)}
+
+    def _get_date_string(self, date_parts):
+        if date_parts["month"]:
+            return "%s %s, %s" % (date_parts["month"], date_parts["day"], date_parts["year"])
+
+        return date_parts["year"]
+
+    def _get_date_range(self, min_timestamp, max_timestamp):
+        if min_timestamp is None:
+            return None
+
+        min_parts = self._get_date_parts(min_timestamp)
+        max_parts = self._get_date_parts(max_timestamp)
+
+        if min_parts != max_parts and min_parts["month"]:
+            if min_parts["year"] == max_parts["year"] and min_parts["month"] == max_parts["month"]:
+                return "%s %s-%s, %s" % \
+                       (min_parts["month"], min_parts["day"], max_parts["day"], min_parts["year"])
+
+            if min_parts["year"] == max_parts["year"]:
+                return "%s %s-%s %s, %s" % \
+                       (min_parts["month"], min_parts["day"], max_parts["month"], max_parts["day"],
+                        min_parts["year"])
+
+        min_str = self._get_date_string(min_parts)
+        max_str = self._get_date_string(max_parts)
+        if min_str == max_str:
+            return min_str
+
+        return "%s to %s" % (min_str, max_str)
+
+    def _cleanup_tags(self, taglist):
+        # Cleanup nested tags. For example, ['/Places', '/Places/WV'] becomes ['WV']
+        tags_to_remove = set([])
+        all_tags = set(taglist)
+        tag_name_to_id = {}
+
+        for tag_id in all_tags:
+            tag_name = self.all_media["tags_by_id"][tag_id]["full_title"]
+            if not tag_name.startswith("/"):
+                continue
+
+            tag_name_to_id[tag_name] = tag_id
+            tag_parts = tag_name.split("/")
+            if len(tag_parts) == 2:
+                continue
+
+            tags_to_remove.add("/".join(tag_parts[0:-1]))
+
+        for tag_name in tags_to_remove:
+            tag_id = tag_name_to_id[tag_name]
+            all_tags.remove(tag_id)
+
+        ret = [(tag_id, self.all_media["tags_by_id"][tag_id]["title"]) for tag_id in all_tags]
+        ret.sort(key=lambda tag: tag[1])
+
+        return ret
+
+class Html(CommonWriter):
+    # pylint: disable=too-many-instance-attributes
+    def __init__(self, all_media, dest_directory, min_media_rating, all_media_ratings,
+                 main_title, years_prior_are_approximate, max_media_per_page,
+                 expand_all_elements, version_label):
+        # pylint: disable=too-many-arguments
+        CommonWriter.__init__(self, all_media, main_title, years_prior_are_approximate,
+                              version_label)
+        self.html_basedir = os.path.join(dest_directory, str(min_media_rating))
+        self.min_media_rating = min_media_rating
+        self.all_media_ratings = all_media_ratings
+        self.max_media_per_page = max_media_per_page
+        self.expand_all_elements = expand_all_elements
 
     def write_year_and_event_html_files(self, all_media_index):
         if not os.path.isdir(self.html_basedir):
@@ -121,7 +189,7 @@ class Html:
             if "exposure_time" not in media["media"] or media["media"]["exposure_time"] == 0:
                 continue
 
-            year = self.__get_date_parts(media["media"]["exposure_time"])["year"]
+            year = self._get_date_parts(media["media"]["exposure_time"])["year"]
             if year not in config["year"]:
                 config["year"][year] = {"page": page_number}
 
@@ -133,7 +201,7 @@ class Html:
             if media["media"]["event_id"] not in config:
                 config[media["media"]["event_id"]] = {}
 
-            year = self.__get_date_parts(media["media"]["exposure_time"])["year"]
+            year = self._get_date_parts(media["media"]["exposure_time"])["year"]
             if year not in config[media["media"]["event_id"]]:
                 config[media["media"]["event_id"]][year] = {"page": page_number}
 
@@ -222,16 +290,9 @@ class Html:
                              "<span class='main_view%s'>%s</span>" % (extra_css, view[1]) + \
                              "</a></span>")
 
-        url_params = "min_time=%s&max_time=&photo_update_secs=10&db=%s/media.json" % \
-                     (datetime.datetime.fromtimestamp(self.all_media["all_stats"]["min_date"]),
-                      self.min_media_rating)
-        output.write("<span><a href='../../screensaver.html?%s'>" % (url_params) + \
-                     "<span class='main_view'>Screensaver</span>" + \
+        output.write("<span><a href='../../search.html#'>" + \
+                     "<span class='main_view'>Search</span>" + \
                      "</a></span>")
-
-        if self.main_page_extra_link:
-            output.write("<span><a href='%s'><span class='main_view'>%s</span></a></span>" % \
-                         (self.main_page_extra_link, self.main_page_extra_link_descr))
 
         output.write("</span>")
 
@@ -260,8 +321,8 @@ class Html:
                          (self.__get_stats_description(stats)))
 
             if show_daterange:
-                date_range = self.__get_date_range(stats["min_date"],
-                                                   stats["max_date"])
+                date_range = self._get_date_range(stats["min_date"],
+                                                  stats["max_date"])
                 if date_range:
                     output.write("<span class='media_date'>%s</span>" % (html.escape(date_range)))
 
@@ -278,13 +339,13 @@ class Html:
         detailed = []
 
         if "exposure_time" in media and media["exposure_time"] != 0:
-            summary.append(self.__get_date_string(self.__get_date_parts(media["exposure_time"])))
+            summary.append(self._get_date_string(self._get_date_parts(media["exposure_time"])))
 
         if "filesize" in media and media["filesize"] > 0:
             summary.append(humanize.naturalsize(media["filesize"], binary=True).replace(" ", ""))
 
         if "clip_duration" in media:
-            summary.append("%s" % (humanize.naturaldelta(int(media["clip_duration"]))))
+            summary.append(humanize.naturaldelta(int(media["clip_duration"])))
 
         if "width" in media and media["width"]:
             detailed.append("%sx%s" % (media["width"], media["height"]))
@@ -295,7 +356,7 @@ class Html:
                             (media["event_id"], html.escape(title)))
 
         if "tags" in media and media["tags"]:
-            for tag_id, tag_name in self.__cleanup_tags(media["tags"]):
+            for tag_id, tag_name in self._cleanup_tags(media["tags"]):
                 detailed.append("<a href='../tag/%d.html'>Tag: %s</a>" % \
                                 (tag_id, html.escape(tag_name)))
 
@@ -512,7 +573,7 @@ class Html:
             return ""
 
         cleaned_tags = {}
-        for tag_id, tag_name in self.__cleanup_tags(tags):
+        for tag_id, tag_name in self._cleanup_tags(tags):
             cleaned_tags[tag_id] = tag_name
 
         tag_counts = []
@@ -564,8 +625,8 @@ class Html:
             event_links.append("<a href='../event/%d.html'>" % (event["id"]) + \
                                "<span class='header_link'>%s (%s)" % \
                                (html.escape(cleanup_event_title(event)),
-                                self.__get_date_range(event["stats"]["min_date"],
-                                                      event["stats"]["max_date"])) + \
+                                self._get_date_range(event["stats"]["min_date"],
+                                                     event["stats"]["max_date"])) + \
                                "</span>" + \
                                "</a>")
 
@@ -639,8 +700,8 @@ class Html:
                 if "exposure_time" in media["media"] and media["media"]["exposure_time"] != 0:
                     add_date_to_stats(page_dates, media["media"]["exposure_time"])
 
-            page_date_range = self.__get_date_range(page_dates["min_date"],
-                                                    page_dates["max_date"])
+            page_date_range = self._get_date_range(page_dates["min_date"],
+                                                   page_dates["max_date"])
 
             output = self.__write_html_header(self.__get_page_url_parts(current_page_link,
                                                                         page_number),
@@ -759,7 +820,7 @@ class Html:
         output.write("<span class='summary_stats'>%s</span>" % \
                      (self.__get_stats_description(stats)))
 
-        date_range = self.__get_date_range(stats["min_date"], stats["max_date"])
+        date_range = self._get_date_range(stats["min_date"], stats["max_date"])
         if date_range:
             if not page_date_range or page_date_range == date_range:
                 output.write("<span class='date_range'>%s</span>" % (html.escape(date_range)))
@@ -784,43 +845,6 @@ class Html:
         output.write("</html>")
         output.close()
 
-    def __get_date_parts(self, timestamp):
-        date = datetime.datetime.fromtimestamp(timestamp)
-        if self.years_prior_are_approximate and date.year < int(self.years_prior_are_approximate):
-            return {"year": str(date.year), "month": None, "day": None}
-
-        return {"year": str(date.year), "month": date.strftime("%b"), "day": str(date.day)}
-
-    def __get_date_string(self, date_parts):
-        if date_parts["month"]:
-            return "%s %s, %s" % (date_parts["month"], date_parts["day"], date_parts["year"])
-
-        return date_parts["year"]
-
-    def __get_date_range(self, min_timestamp, max_timestamp):
-        if min_timestamp is None:
-            return None
-
-        min_parts = self.__get_date_parts(min_timestamp)
-        max_parts = self.__get_date_parts(max_timestamp)
-
-        if min_parts != max_parts and min_parts["month"]:
-            if min_parts["year"] == max_parts["year"] and min_parts["month"] == max_parts["month"]:
-                return "%s %s-%s, %s" % \
-                       (min_parts["month"], min_parts["day"], max_parts["day"], min_parts["year"])
-
-            if min_parts["year"] == max_parts["year"]:
-                return "%s %s-%s %s, %s" % \
-                       (min_parts["month"], min_parts["day"], max_parts["month"], max_parts["day"],
-                        min_parts["year"])
-
-        min_str = self.__get_date_string(min_parts)
-        max_str = self.__get_date_string(max_parts)
-        if min_str == max_str:
-            return min_str
-
-        return "%s to %s" % (min_str, max_str)
-
     def __get_stats_description(self, stats):
         ret = []
         if stats["num_photos"] > 0:
@@ -844,45 +868,19 @@ class Html:
             ret.append("<span class='stat'>%s</span>" % \
                        (humanize.naturalsize(stats["total_filesize"], binary=True)))
 
-        return ", ".join(ret)
-
-    def __cleanup_tags(self, taglist):
-        # Cleanup nested tags. For example, ['/Places', '/Places/WV'] becomes ['WV']
-        tags_to_remove = set([])
-        all_tags = set(taglist)
-        tag_name_to_id = {}
-
-        for tag_id in all_tags:
-            tag_name = self.all_media["tags_by_id"][tag_id]["full_title"]
-            if not tag_name.startswith("/"):
-                continue
-
-            tag_name_to_id[tag_name] = tag_id
-            tag_parts = tag_name.split("/")
-            if len(tag_parts) == 2:
-                continue
-
-            tags_to_remove.add("/".join(tag_parts[0:-1]))
-
-        for tag_name in tags_to_remove:
-            tag_id = tag_name_to_id[tag_name]
-            all_tags.remove(tag_id)
-
-        ret = [(tag_id, self.all_media["tags_by_id"][tag_id]["title"]) for tag_id in all_tags]
-        ret.sort(key=lambda tag: tag[1])
-
-        return ret
+        return ", ".join(ret) # FIXME use &nbsp;
 
     def __has_shown_media(self, stats):
         return stats["num_photos"] > 0 or stats["num_videos"] > 0
 
-class Json:
+class Json(CommonWriter):
     # pylint: disable=too-few-public-methods
-    def __init__(self, all_media, dest_directory, min_media_rating):
+    def __init__(self, all_media, main_title, dest_directory, years_prior_are_approximate,
+                 version_label):
         # pylint: disable=too-many-arguments
-        self.all_media = all_media
-        self.json_basedir = os.path.join(dest_directory, str(min_media_rating))
-        self.min_media_rating = min_media_rating
+        CommonWriter.__init__(self, all_media, main_title, years_prior_are_approximate,
+                              version_label)
+        self.dest_directory = dest_directory
 
     def write(self):
         shown_media = []
@@ -892,48 +890,75 @@ class Json:
             if not event["stats"]["min_date"]:
                 continue
 
-            item = self._copy_fields(["title", "comment", "id", "date"], event)
+            item = self.__copy_fields(["title", "comment", "id", "date"], event)
             item["thumbnail_path"] = "thumbnails/" + event["thumbnail_path"]
-            item["link"] = "%s/event/%s.html" % (self.min_media_rating, event["id"])
-            item["min_date"] = datetime.datetime.fromtimestamp(event["stats"]["min_date"]).isoformat()
-            item["max_date"] = datetime.datetime.fromtimestamp(event["stats"]["max_date"]).isoformat()
+            item["link"] = "0/event/%s.html" % (event["id"])
+            item.update(self.__get_stats(event["stats"]))
             shown_events.append(item)
 
             for media in event["media"]:
-                item = self._copy_fields(["title", "comment", "media_id", "rating", "event_id"],
-                                         media)
-                item["link"] = "original/%s" % (media["filename"])
-                item["thumbnail_path"] = "thumbnails/" + media["thumbnail_path"]
+                item = self.__copy_fields(["title", "comment", "event_id", "rating", "filesize"],
+                                          media)
+                if "clip_duration" in media:
+                    item["clip_duration"] = humanize.naturaldelta(int(media["clip_duration"]))
                 item["exposure_time"] = datetime.datetime.fromtimestamp(media["exposure_time"]) \
                                             .isoformat()
-                item["tags"] = list(media["tags"])
+                item["exposure_time_pretty"] = \
+                    self._get_date_string(self._get_date_parts(media["exposure_time"]))
+                item["link"] = "original/%s" % (media["filename"])
+                item["thumbnail_path"] = "thumbnails/" + media["thumbnail_path"]
+                item["tags"] = []
+                for tag_id, _ in self._cleanup_tags(media["tags"]):
+                    item["tags"].append(tag_id)
+                item["type"] = "photo" if media["media_id"].startswith("thumb") else "video"
+
                 shown_media.append(item)
 
         shown_tags = []
 
         for tag in self.all_media["tags_by_id"].values():
-            item = self._copy_fields(["title", "full_title", "id"], tag)
+            if not tag["stats"]["min_date"]:
+                continue
+
+            item = self.__copy_fields(["title", "full_title", "id"], tag)
             item["thumbnail_path"] = "thumbnails/" + tag["thumbnail_path"]
-            item["link"] = "%s/tag/%s.html" % (self.min_media_rating, tag["id"])
+            item["link"] = "0/tag/%s.html" % (tag["id"])
+            item.update(self.__get_stats(tag["stats"]))
+
             if tag["parent_tag"]:
                 item["parent_tag_id"] = tag["parent_tag"]["id"]
             else:
                 item["parent_tag_id"] = None
+
             shown_tags.append(item)
 
         shown_events.sort(key=lambda event: event["date"], reverse=True)
         shown_media.sort(key=lambda media: media["exposure_time"], reverse=True)
         shown_tags.sort(key=lambda tag: tag["full_title"])
 
-        ret = {"media": shown_media, "events": shown_events, "tags": shown_tags}
+        ret = {"title": self.main_title, "version_label": self.version_label,
+               "generated_at": self.generated_at, "media": shown_media,
+               "events": shown_events, "tags": shown_tags}
 
-        with open(os.path.join(self.json_basedir, "media.json"), "w") as outfile:
+        with open(os.path.join(self.dest_directory, "media.json"), "w") as outfile:
             outfile.write(json.dumps(ret, indent="\t"))
 
-    def _copy_fields(self, copy_these_fields, source):
+    def __get_stats(self, stats):
+        ret = self.__copy_fields(["num_photos", "num_videos"], stats)
+        ret["filesize"] = stats["total_filesize"]
+        ret["date_range"] = self._get_date_range(stats["min_date"], stats["max_date"])
+        ret["min_date"] = datetime.datetime.fromtimestamp(stats["min_date"]).isoformat()
+        ret["max_date"] = datetime.datetime.fromtimestamp(stats["max_date"]).isoformat()
+
+        return ret
+
+    def __copy_fields(self, copy_these_fields, source):
         item = {}
         for field in copy_these_fields:
-            if field in source and source[field]:
+            if field not in source:
+                continue
+
+            if isinstance(source[field], int) or source[field]:
                 item[field] = source[field]
 
         return item

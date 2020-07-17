@@ -2,59 +2,26 @@
   <head>
     <meta name="viewport" content="width=device-width"/>
     <meta charset="UTF-8"/>
+    <script type="text/javascript" src="search.js"></script>
   </head>
 
   <body style="text-align:center; background:black; margin: 0px;">
     <img id="image" style="width:100%; height:100%; object-fit:contain; image-orientation: from-image;"/>
 
     <script>
-      function getQueryParameter(name, defaultValue) {
-        var urlParams = new URLSearchParams(window.location.search);
-        return urlParams.has(name) ? urlParams.get(name) : defaultValue;
-      }
-
-      function getIntQueryParameter(name, defaultValue) {
-        var val = getQueryParameter(name, null);
-        return val != null ? parseInt(val, 10) : defaultValue;
-      }
-
-      function isValidMedia(media) {
-        if (media["media_id"].startsWith("video"))
-          return false;
-
-        var minTime = getQueryParameter("min_time", "");
-        if (minTime != "" && media["exposure_time"].localeCompare(minTime) < 0)
-          return false;
-
-        var maxTime = getQueryParameter("max_time", "");
-        if (maxTime != "" && media["exposure_time"].localeCompare(maxTime) > 0)
-          return false;
-
-        return true;
-      }
-
-      var allMedia = null;
+      var shownPhotos = null;
       var curIdx = 0;
 
-      function shuffleMedia() {
-        for (var i = allMedia.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * i);
-          const tmp = allMedia[i];
-          allMedia[i] = allMedia[j];
-          allMedia[j] = tmp;
-        }
-      }
-
       function updateImage() {
-        if (allMedia == null || allMedia.length == 0)
+        if (shownPhotos == null || shownPhotos.length == 0)
           return;
 
-        document.getElementById("image").src = allMedia[curIdx].link;
+        document.getElementById("image").src = shownPhotos[curIdx].link;
 
         curIdx++;
-        if (curIdx == allMedia.length) {
+        if (curIdx == shownPhotos.length) {
            curIdx = 0;
-           shuffleMedia();
+           shuffleArray(shownPhotos);
         }
       }
 
@@ -62,23 +29,22 @@
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange = function() {
           if (this.readyState == 4 && this.status == 200) {
-            var loadedMedia = JSON.parse(this.responseText);
-            allMedia = [];
-            for (var i = 0; i < loadedMedia["media"].length; i++) {
-              if (!isValidMedia(loadedMedia["media"][i]))
+            var allMedia = performSearch(JSON.parse(this.responseText));
+
+            shownPhotos = [];
+            for (media of allMedia) {
+              if (media["type"] != "photo")
                 continue;
 
-              allMedia.push(loadedMedia["media"][i]);
+              shownPhotos.push(media);
             }
 
-            shuffleMedia();
+            shuffleArray(shownPhotos);
             updateImage();
           }
         };
 
-        var db = getQueryParameter("db", "5/media.json");
-        // Add current timstamp to query to avoid caching
-        xmlhttp.open("GET", `${db}?ts=${Date.now()}`, true);
+        xmlhttp.open("GET", "media.json", true);
         xmlhttp.send();
       }
 

@@ -110,3 +110,12 @@ a {
 	font-style: italic;
 	padding-top: 10px;
 }
+
+.search_criterias, .search_criteria, .search_controls {
+	display: block;
+}
+
+.search_criteria {
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
