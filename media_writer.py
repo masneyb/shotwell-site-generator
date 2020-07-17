@@ -868,7 +868,7 @@ class Html(CommonWriter):
             ret.append("<span class='stat'>%s</span>" % \
                        (humanize.naturalsize(stats["total_filesize"], binary=True)))
 
-        return ", ".join(ret) # FIXME use &nbsp;
+        return " &nbsp; ".join(ret)
 
     def __has_shown_media(self, stats):
         return stats["num_photos"] > 0 or stats["num_videos"] > 0
