@@ -3,26 +3,70 @@
     <meta name="viewport" content="width=device-width"/>
     <meta charset="UTF-8"/>
     <script type="text/javascript" src="search.js"></script>
+    <style>
+      #left_control {
+        position: fixed;
+        display: none;
+        width: 50px;
+        height: 20px;
+        left: 15px;
+        bottom: 15px;
+        z-index: 2;
+        cursor: pointer;
+      }
+
+      #right_control {
+        position: fixed;
+        display: none;
+        width: 50px;
+        height: 20px;
+        right: 15px;
+        bottom: 15px;
+        z-index: 2;
+        cursor: pointer;
+      }
+
+      #left_control a, #right_control a {
+        background-color: white;
+        padding: 10px;
+        color: inherit;
+        text-decoration: none;
+      }
+    </style>
   </head>
 
   <body style="text-align:center; background:black; margin: 0px;">
-    <img id="image" style="width:100%; height:100%; object-fit:contain; image-orientation: from-image;"/>
+    <img id="image" onClick="toggleUpdateImageTimer(true);"
+         style="width:100%; height:100%; object-fit:contain; image-orientation: from-image;"/>
+
+    <div id="left_control">
+      <a class="control" href="#" onClick="showImage(curIdx - 1);">&lt;&lt;</a>
+    </div>
+
+    <div id="right_control">
+      <a class="control" href="#" onClick="showImage(curIdx + 1);">&gt;&gt;</a>
+    </div>
 
     <script>
+      var updateImageTimer = null;
       var shownPhotos = null;
       var curIdx = 0;
 
-      function updateImage() {
-        if (shownPhotos == null || shownPhotos.length == 0)
+      function showImage(idx) {
+        if (shownPhotos == null || idx < 0 || idx >= shownPhotos.length)
           return;
 
-        document.getElementById("image").src = shownPhotos[curIdx].link;
+        document.querySelector("#image").src = shownPhotos[idx].link;
+        curIdx = idx;
+      }
 
+      function showNextImage() {
         curIdx++;
         if (curIdx == shownPhotos.length) {
            curIdx = 0;
            shuffleArray(shownPhotos);
         }
+        showImage(curIdx);
       }
 
       function updateJson() {
@@ -40,7 +84,7 @@
             }
 
             shuffleArray(shownPhotos);
-            updateImage();
+            showImage(0);
           }
         };
 
@@ -48,11 +92,27 @@
         xmlhttp.send();
       }
 
+      function toggleUpdateImageTimer(userInitiated) {
+        if (updateImageTimer == null) {
+          document.querySelector("#left_control").style.display = "none";
+          document.querySelector("#right_control").style.display = "none";
+
+          if (userInitiated)
+            showImage(curIdx + 1);
+          updateImageTimer = setInterval(showNextImage, photoUpdateSecs * 1000);
+        } else {
+          document.querySelector("#left_control").style.display = "block";
+          document.querySelector("#right_control").style.display = "block";
+          clearInterval(updateImageTimer);
+          updateImageTimer = null;
+        }
+      }
+
       updateJson();
 
       // 10 seconds
       var photoUpdateSecs = getIntQueryParameter("photo_update_secs", 10);
-      setInterval(updateImage, photoUpdateSecs * 1000);
+      toggleUpdateImageTimer(false);
 
       /*
        * Refresh the page every 6 hours by default to ensure it gets the latest
