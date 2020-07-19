@@ -55,6 +55,11 @@
       input {
         padding: 10px;
       }
+
+      .loading {
+        font-size: 120%;
+        font-style: italic;
+      }
     </style>
   </head>
 
@@ -84,11 +89,16 @@
         if (shownPhotos == null || idx < 0 || idx >= shownPhotos.length)
           return;
 
-        document.querySelector("#image").src = shownPhotos[idx].link;
-        document.querySelector("#description").innerHTML = createMediaStatsHtml(shownPhotos[idx],
-                                                                                eventNames,
-                                                                                tagNames,
-                                                                                true);
+        var descr = createMediaStatsHtml(shownPhotos[idx], eventNames, tagNames, true);
+        var imageEle = document.querySelector("#image");
+        var descrEle = document.querySelector("#description");
+
+        descrEle.innerHTML = "<div class='loading'>Loading</div>";
+        imageEle.addEventListener("load", function() {
+          descrEle.innerHTML = descr;
+        });
+        imageEle.src = shownPhotos[idx].link;
+
         curIdx = idx;
       }
 
