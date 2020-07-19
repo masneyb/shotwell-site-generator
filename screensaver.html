@@ -4,33 +4,42 @@
     <meta charset="UTF-8"/>
     <script type="text/javascript" src="search.js"></script>
     <style>
+      a {
+        color: inherit;
+      }
+
       #left_control {
         position: fixed;
         display: none;
-        width: 50px;
-        height: 20px;
         left: 15px;
         bottom: 15px;
         z-index: 2;
-        cursor: pointer;
+      }
+
+      #description {
+        position: fixed;
+        display: none;
+        left: 50%;
+        margin-left: -154px;
+        width: 300px;
+        height: auto;
+        bottom: 15px;
+        background-color: white;
+        z-index: 2;
+        font-size: 80%;
+        padding: 4px;
       }
 
       #right_control {
         position: fixed;
         display: none;
-        width: 50px;
-        height: 20px;
         right: 15px;
         bottom: 15px;
         z-index: 2;
-        cursor: pointer;
       }
 
-      #left_control a, #right_control a {
-        background-color: white;
+      input {
         padding: 10px;
-        color: inherit;
-        text-decoration: none;
       }
     </style>
   </head>
@@ -39,17 +48,23 @@
     <img id="image" onClick="toggleUpdateImageTimer(true);"
          style="width:100%; height:100%; object-fit:contain; image-orientation: from-image;"/>
 
-    <div id="left_control">
-      <a class="control" href="#" onClick="showImage(curIdx - 1);">&lt;&lt;</a>
-    </div>
+    <form>
+      <div id="left_control">
+        <input type="button" onClick="showImage(curIdx - 1);" value="&lt;&lt;"></input>
+      </div>
 
-    <div id="right_control">
-      <a class="control" href="#" onClick="showImage(curIdx + 1);">&gt;&gt;</a>
-    </div>
+      <div id="description"></div>
+
+      <div id="right_control">
+        <input type="button" onClick="showImage(curIdx + 1);" value="&gt;&gt;"></input>
+      </div>
+    </form>
 
     <script>
       var updateImageTimer = null;
       var shownPhotos = null;
+      var eventNames = null;
+      var tagNames = null;
       var curIdx = 0;
 
       function showImage(idx) {
@@ -57,6 +72,10 @@
           return;
 
         document.querySelector("#image").src = shownPhotos[idx].link;
+        document.querySelector("#description").innerHTML = createMediaStatsHtml(shownPhotos[idx],
+                                                                                eventNames,
+                                                                                tagNames,
+                                                                                true);
         curIdx = idx;
       }
 
@@ -70,42 +89,40 @@
       }
 
       function updateJson() {
-        var xmlhttp = new XMLHttpRequest();
-        xmlhttp.onreadystatechange = function() {
-          if (this.readyState == 4 && this.status == 200) {
-            var allMedia = performSearch(JSON.parse(this.responseText));
+        loadJson(function(allMedia, newEventNames, newTagNames) {
+          eventNames = newEventNames;
+          tagNames = newTagNames;
 
-            shownPhotos = [];
-            for (media of allMedia) {
-              if (media["type"] != "photo")
-                continue;
+          shownPhotos = [];
+          for (media of allMedia) {
+            if (media["type"] != "photo")
+              continue;
 
-              shownPhotos.push(media);
-            }
-
-            shuffleArray(shownPhotos);
-            showImage(0);
+            shownPhotos.push(media);
           }
-        };
 
-        xmlhttp.open("GET", "media.json", true);
-        xmlhttp.send();
+          shuffleArray(shownPhotos);
+          showImage(0);
+        });
       }
 
       function toggleUpdateImageTimer(userInitiated) {
-        if (updateImageTimer == null) {
-          document.querySelector("#left_control").style.display = "none";
-          document.querySelector("#right_control").style.display = "none";
+        var display;
 
+        if (updateImageTimer == null) {
+          display = "none";
           if (userInitiated)
             showImage(curIdx + 1);
           updateImageTimer = setInterval(showNextImage, photoUpdateSecs * 1000);
         } else {
-          document.querySelector("#left_control").style.display = "block";
-          document.querySelector("#right_control").style.display = "block";
+          display = "block";
           clearInterval(updateImageTimer);
           updateImageTimer = null;
         }
+
+        document.querySelector("#left_control").style.display = display;
+        document.querySelector("#description").style.display = display;
+        document.querySelector("#right_control").style.display = display;
       }
 
       updateJson();

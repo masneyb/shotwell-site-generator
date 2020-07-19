@@ -93,59 +93,6 @@
     </template>
 
     <script type="text/javascript">
-      var allMedia = null;
-      var eventNames = null;
-      var tagNames = null;
-      var currentPageNumber = 1;
-      var nextSearchInput = 0;
-
-      function getPrettyFileSize(size) {
-        if (size > 1024*1024*1024)
-          return `${(size / (1024*1024*1024)).toFixed(1)} GiB`;
-        if (size > 1024*1024)
-          return `${(size / (1024*1024)).toFixed(1)} MiB`;
-        if (size > 1024)
-          return `${(size / (1024)).toFixed(1)} KiB`;
-
-        return `${size} bytes`;
-      }
-
-      function createMediaStatsHtml(entity) {
-        var ret = []
-        if (entity.num_photos > 0)
-          ret.push(`<span class="stat">${entity.num_photos.toLocaleString()} photos</span>`);
-
-        if (entity.num_videos > 0)
-          ret.push(`<span class="stat">${entity.num_videos.toLocaleString()} videos</span>`);
-
-        if ("exposure_time_pretty" in entity)
-          ret.push(`<span class="stat">${entity.exposure_time_pretty}</span>`);
-
-        if (entity.filesize)
-          ret.push(`<span class="stat">${getPrettyFileSize(entity.filesize)}</span>`);
-
-        if (entity.clip_duration)
-          ret.push(`<span class="stat">${entity.clip_duration}</span>`);
-
-        if (entity.date_range)
-          ret.push(`<span class="stat">${entity.date_range}</span>`);
-
-        if (entity.event_id)
-          ret.push('<span class="stat">Event: ' +
-                   `<a href="0/event/${entity.event_id}.html">${eventNames[entity.event_id]}</a>` +
-                   '</span>');
-
-        if (entity.tags) {
-          for (var tag_id of entity.tags) {
-            ret.push('<span class="stat">Tag: ' +
-                     `<a href="0/tag/${tag_id}.html">${tagNames[tag_id]}</a>` +
-                     '</span>');
-          }
-        }
-
-        return ret.join(" &nbsp; ");
-      }
-
       function createAllStatsHtml() {
         var totalsByTypes = {};
 
@@ -195,7 +142,8 @@
           if (media.title)
             clone.querySelector(".media_title").innerText = media.title;
 
-          clone.querySelector(".media_stats").innerHTML = createMediaStatsHtml(media);
+          clone.querySelector(".media_stats").innerHTML = createMediaStatsHtml(media, eventNames,
+                                                                               tagNames, false);
 
           allMediaEle.appendChild(clone);
         }
@@ -380,32 +328,21 @@
           addSearchInputRow();
       }
 
-      var xmlhttp = new XMLHttpRequest();
-      xmlhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-          var resp = JSON.parse(this.responseText);
+      var currentPageNumber = 1;
+      var nextSearchInput = 0;
+      var allMedia;
 
-          eventNames = {}
-          for (evt of resp["events"]) {
-            eventNames[evt["id"]] = "title" in evt ? evt["title"] : `Unnamed ${event["id"]}`;
-          }
+      var allMedia = null;
+      var eventNames = null;
+      var tagNames = null;
 
-          tagNames = {}
-          for (tag of resp["tags"]) {
-            tagNames[tag["id"]] = tag["title"];
-          }
+      loadJson(function(newAllMedia, newEventNames, newTagNames) {
+        allMedia = newAllMedia;
+        eventNames = newEventNames;
+        tagNames = newTagNames;
 
-          document.title = document.querySelector("#title").innerText = `${resp["title"]}: Search`;
-          document.querySelector("#generated_timestamp").innerText = resp["generated_at"];
-          document.querySelector("#app_version").innerText = resp["version_label"];
-
-          allMedia = performSearch(resp);
-          showMedia(1);
-        }
-      };
-
-      xmlhttp.open("GET", "media.json", true);
-      xmlhttp.send();
+        showMedia(1);
+      });
 
       populateSearchValuesFromUrl();
     </script>
