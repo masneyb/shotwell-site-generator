@@ -108,8 +108,15 @@ function textSearchContains(fieldInfo, op, value, media) {
 function performGenericOp(fieldInfo, media, value, opFunc) {
   for (const fieldname of fieldInfo.searchFields) {
     var input = fieldname in media ? media[fieldname] : null;
-    if (opFunc(input, value))
-      return true;
+    if (Array.isArray(input)) {
+      for (var inputpart of input) {
+        if (opFunc(inputpart, value))
+          return true;
+      }
+    } else {
+      if (opFunc(input, value))
+        return true;
+    }
   }
 
   return false;
