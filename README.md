@@ -86,6 +86,12 @@ on your home server for the long term.
 
 ![Search](screenshots/search.png?raw=1)
 
+---
+
+![Photo Frame](screenshots/photoframe.jpg?raw=1)
+
+The photo frame is described in the file [PHOTOFRAME.md](PHOTOFRAME.md).
+
 ## Contact
 
 Brian Masney [masneyb@onstation.org](mailto:masneyb@onstation.org)
