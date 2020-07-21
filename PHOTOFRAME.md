@@ -9,6 +9,7 @@ My photo frame has the following hardware components:
 - [Case for 7" touchscreen](https://thepihut.com/products/raspberry-pi-official-7-touchscreen-case)
 - Optional: [Metal momentary push button](https://www.sparkfun.com/products/11970) that's wired up
   to a GPIO pin to toggle the power to the screen.
+- Power supply for pi.
 
 ## Base OS Install
 
@@ -59,7 +60,7 @@ Script to stop the Chromium browser in the file /usr/local/bin/stop-photos.sh:
 ### Hardware button script
 
 Python script that listens for button presses that toggles the power to the screen and starts/stops
-Chromium:
+Chromium in the file /usr/local/bin/power_button.py:
 
     #!/usr/bin/env python3
     
@@ -186,15 +187,15 @@ Systemd units to automatically toggle the power of the screen at specific times 
 
 /etc/systemd/system/photos-on.timer:
 
-   [Unit]
-   Description=Power on photo slideshow in the morning
-   
-   [Timer]
-   OnCalendar=*-*-* 07:00:00
-   Persistent=true
-   
-   [Install]
-   WantedBy=timers.target
+    [Unit]
+    Description=Power on photo slideshow in the morning
+    
+    [Timer]
+    OnCalendar=*-*-* 07:00:00
+    Persistent=true
+    
+    [Install]
+    WantedBy=timers.target
 
 Enable the systemd units:
 

@@ -16,7 +16,8 @@ third-party resources for the long-term preservation of the library. The use of 
 the generated site is minimized as well for the long-term preservation.
 
 It also generates a screensaver so that you can setup a browser in kiosk mode on a small single
-board computer like a Raspberry Pi and use it as a photo frame.
+board computer like a Raspberry Pi and use it as a photo frame. My photo frame setup is described
+in the file [PHOTOFRAME.md](PHOTOFRAME.md).
 
 I make the static-generated website available on my local LAN via my home server so that other
 members of my family can view my Shotwell library on their devices. 
@@ -85,12 +86,6 @@ on your home server for the long term.
 ---
 
 ![Search](screenshots/search.png?raw=1)
-
----
-
-![Photo Frame](screenshots/photoframe.jpg?raw=1)
-
-The photo frame is described in the file [PHOTOFRAME.md](PHOTOFRAME.md).
 
 ## Contact
 
