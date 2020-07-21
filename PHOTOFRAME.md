@@ -46,7 +46,8 @@ Script to start the Chromium browser in kiosk mode with the proper URL with the 
     export DISPLAY=:0
     export XAUTHORITY=/home/ubuntu/.Xauthority
     xset -dpms s off s noblank s 0 0 s noexpose
-    # Be sure to set kiosk=1 in the URL to hide the mouse cursor. You may want to adjust the time
+    # You can generate a screensaver URL from the search page in your library. Be sure to set
+    # kiosk=1 in the URL to hide the mouse cursor. You may want to adjust the time
     # photo_update_secs.
     /usr/bin/chromium-browser --kiosk "http://YOUR_SERVER_HOSTNAME/screensaver.html?search=Rating%2Cis at least%2C5&match_policy=all&photo_update_secs=30&kiosk=1" &
 

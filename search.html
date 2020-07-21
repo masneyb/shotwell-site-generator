@@ -150,7 +150,7 @@
 
         var params = window.location.search.startsWith("?") ? window.location.search : "?";
         document.querySelector("#screensaver_link").href =
-            `screensaver.html${params}&photo_update_secs=10`;
+            `screensaver.html${params}&photo_update_secs=10&kiosk=0`;
         document.querySelector(".summary_stats").innerHTML = createAllStatsHtml();
         for (ele of document.querySelectorAll("#page_info"))
           ele.innerText = `Page ${pageNumber.toLocaleString()} of ${totalPages.toLocaleString()}`;
