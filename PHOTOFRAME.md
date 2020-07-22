@@ -7,27 +7,32 @@ My photo frame has the following hardware components:
 - Raspberry Pi 4
 - Official Raspberry Pi 7" Touchscreen Display
 - [Case for 7" touchscreen](https://thepihut.com/products/raspberry-pi-official-7-touchscreen-case)
-- Optional: [Metal momentary push button](https://www.sparkfun.com/products/11970) that's wired up
-  to a GPIO pin to toggle the power to the screen.
+- Optional: [Metal momentary push button](https://www.sparkfun.com/products/11970) that's wired
+  up to a GPIO pin to toggle the power for the screen.
 - Power supply for pi.
+
+The screen is automatically powered off at night and comes back on in the morning.
 
 ## Base OS Install
 
 I initially started with Raspberry Pi OS (formerly called Raspbian) 2020-05-27, however it ships
 with Chromium 78. This version of the browser doesn't support the 'image-orientation: from-image;'
-CSS tag. That's introduced in Chromium 81. Install Ubuntu Server 20.04 for Raspberry Pi, which has
-a new enough version of Chromium, and install the dependencies:
+CSS tag. That's introduced in Chromium 81. I installed
+[Ubuntu Server 20.04 for Raspberry Pi](https://ubuntu.com/download/raspberry-pi) since it has a
+new enough version of Chromium. Once the system is up, install additional dependencies:
 
     sudo apt install -y chromium-browser python3-pip xubuntu-desktop
     sudo pip3 install rpi.gpio
     # Work around the bug https://bugs.launchpad.net/ubuntu/+source/xfce4-screensaver/+bug/1871767
     sudo dpkg --purge xfce4-screensaver
 
+Set the default display manager to LightDM. Be sure to set the local timezone on your Raspberry
+Pi properly. Reboot once your user is configured.
+
 ## Automatic user login through LightDM
 
-Set the default display manager to LightDM. Be sure to set the local timezone on your Raspberry
-Pi properly. Once your user is configured, reboot, and setup LightDM to automatically log in as the
-ubuntu user on startup by adding the file /etc/lightdm/lightdm.conf.d/autologin.conf:
+Setup LightDM to automatically log in as the ubuntu user on startup by adding the file
+/etc/lightdm/lightdm.conf.d/autologin.conf:
 
     [SeatDefaults]
     autologin-user=ubuntu
@@ -58,10 +63,14 @@ Script to stop the Chromium browser in the file /usr/local/bin/stop-photos.sh:
     set -e
     killall -9 chrome
 
+I initially wanted to use Firefox, however the full screen mode on startup appears to be an
+enterprise feature. There are third-party plugins available that add this feature.
+
 ### Hardware button script
 
-Python script that listens for button presses that toggles the power to the screen and starts/stops
-Chromium in the file /usr/local/bin/power_button.py:
+I added a button to the top of the case that allows manually toggling the power on the screen
+and starting/stopping the Chromium browser. Code is placed in the file
+/usr/local/bin/power_button.py:
 
     #!/usr/bin/env python3
     
@@ -210,4 +219,5 @@ Enable the systemd units:
 
 Reboot and Chromium should automatically start full screen on boot. Tap the screen to pause the
 slideshow. Metadata about the photo will pop up on the bottom of the screen and there are buttons
-that allow manually navigating through the photos that were shown.
+that allow manually navigating through the photos that were shown. Tap the image again to continue
+the slideshow.

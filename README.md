@@ -12,8 +12,9 @@ generated using [Imagemagick](https://imagemagick.org/index.php) with the highes
 used as the input images.
 
 The generated site is fully self contained and does not require Internet access or any
-third-party resources for the long-term preservation of the library. The use of Javascript on
-the generated site is minimized as well for the long-term preservation.
+third-party resources for the long-term preservation of the library. With the exception of the
+search and screensaver pages, the use of Javascript on the generated site is minimized as well
+for the long-term preservation.
 
 It also generates a screensaver so that you can setup a browser in kiosk mode on a small single
 board computer like a Raspberry Pi and use it as a photo frame. My photo frame setup is described
@@ -86,6 +87,13 @@ on your home server for the long term.
 ---
 
 ![Search](screenshots/search.png?raw=1)
+
+## Same origin policy for file URIs
+
+The screensaver and search pages will not work when accessed using a file:// URI. This is due to
+browser mitigations in place for CVE-2019-11730. These pages work correctly when accessed over
+a http:// or https:// URI. All of the other generated pages will work correctly when accessed over
+a file:// URI.
 
 ## Contact
 
