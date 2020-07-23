@@ -92,8 +92,10 @@ on your home server for the long term.
 
 The screensaver and search pages will not work when accessed using a file:// URI. This is due to
 browser mitigations in place for CVE-2019-11730. These pages work correctly when accessed over
-a http:// or https:// URI. All of the other generated pages will work correctly when accessed over
-a file:// URI.
+a http:// or https:// URI. All of the other generated pages will work correctly when accessed
+over a file:// URI. More information is available at
+https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSRequestNotHttp. You can work
+around this issue by starting a web server on your machine as described above.
 
 ## Contact
 
