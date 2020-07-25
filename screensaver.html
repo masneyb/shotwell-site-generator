@@ -111,6 +111,15 @@
         showImage(curIdx);
       }
 
+      function processKeyPress(event) {
+        if (event.key === "ArrowLeft")
+          showImage(curIdx - 1);
+        else if (event.key === "ArrowRight")
+          showImage(curIdx + 1);
+        else if (event.key === " ")
+          toggleUpdateImageTimer(true);
+      }
+
       function updateJson() {
         loadJson(function(allMedia, newEventNames, newTagNames) {
           eventNames = newEventNames;
@@ -164,6 +173,8 @@
 
       if (getIntQueryParameter("kiosk", 0) == 1)
         document.body.style.cursor = "none";
+
+      document.addEventListener("keydown", processKeyPress);
     </script>
   </body>
 </html>
