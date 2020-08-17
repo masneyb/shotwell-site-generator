@@ -170,7 +170,7 @@ class Html(CommonWriter):
         shown_media = []
         for event in self.all_media["events_by_id"].values():
             for media in event["media"]:
-                relpath = "../../original/%s" % (media["filename"])
+                relpath = "../../%s" % (media["filename"])
                 shown_media.append({"media": media, "link": relpath,
                                     "thumbnail_path": media["thumbnail_path"],
                                     "stats": None, "show_daterange": True})
@@ -226,7 +226,7 @@ class Html(CommonWriter):
             shown_media = []
             for media in tag["media"]:
                 shown_media.append({"media": media,
-                                    "link": "../../original/%s" % (media["filename"]),
+                                    "link": "../../%s" % (media["filename"]),
                                     "thumbnail_path": media["thumbnail_path"],
                                     "stats": None, "show_daterange": False})
 
@@ -526,7 +526,7 @@ class Html(CommonWriter):
         for event in self.all_media["events_by_id"].values():
             shown_media = []
             for media in event["media"]:
-                relpath = "../../original/%s" % (media["filename"])
+                relpath = "../../%s" % (media["filename"])
                 shown_media.append({"media": media, "link": relpath,
                                     "thumbnail_path": media["thumbnail_path"],
                                     "stats": None, "show_daterange": True})
@@ -905,7 +905,7 @@ class Json(CommonWriter):
                                             .isoformat()
                 item["exposure_time_pretty"] = \
                     self._get_date_string(self._get_date_parts(media["exposure_time"]))
-                item["link"] = "original/%s" % (media["filename"])
+                item["link"] = media["filename"]
                 item["thumbnail_path"] = "thumbnails/" + media["thumbnail_path"]
                 item["tags"] = []
                 for tag_id, _ in self._cleanup_tags(media["tags"]):

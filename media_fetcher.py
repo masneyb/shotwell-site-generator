@@ -25,13 +25,14 @@ from common import add_date_to_stats, cleanup_event_title
 
 class Database:
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
-    def __init__(self, conn, input_media_path, input_thumbs_directory, dest_thumbs_directory,
+    def __init__(self, conn, input_media_path, input_thumbs_directory, dest_directory,
                  thumbnailer, tags_to_skip, panorama_icon, play_icon, raw_icon):
         # pylint: disable=too-many-arguments
         self.conn = conn
         self.input_media_path = input_media_path
         self.input_thumbs_directory = input_thumbs_directory
-        self.dest_thumbs_directory = dest_thumbs_directory
+        self.dest_thumbs_directory = os.path.join(dest_directory, "thumbnails")
+        self.transformed_origs_directory = os.path.join(dest_directory, "transformed")
         self.tags_to_skip = tags_to_skip
         self.thumbnailer = thumbnailer
         self.panorama_icon = panorama_icon
@@ -117,12 +118,12 @@ class Database:
     def __fetch_media(self, all_media, min_rating):
         # Download regular photos...
         qry = "SELECT event_id, id, filename, title, comment, filesize, exposure_time, " + \
-              "rating, width, height, orientation FROM PhotoTable " + \
+              "rating, width, height, orientation, transformations FROM PhotoTable " + \
               "WHERE rating >= ? AND develop_embedded_id = -1 AND event_id != -1 " + \
               "ORDER BY PhotoTable.exposure_time"
         cursor = self.conn.cursor()
         for row in cursor.execute(qry, str(min_rating)):
-            self.__process_photo_row(all_media, row, row["filename"], False)
+            self.__process_photo_row(all_media, row, None, False)
 
         if self.__does_table_exist("BackingPhotoTable"):
             # Now download RAW photos...
@@ -131,7 +132,8 @@ class Database:
                   "BackingPhotoTable.filepath AS filename, PhotoTable.title, " + \
                   "PhotoTable.comment, PhotoTable.filesize, PhotoTable.exposure_time, " + \
                   "PhotoTable.rating, PhotoTable.width, PhotoTable.height, " + \
-                  "PhotoTable.orientation FROM PhotoTable, BackingPhotoTable " + \
+                  "PhotoTable.orientation, PhotoTable.transformations " + \
+                  "FROM PhotoTable, BackingPhotoTable " + \
                   "WHERE PhotoTable.rating >= ? AND PhotoTable.develop_embedded_id != -1 AND " + \
                   "BackingPhotoTable.id=PhotoTable.develop_embedded_id AND " + \
                   "PhotoTable.event_id != -1 " + \
@@ -147,7 +149,7 @@ class Database:
             cursor = self.conn.cursor()
             for row in cursor.execute(qry, str(min_rating)):
                 media_id = "video-%016x" % (row["id"])
-                media = self.__add_media(all_media, row, media_id, row["filename"], None, 0,
+                media = self.__add_media(all_media, row, media_id, row["filename"], None, None, 0,
                                          self.play_icon)
                 media["clip_duration"] = row["clip_duration"]
 
@@ -170,10 +172,32 @@ class Database:
 
         media_id = "thumb%016x" % (row["id"])
         media = self.__add_media(all_media, row, media_id, download_source, row["filename"],
-                                 rotate, overlay_icon)
+                                 row["transformations"], rotate, overlay_icon)
         media["exif"] = self.__get_photo_metadata(row["filename"])
         media["width"] = row["width"]
         media["height"] = row["height"]
+
+    def __parse_transformations(self, transformations):
+        if not transformations:
+            return None
+
+        ret = {}
+        last_block = None
+        for line in transformations.split("\n"):
+            if not line:
+                continue
+
+            if line.startswith("["):
+                last_block = line.replace("[", "").replace("]", "")
+                continue
+
+            parts = line.split("=")
+            if last_block == "adjustments" and parts[1] == "0":
+                continue
+
+            ret["%s.%s" % (last_block, parts[0])] = parts[1]
+
+        return ret
 
     def __fetch_events(self, all_media):
         qry = "SELECT id, name, comment, primary_source_id FROM EventTable"
@@ -300,15 +324,52 @@ class Database:
         else:
             event["date"] = max(event["date"], date)
 
-    def __add_media(self, all_media, row, media_id, download_source, thumbnail_source, rotate,
-                    overlay_icon):
+    def __strip_path_prefix(self, path, prefix):
+        if not prefix.endswith("/"):
+            prefix += "/"
+
+        return path.replace(prefix, "")
+
+    def __get_html_basepath(self, path):
+        if path.startswith(self.input_media_path):
+            return "original/" + self.__strip_path_prefix(path, self.input_media_path)
+
+        return "transformed/" + self.__strip_path_prefix(path, self.transformed_origs_directory)
+
+    def __transform_img(self, source_image, transformations, thumbnail):
+        parsed_transformations = self.__parse_transformations(transformations)
+        transformed_path = os.path.join(self.transformed_origs_directory,
+                                        self.__strip_path_prefix(source_image,
+                                                                 self.input_media_path))
+        image = self.thumbnailer.transform_original_image(source_image, transformed_path,
+                                                          parsed_transformations, thumbnail)
+
+        return image
+
+    def __add_media(self, all_media, row, media_id, download_source, thumbnail_source,
+                    transformations, rotate, overlay_icon):
         # pylint: disable=too-many-arguments
 
         media = {}
         media["id"] = row["id"]
         media["event_id"] = row["event_id"]
         media["media_id"] = media_id
-        media["filename"] = download_source.replace(self.input_media_path, "")
+
+        media["shotwell_thumbnail_path"] = self.__get_shotwell_thumbnail_path(media_id)
+        dir_shard = self.__get_dir_hash(media_id)
+        media["thumbnail_path"] = "media/%s/%s.png" % (dir_shard, media_id)
+
+        if not thumbnail_source:
+            thumbnail_source = media["shotwell_thumbnail_path"]
+
+        if download_source:
+            media["filename"] = self.__get_html_basepath(download_source)
+        else:
+            transformed_img = self.__transform_img(thumbnail_source, transformations,
+                                                   os.path.join(self.dest_thumbs_directory,
+                                                                media["thumbnail_path"]))
+            media["filename"] = self.__get_html_basepath(transformed_img)
+
         media["title"] = row["title"]
         media["comment"] = row["comment"]
         media["filesize"] = row["filesize"]
@@ -323,13 +384,7 @@ class Database:
         media["extra_rating"] = 0
 
         media["tags"] = set([])
-        media["shotwell_thumbnail_path"] = self.__get_shotwell_thumbnail_path(media_id)
 
-        if not thumbnail_source:
-            thumbnail_source = media["shotwell_thumbnail_path"]
-
-        dir_shard = self.__get_dir_hash(media_id)
-        media["thumbnail_path"] = "media/%s/%s.png" % (dir_shard, media_id)
         fspath = self.__get_thumbnail_fs_path(media["thumbnail_path"])
         self.thumbnailer.create_rounded_and_square_thumbnail(thumbnail_source, rotate, fspath,
                                                              overlay_icon)

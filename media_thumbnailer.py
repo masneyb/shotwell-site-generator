@@ -24,9 +24,10 @@ import subprocess
 COMPOSITE_FRAME_SIZE = 4
 
 class Imagemagick:
-    def __init__(self, thumbnail_size, dest_thumbs_directory, remove_stale_thumbnails):
+    def __init__(self, thumbnail_size, dest_directory, remove_stale_thumbnails):
         self.thumbnail_size = thumbnail_size
-        self.dest_thumbs_directory = dest_thumbs_directory
+        self.dest_thumbs_directory = os.path.join(dest_directory, "thumbnails")
+        self.transformed_origs_directory = os.path.join(dest_directory, "transformed")
         self.remove_stale_thumbnails = remove_stale_thumbnails
         self.generated_thumbnails = set([])
 
@@ -140,6 +141,67 @@ class Imagemagick:
 
         return num_photos, tile_size, geometry
 
+    def transform_original_image(self, original_image, transformed_image, transformations,
+                                 thumbnail):
+        # Use imagemagick to perform transformations on the original image that are defined in
+        # Shotwell.
+
+        args = self.__get_imagemagick_transformation_args(transformations)
+        if not args:
+            return original_image
+
+        self.generated_thumbnails.add(transformed_image)
+
+        base_dir = os.path.dirname(transformed_image)
+        if not os.path.isdir(base_dir):
+            os.makedirs(base_dir)
+
+        idx_file = transformed_image + ".idx"
+        self.generated_thumbnails.add(idx_file)
+        idx_contents = " ".join(args)
+
+        if self.__is_thumbnail_up_to_date(transformed_image, idx_file, idx_contents):
+            return transformed_image
+
+        if os.path.exists(thumbnail):
+            # This will be recreated later based on the transformed image
+            os.unlink(thumbnail)
+
+        cmd = ["convert", original_image, *args, transformed_image]
+        logging.info("Transforming original image: %s", " ".join(cmd))
+        subprocess.run(cmd, check=False)
+
+        pathlib.Path(idx_file).write_text(idx_contents)
+
+        return transformed_image
+
+    def __get_imagemagick_transformation_args(self, transformations):
+        if not transformations:
+            return None
+
+        args = []
+        if "straighten.angle" in transformations:
+            args += ["-distort", "SRT", transformations["straighten.angle"]]
+
+        if "crop.left" in transformations:
+            width = int(transformations["crop.right"]) - int(transformations["crop.left"])
+            height = int(transformations["crop.bottom"]) - int(transformations["crop.top"])
+            args += ["-crop", "%dx%d+%s+%s" % (width, height, transformations["crop.left"],
+                                               transformations["crop.top"])]
+
+        if "adjustments.expansion" in transformations:
+            # Has format: { 0, 130 }
+            parts = transformations["adjustments.expansion"].replace(",", "").split(" ")
+            black = (float(parts[1]) / 255.0) * 100.0
+            white = (float(parts[2]) / 255.0) * 100.0
+            args += ["-level", "%.1f%%,%.1f%%" % (black, white)]
+
+        # FIXME - some other transformations that are used in my library need to be implemented:
+        # adjustments.shadows, adjustments.exposure, and adjustments.saturation. There are others
+        # that are supported by shotwell that are not referenced here.
+
+        return args
+
     def create_rounded_and_square_thumbnail(self, source_image, rotate, resized_image,
                                             overlay_icon):
         if not os.path.isfile(source_image):
@@ -172,8 +234,8 @@ class Imagemagick:
                        "-compose", "CopyOpacity", "-composite", resized_image]
         subprocess.run(resize_cmd, check=False)
 
-    def remove_thumbnails(self):
-        for root, _, filenames in os.walk(self.dest_thumbs_directory):
+    def remove_thumbnails_in_path(self, path):
+        for root, _, filenames in os.walk(path):
             for filename in filenames:
                 path = os.path.join(root, filename)
                 if path in self.generated_thumbnails:
@@ -185,6 +247,10 @@ class Imagemagick:
                 else:
                     logging.warning("Thumbnail %s is no longer used.", path)
 
+    def remove_thumbnails(self):
+        self.remove_thumbnails_in_path(self.dest_thumbs_directory)
+        self.remove_thumbnails_in_path(self.transformed_origs_directory)
+
 class Noop:
     def create_composite_media_thumbnail(self, title, source_media, dest_filename):
         pass
@@ -195,3 +261,8 @@ class Noop:
 
     def remove_thumbnails(self):
         pass
+
+    def transform_original_image(self, original_image, transformed_image, transformations,
+                                 thumbnail):
+        # pylint: disable=unused-argument
+        return transformed_image if os.path.exists(transformed_image) else original_image

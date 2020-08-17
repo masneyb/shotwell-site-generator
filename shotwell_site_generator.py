@@ -27,8 +27,6 @@ import media_thumbnailer
 import media_writer
 
 def process_photos(options):
-    dest_thumbs_directory = os.path.join(options.dest_directory, "thumbnails")
-
     conn = sqlite3.connect(options.input_database)
     conn.row_factory = sqlite3.Row
 
@@ -38,13 +36,13 @@ def process_photos(options):
 
         if rating == 0:
             thumbnailer = media_thumbnailer.Imagemagick(options.thumbnail_size,
-                                                        dest_thumbs_directory,
+                                                        options.dest_directory,
                                                         options.remove_stale_thumbnails)
         else:
             thumbnailer = media_thumbnailer.Noop()
 
         fetcher = media_fetcher.Database(conn, options.input_media_path,
-                                         options.input_thumbs_directory, dest_thumbs_directory,
+                                         options.input_thumbs_directory, options.dest_directory,
                                          thumbnailer, set(options.tags_to_skip),
                                          __get_image_path(options, "panorama-icon.png"),
                                          __get_image_path(options, "play-icon.png"),
