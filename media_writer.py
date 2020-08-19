@@ -919,7 +919,12 @@ class Json(CommonWriter):
                 item["tags"] = []
                 for tag_id, _ in self._cleanup_tags(media["tags"]):
                     item["tags"].append(tag_id)
-                item["type"] = "photo" if media["media_id"].startswith("thumb") else "video"
+
+                if media["media_id"].startswith("thumb"):
+                    item["type"] = "raw_photo" if media["is_raw"] else "photo"
+                else:
+                    item["type"] = "video"
+
                 item["all_media_page"] = all_media_index["media"][media["media_id"]]["page"]
 
                 if "width" in media and media["width"]:

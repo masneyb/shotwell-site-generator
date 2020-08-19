@@ -373,7 +373,8 @@ const searchFields = [
     title: "Type",
     search: mediaTypeSearch,
     searchFields: ["type"],
-    validValues: [["photo", "photo"], ["video", "video"], ["event", "events"], ["tag", "tags"]],
+    validValues: [["photo", "photo"], ["raw photo", "raw_photo"], ["video", "video"],
+                  ["event", "events"], ["tag", "tags"]],
   },
   {
     title: "Width/Height Ratio",

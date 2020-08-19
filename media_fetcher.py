@@ -176,6 +176,7 @@ class Database:
         media["exif"] = self.__get_photo_metadata(row["filename"])
         media["width"] = row["width"]
         media["height"] = row["height"]
+        media["is_raw"] = is_raw
 
     def __parse_transformations(self, transformations):
         if not transformations:
