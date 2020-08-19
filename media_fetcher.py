@@ -365,10 +365,12 @@ class Database:
         if download_source:
             media["filename"] = self.__get_html_basepath(download_source)
         else:
-            transformed_img = self.__transform_img(thumbnail_source, transformations,
-                                                   os.path.join(self.dest_thumbs_directory,
-                                                                media["thumbnail_path"]))
-            media["filename"] = self.__get_html_basepath(transformed_img)
+            # Overwrite the passed in thumbnail_source so that the transformed image is used
+            # as the input image to generate the thumbnail.
+            thumbnail_source = self.__transform_img(thumbnail_source, transformations,
+                                                    os.path.join(self.dest_thumbs_directory,
+                                                                 media["thumbnail_path"]))
+            media["filename"] = self.__get_html_basepath(thumbnail_source)
 
         media["title"] = row["title"]
         media["comment"] = row["comment"]
