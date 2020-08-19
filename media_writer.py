@@ -30,9 +30,13 @@ YEAR_FRAME_SIZE = 4
 class CommonWriter:
     # pylint: disable=too-few-public-methods
 
-    def __init__(self, all_media, main_title, years_prior_are_approximate, version_label):
+    def __init__(self, all_media, main_title, max_media_per_page, years_prior_are_approximate,
+                 version_label):
+        # pylint: disable=too-many-arguments
+
         self.all_media = all_media
         self.main_title = main_title
+        self.max_media_per_page = max_media_per_page
         self.years_prior_are_approximate = years_prior_are_approximate
         self.version_label = version_label
         self.generated_at = datetime.datetime.now(dateutil.tz.tzlocal()) \
@@ -102,18 +106,29 @@ class CommonWriter:
 
         return ret
 
+    def _generate_media_index(self, all_media, media_indexer, media_index_config):
+        if not all_media:
+            return
+
+        media_chunks = list(self._split_media_list_into_chunks(all_media))
+        for index, media_on_page in enumerate(media_chunks):
+            media_indexer(media_index_config, index + 1, media_on_page)
+
+    def _split_media_list_into_chunks(self, media):
+        for i in range(0, len(media), self.max_media_per_page):
+            yield media[i:i + self.max_media_per_page]
+
 class Html(CommonWriter):
     # pylint: disable=too-many-instance-attributes
     def __init__(self, all_media, dest_directory, min_media_rating, all_media_ratings,
                  main_title, years_prior_are_approximate, max_media_per_page,
                  expand_all_elements, version_label):
         # pylint: disable=too-many-arguments
-        CommonWriter.__init__(self, all_media, main_title, years_prior_are_approximate,
-                              version_label)
+        CommonWriter.__init__(self, all_media, main_title, max_media_per_page,
+                              years_prior_are_approximate, version_label)
         self.html_basedir = os.path.join(dest_directory, str(min_media_rating))
         self.min_media_rating = min_media_rating
         self.all_media_ratings = all_media_ratings
-        self.max_media_per_page = max_media_per_page
         self.expand_all_elements = expand_all_elements
 
     def write_year_and_event_html_files(self, all_media_index):
@@ -135,22 +150,16 @@ class Html(CommonWriter):
                                 "stats": year_block["stats"], "show_daterange": False})
 
         self.__write_media_html_files(["year", "index"], "%s: All Years" % (self.main_title),
-                                      None, self.all_media["all_stats"], None, shown_media, None,
-                                      None, None)
+                                      None, self.all_media["all_stats"], None, shown_media, None)
 
         # Now generate the individual year pages. Reverse the year list again so that the
         # breadcrumbs at the bottom of the generated year pages are correct.
         all_years.reverse()
 
-        # FIXME - ugly hack: The generated pages for the years and events both link to each other.
-        # The indexer is currently tied to when the HTML files are actually written. This needs to
-        # be extracted out into another layer. For the mean time, write the year files first with
-        # no event index, write the event files, then write out the year files a second time with
-        # the event index. It's ugly, however the generated HTML files will be clean...
-        all_year_index = self.__write_all_years(all_years, all_media_index, None)
-
+        all_year_index = self.__generate_all_years_index(all_years)
         sorted_years = list(all_year_index.keys())
         sorted_years.sort()
+
         all_event_index = self.__write_event_html_files(all_media_index, all_year_index,
                                                         sorted_years)
         self.__write_event_index_file()
@@ -158,13 +167,27 @@ class Html(CommonWriter):
         # And now write all events a second time with the event index...
         self.__write_all_years(all_years, all_media_index, all_event_index)
 
-    def __write_all_years(self, all_years, all_media_index, all_event_index):
+    def __generate_all_years_index(self, all_years):
         all_year_index = {}
-        for current_year_index, year in enumerate(all_years):
-            all_year_index[year] = self.__write_year_html_file(all_years, current_year_index,
-                                                               all_media_index, all_event_index)
+        for year in all_years:
+            year_block = self.all_media["events_by_year"][year]
+
+            shown_media = []
+            for event in year_block["events"]:
+                if not self.__has_shown_media(year_block["stats"]) and self.min_media_rating > 0:
+                    continue
+
+                shown_media.append(event)
+
+            all_year_index[year] = {}
+            self._generate_media_index(shown_media, self.__all_year_indexer, all_year_index[year])
 
         return all_year_index
+
+    def __write_all_years(self, all_years, all_media_index, all_event_index):
+        for current_year_index, _ in enumerate(all_years):
+            self.__write_year_html_file(all_years, current_year_index, all_media_index,
+                                        all_event_index)
 
     def write_all_media_index_file(self):
         shown_media = []
@@ -177,10 +200,11 @@ class Html(CommonWriter):
 
         shown_media.sort(key=lambda media: media["media"]["exposure_time"], reverse=True)
 
-        all_media_index = {"year": {}, "event": {}}
         self.__write_media_html_files(["media", "index"], "%s: All Media" % (self.main_title),
-                                      None, self.all_media["all_stats"], None, shown_media, None,
-                                      self.__all_media_indexer, all_media_index)
+                                      None, self.all_media["all_stats"], None, shown_media, None)
+
+        all_media_index = {"year": {}, "event": {}}
+        self._generate_media_index(shown_media, self.__all_media_indexer, all_media_index)
 
         return all_media_index
 
@@ -207,7 +231,7 @@ class Html(CommonWriter):
 
     def __all_year_indexer(self, config, page_number, media_on_page):
         for media in media_on_page:
-            config[media["media"]["id"]] = {"page": page_number}
+            config[media["id"]] = {"page": page_number}
 
     def write_tag_html_files(self):
         for tag in self.all_media["tags_by_id"].values():
@@ -235,7 +259,7 @@ class Html(CommonWriter):
 
             self.__write_media_html_files(["tag", str(tag["id"])], "Tag: %s" % (tag["title"]),
                                           None, tag["stats"], self.__get_tag_page_header_links(tag),
-                                          shown_tags + shown_media, None, None, None)
+                                          shown_tags + shown_media, None)
 
         self.__write_tag_index_html_files()
 
@@ -273,8 +297,7 @@ class Html(CommonWriter):
         self.__write_media_html_files(["tag", "index"], "%s: All Tags" % (self.main_title),
                                       None, self.all_media["all_stats"],
                                       self.__get_popular_tag_header_links(self.all_media["tags"]),
-                                      shown_tags, None,
-                                      None, None)
+                                      shown_tags, None)
 
     def __write_main_view_links(self, output, current_view, show_current_link):
         output.write("<span class='main_views'>")
@@ -456,13 +479,9 @@ class Html(CommonWriter):
             if not self.__has_shown_media(year_block["stats"]) and self.min_media_rating > 0:
                 continue
 
-            # FIXME - not needed once indexer is extracted out into a separate layer
-            if all_event_index:
-                event_idx = all_event_index[event["id"]][year]
-                link = self.__get_page_url_with_anchor(["event", str(event["id"])],
-                                                       event_idx["page"])
-            else:
-                link = "../event/%s.html" % (event["id"])
+            event_idx = all_event_index[event["id"]][year]
+            link = self.__get_page_url_with_anchor(["event", str(event["id"])],
+                                                   event_idx["page"])
 
             shown_media.append({"media": event, "link": link,
                                 "thumbnail_path": event["years"][year]["thumbnail_path"],
@@ -475,14 +494,10 @@ class Html(CommonWriter):
         breadcrumb_config["to_html_label"] = str
         breadcrumb_config["to_html_filename"] = lambda year: "%s.html" % (year)
 
-        all_year_index = {}
         self.__write_media_html_files(["year", str(year)], "Year: %s" % (year), None,
                                       year_block["stats"],
                                       self.__get_year_extra_links(all_media_index, year),
-                                      shown_media, breadcrumb_config, self.__all_year_indexer,
-                                      all_year_index)
-
-        return all_year_index
+                                      shown_media, breadcrumb_config)
 
     def __get_year_extra_links(self, all_media_index, year):
         ret = ""
@@ -517,8 +532,7 @@ class Html(CommonWriter):
         shown_media.sort(key=lambda media: media["media"]["date"], reverse=True)
 
         self.__write_media_html_files(["event", "index"], "%s: All Events" % (self.main_title),
-                                      None, self.all_media["all_stats"], None, shown_media, None,
-                                      None, None)
+                                      None, self.all_media["all_stats"], None, shown_media, None)
 
     def __write_event_html_files(self, all_media_index, all_year_index, years):
         all_event_index = {}
@@ -536,8 +550,9 @@ class Html(CommonWriter):
                                           event["stats"],
                                           self.__get_event_extra_links(event, all_media_index,
                                                                        all_year_index, years),
-                                          shown_media, None, self.__all_event_indexer,
-                                          all_event_index)
+                                          shown_media, None)
+
+            self._generate_media_index(shown_media, self.__all_event_indexer, all_event_index)
 
         return all_event_index
 
@@ -549,18 +564,16 @@ class Html(CommonWriter):
 
         ret += "</span>"
 
-        # FIXME - if statement not needed once indexer is extracted out into a separate layer
-        if all_year_index:
-            year_links = []
-            for year in years:
-                if not event["id"] in all_year_index[year]:
-                    continue
+        year_links = []
+        for year in years:
+            if not event["id"] in all_year_index[year]:
+                continue
 
-                idx = all_year_index[year][event["id"]]
-                link = self.__get_page_url_with_anchor(["year", year], idx["page"])
-                year_links.append("<a href='%s'>" % (link) + \
-                                  "<span class='header_link'>%s</span>" % (year) + \
-                                  "</a>")
+            idx = all_year_index[year][event["id"]]
+            link = self.__get_page_url_with_anchor(["year", year], idx["page"])
+            year_links.append("<a href='%s'>" % (link) + \
+                              "<span class='header_link'>%s</span>" % (year) + \
+                              "</a>")
 
         ret += self.__get_expandable_header_links("Years with this event", year_links)
 
@@ -680,7 +693,7 @@ class Html(CommonWriter):
         output.write("</span>")
 
     def __write_media_html_files(self, current_page_link, title, comment, stats, extra_header,
-                                 all_media, breadcrumb_config, media_indexer, media_index_config):
+                                 all_media, breadcrumb_config):
         # pylint: disable=too-many-arguments,too-many-locals
 
         # Split the media list up into multiple HTML files if needed. The first file will
@@ -690,7 +703,7 @@ class Html(CommonWriter):
         if len(all_media) == 0:
             media_chunks = [[]]
         else:
-            media_chunks = list(self.__split_media_list_into_chunks(all_media))
+            media_chunks = list(self._split_media_list_into_chunks(all_media))
 
         for index, media_on_page in enumerate(media_chunks):
             page_number = index + 1
@@ -720,9 +733,6 @@ class Html(CommonWriter):
 
             if len(media_chunks) > 1:
                 self.__write_page_links(output, current_page_link, page_number, len(media_chunks))
-
-            if media_indexer:
-                media_indexer(media_index_config, page_number, media_on_page)
 
             for media in media_on_page:
                 self.__write_media_block(output, media["media"], media["thumbnail_path"],
@@ -773,10 +783,6 @@ class Html(CommonWriter):
                                    total_pages)
 
         output.write("</span>")
-
-    def __split_media_list_into_chunks(self, media):
-        for i in range(0, len(media), self.max_media_per_page):
-            yield media[i:i + self.max_media_per_page]
 
     def __get_page_url_parts(self, current_page_link, page_number):
         if page_number == 1:
@@ -875,11 +881,11 @@ class Html(CommonWriter):
 
 class Json(CommonWriter):
     # pylint: disable=too-few-public-methods
-    def __init__(self, all_media, main_title, dest_directory, years_prior_are_approximate,
-                 version_label):
+    def __init__(self, all_media, main_title, max_media_per_page, dest_directory,
+                 years_prior_are_approximate, version_label):
         # pylint: disable=too-many-arguments
-        CommonWriter.__init__(self, all_media, main_title, years_prior_are_approximate,
-                              version_label)
+        CommonWriter.__init__(self, all_media, main_title, max_media_per_page,
+                              years_prior_are_approximate, version_label)
         self.dest_directory = dest_directory
 
     def write(self):

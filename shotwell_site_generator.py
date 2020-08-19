@@ -59,7 +59,8 @@ def process_photos(options):
         photos.write_tag_html_files()
 
         if rating == 0:
-            json_writer = media_writer.Json(all_media, options.title, options.dest_directory,
+            json_writer = media_writer.Json(all_media, options.title, options.max_media_per_page,
+                                            options.dest_directory,
                                             options.years_prior_are_approximate,
                                             options.version_label)
             json_writer.write()
