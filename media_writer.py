@@ -910,6 +910,8 @@ class Json(CommonWriter):
                                           media)
                 if "clip_duration" in media:
                     item["clip_duration"] = humanize.naturaldelta(int(media["clip_duration"]))
+                    item["clip_duration_secs"] = int(media["clip_duration"])
+
                 item["exposure_time"] = datetime.datetime.fromtimestamp(media["exposure_time"]) \
                                             .isoformat()
                 item["exposure_time_pretty"] = \

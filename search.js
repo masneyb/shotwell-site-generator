@@ -381,6 +381,11 @@ const searchFields = [
     search: numberSearch,
     searchFields: ["photo_ratio"],
   },
+  {
+    title: "Clip Duration (secs)",
+    search: numberSearch,
+    searchFields: ["clip_duration_secs"],
+  },
 ];
 
 function performSearch(allItems) {
