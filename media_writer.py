@@ -118,6 +118,20 @@ class CommonWriter:
         for i in range(0, len(media), self.max_media_per_page):
             yield media[i:i + self.max_media_per_page]
 
+    def _all_media_indexer(self, config, page_number, media_on_page):
+        for media in media_on_page:
+            if "exposure_time" not in media["media"] or media["media"]["exposure_time"] == 0:
+                continue
+
+            year = self._get_date_parts(media["media"]["exposure_time"])["year"]
+            if year not in config["year"]:
+                config["year"][year] = {"page": page_number}
+
+            if "event_id" in media["media"] and media["media"]["event_id"] not in config["event"]:
+                config["event"][media["media"]["event_id"]] = {"page": page_number}
+
+            config["media"][media["media"]["media_id"]] = {"page": page_number}
+
 class Html(CommonWriter):
     # pylint: disable=too-many-instance-attributes
     def __init__(self, all_media, dest_directory, min_media_rating, all_media_ratings,
@@ -203,22 +217,10 @@ class Html(CommonWriter):
         self.__write_media_html_files(["media", "index"], "%s: All Media" % (self.main_title),
                                       None, self.all_media["all_stats"], None, shown_media, None)
 
-        all_media_index = {"year": {}, "event": {}}
-        self._generate_media_index(shown_media, self.__all_media_indexer, all_media_index)
+        all_media_index = {"year": {}, "event": {}, "media": {}}
+        self._generate_media_index(shown_media, self._all_media_indexer, all_media_index)
 
         return all_media_index
-
-    def __all_media_indexer(self, config, page_number, media_on_page):
-        for media in media_on_page:
-            if "exposure_time" not in media["media"] or media["media"]["exposure_time"] == 0:
-                continue
-
-            year = self._get_date_parts(media["media"]["exposure_time"])["year"]
-            if year not in config["year"]:
-                config["year"][year] = {"page": page_number}
-
-            if "event_id" in media["media"] and media["media"]["event_id"] not in config["event"]:
-                config["event"][media["media"]["event_id"]] = {"page": page_number}
 
     def __all_event_indexer(self, config, page_number, media_on_page):
         for media in media_on_page:
@@ -891,6 +893,7 @@ class Json(CommonWriter):
     def write(self):
         shown_media = []
         shown_events = []
+        all_media_index = self.__get_all_media_index()
 
         for event in self.all_media["events_by_id"].values():
             if not event["stats"]["min_date"]:
@@ -917,6 +920,7 @@ class Json(CommonWriter):
                 for tag_id, _ in self._cleanup_tags(media["tags"]):
                     item["tags"].append(tag_id)
                 item["type"] = "photo" if media["media_id"].startswith("thumb") else "video"
+                item["all_media_page"] = all_media_index["media"][media["media_id"]]["page"]
 
                 shown_media.append(item)
 
@@ -948,6 +952,19 @@ class Json(CommonWriter):
 
         with open(os.path.join(self.dest_directory, "media.json"), "w") as outfile:
             outfile.write(json.dumps(ret, indent="\t"))
+
+    def __get_all_media_index(self):
+        shown_media = []
+        for event in self.all_media["events_by_id"].values():
+            for media in event["media"]:
+                shown_media.append({"media": media})
+
+        shown_media.sort(key=lambda media: media["media"]["exposure_time"], reverse=True)
+
+        all_media_index = {"year": {}, "event": {}, "media": {}}
+        self._generate_media_index(shown_media, self._all_media_indexer, all_media_index)
+
+        return all_media_index
 
     def __get_stats(self, stats):
         ret = self.__copy_fields(["num_photos", "num_videos"], stats)
