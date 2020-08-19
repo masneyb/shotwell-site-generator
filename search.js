@@ -293,7 +293,7 @@ const mediaTypeSearch = {
   ]
 };
 
-const ratingSearch = {
+const numberSearch = {
   ops: [
     {
       descr: "is at least",
@@ -363,7 +363,7 @@ const searchFields = [
   },
   {
     title: "Rating",
-    search: ratingSearch,
+    search: numberSearch,
     searchFields: ["rating"],
     validValues: [["Unrated", "0"], ["&starf;", "1"], ["&starf;&starf;", "2"],
                   ["&starf;&starf;&starf;", "3"], ["&starf;&starf;&starf;&starf;", "4"],
@@ -374,7 +374,12 @@ const searchFields = [
     search: mediaTypeSearch,
     searchFields: ["type"],
     validValues: [["photo", "photo"], ["video", "video"], ["event", "events"], ["tag", "tags"]],
-  }
+  },
+  {
+    title: "Width/Height Ratio",
+    search: numberSearch,
+    searchFields: ["photo_ratio"],
+  },
 ];
 
 function performSearch(allItems) {

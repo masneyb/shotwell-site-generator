@@ -922,6 +922,9 @@ class Json(CommonWriter):
                 item["type"] = "photo" if media["media_id"].startswith("thumb") else "video"
                 item["all_media_page"] = all_media_index["media"][media["media_id"]]["page"]
 
+                if "width" in media and media["width"]:
+                    item["photo_ratio"] = float("%.2f" % (media["width"] / media["height"]))
+
                 shown_media.append(item)
 
         shown_tags = []
