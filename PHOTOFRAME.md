@@ -6,7 +6,11 @@ My photo frame has the following hardware components:
 
 - Raspberry Pi 4
 - Official Raspberry Pi 7" Touchscreen Display
-- [Case for 7" touchscreen](https://thepihut.com/products/raspberry-pi-official-7-touchscreen-case)
+- [Case for 7" touchscreen](https://thepihut.com/products/raspberry-pi-official-7-touchscreen-case).
+  If you go with this case, then you'll most likely want to get a
+  [90-degree USB-C adapter](https://thepihut.com/products/usb-c-angle-adapter) if you're going
+  to set this on a flat surface. The [SmartPi Touch](https://www.sparkfun.com/products/14059) is
+  another case with a stand.
 - Optional: [Momentary push button](https://www.adafruit.com/product/1445) that's wired
   up to a GPIO pin to toggle the power for the screen.
 - Power supply for pi.
