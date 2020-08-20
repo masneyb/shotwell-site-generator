@@ -74,6 +74,11 @@ function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
     }
   }
 
+  if ("rating" in entity) {
+    var stars = "&starf;".repeat(entity.rating) + "&star;".repeat(5 - entity.rating);
+    ret.push(`<span class="stat">${stars}</span>`);
+  }
+
   if (entity.all_media_page) {
     var link = entity.all_media_page == 1 ? "" : `_${entity.all_media_page}`;
     ret.push('<span class="stat">' +
