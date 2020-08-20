@@ -221,3 +221,5 @@ Reboot and Chromium should automatically start full screen on boot. Tap the scre
 slideshow. Metadata about the photo will pop up on the bottom of the screen and there are buttons
 that allow manually navigating through the photos that were shown. Tap the image again to continue
 the slideshow.
+
+![Photo Frame Back](screenshots/photoframe-back.jpg?raw=1)
