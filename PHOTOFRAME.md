@@ -7,7 +7,7 @@ My photo frame has the following hardware components:
 - Raspberry Pi 4
 - Official Raspberry Pi 7" Touchscreen Display
 - [Case for 7" touchscreen](https://thepihut.com/products/raspberry-pi-official-7-touchscreen-case)
-- Optional: [Metal momentary push button](https://www.sparkfun.com/products/11970) that's wired
+- Optional: [Momentary push button](https://www.adafruit.com/product/1445) that's wired
   up to a GPIO pin to toggle the power for the screen.
 - Power supply for pi.
 
