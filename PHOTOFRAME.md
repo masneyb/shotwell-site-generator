@@ -1,6 +1,6 @@
 # Photo Frame
 
-![Photo Frame](screenshots/photoframe.jpg?raw=1)
+![Photo Frame](screenshots/photoframe-front.jpg?raw=1)
 
 My photo frame has the following hardware components:
 
