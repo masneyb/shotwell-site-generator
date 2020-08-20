@@ -385,8 +385,11 @@ class Html(CommonWriter):
                 detailed.append("<a href='../tag/%d.html'>Tag: %s</a>" % \
                                 (tag_id, html.escape(tag_name)))
 
+        if "lat" in media:
+            detailed.append("GPS %.5f,%.5f" % (media["lat"], media["lon"]))
+
         if "exif" in media:
-            detailed = detailed + media["exif"]
+            detailed += media["exif"]
 
         if "rating" in media:
             detailed.append(("&starf;" * media["rating"]) + ("&star;" * (5 - media["rating"])))
@@ -931,6 +934,10 @@ class Json(CommonWriter):
 
                 if "width" in media and media["width"]:
                     item["photo_ratio"] = float("%.2f" % (media["width"] / media["height"]))
+
+                if "lat" in media:
+                    item["lat"] = float("%.5f" % (media["lat"]))
+                    item["lon"] = float("%.5f" % (media["lon"]))
 
                 shown_media.append(item)
 

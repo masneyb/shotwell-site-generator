@@ -330,6 +330,46 @@ const numberSearch = {
   ]
 };
 
+const gpsSearch = {
+  ops: [
+    {
+      descr: "is set",
+      matches: function (field, op, values, media) {
+        return performGenericOp(field, media, null, function(input, value) {
+          return input != null && input !== "";
+        });
+      },
+      numValues: 0
+    },
+    {
+      descr: "is not set",
+      matches: function (field, op, values, media) {
+        return performGenericOp(field, media, null, function(input, value) {
+          return input == null || input === "";
+        });
+      },
+      numValues: 0
+    },
+    {
+      descr: "is within lat/lon/radius",
+      matches: function (field, op, values, media) {
+        if (!("lat" in media))
+          return false;
+
+        const userLat = parseFloat(values[0]);
+        const userLon = parseFloat(values[1]);
+        const userRadius = parseFloat(values[2]);
+
+        return (userLat - userRadius) <= media["lat"] &&
+               (userLat + userRadius) >= media["lat"] &&
+               (userLon - userRadius) <= media["lon"] &&
+               (userLon + userRadius) >= media["lon"];
+      },
+      numValues: 3
+    },
+  ]
+};
+
 const searchFields = [
   {
     title: "Any Text",
@@ -390,6 +430,11 @@ const searchFields = [
     title: "Clip Duration (secs)",
     search: numberSearch,
     searchFields: ["clip_duration_secs"],
+  },
+  {
+    title: "GPS Coordinate",
+    search: gpsSearch,
+    searchFields: ["lat"],
   },
 ];
 

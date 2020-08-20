@@ -173,10 +173,10 @@ class Database:
         media_id = "thumb%016x" % (row["id"])
         media = self.__add_media(all_media, row, media_id, download_source, row["filename"],
                                  row["transformations"], rotate, overlay_icon)
-        media["exif"] = self.__get_photo_metadata(row["filename"])
         media["width"] = row["width"]
         media["height"] = row["height"]
         media["is_raw"] = is_raw
+        media.update(self.__get_photo_metadata(row["filename"]))
 
     def __parse_transformations(self, transformations):
         if not transformations:
@@ -452,7 +452,9 @@ class Database:
         metadata = pyexiv2.ImageMetadata(filename)
         metadata.read()
 
-        ret = []
+        ret = {}
+        ret["exif"] = []
+
         if "Exif.GPSInfo.GPSLatitude" in metadata and \
            "Exif.GPSInfo.GPSLatitudeRef" in metadata:
             lat = self.__convert_ddmmss(metadata["Exif.GPSInfo.GPSLatitude"].value,
@@ -460,30 +462,31 @@ class Database:
             lon = self.__convert_ddmmss(metadata["Exif.GPSInfo.GPSLongitude"].value,
                                         metadata["Exif.GPSInfo.GPSLongitudeRef"].value)
             if lat != 0.0 and lon != 0.0:
-                ret.append("GPS %.5f,%.5f" % (lat, lon))
+                ret["lat"] = lat
+                ret["lon"] = lon
 
         aperture = metadata.get_aperture()
         if aperture:
-            ret.append("F%.1f" % (aperture))
+            ret["exif"].append("F%.1f" % (aperture))
 
         shutter = metadata.get_shutter_speed()
         if shutter:
             if shutter.denominator == 1:
-                ret.append("%ds" % (shutter.numerator))
+                ret["exif"].append("%ds" % (shutter.numerator))
             else:
-                ret.append("1/%ds" % (round(shutter.denominator / shutter.numerator)))
+                ret["exif"].append("1/%ds" % (round(shutter.denominator / shutter.numerator)))
 
         iso = metadata.get_iso()
         if iso:
-            ret.append("ISO%s" % (iso))
+            ret["exif"].append("ISO%s" % (iso))
 
         focal_length = metadata.get_focal_length()
         if focal_length:
-            ret.append("%smm" % (focal_length))
+            ret["exif"].append("%smm" % (focal_length))
 
         if "Exif.Image.Make" in metadata:
-            ret.append("%s %s" % (metadata["Exif.Image.Make"].value,
-                                  metadata["Exif.Image.Model"].value))
+            ret["exif"].append("%s %s" % (metadata["Exif.Image.Make"].value,
+                                          metadata["Exif.Image.Model"].value))
 
         return ret
 
