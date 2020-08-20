@@ -503,10 +503,13 @@ function performSearch(allItems) {
   return ret;
 }
 
-function loadJson(readyFunc) {
+function loadJson(readyFunc, errorFunc) {
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
+    if (this.readyState !== XMLHttpRequest.DONE)
+      return;
+
+    if (this.status >= 200 && this.status < 400) {
       var resp = JSON.parse(this.responseText);
 
       var eventNames = {}
@@ -534,6 +537,8 @@ function loadJson(readyFunc) {
 
       var allMedia = performSearch(resp);
       readyFunc(allMedia, eventNames, tagNames);
+    } else {
+      errorFunc();
     }
   };
 

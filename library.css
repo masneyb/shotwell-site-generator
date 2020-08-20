@@ -120,8 +120,14 @@ a {
 	padding-bottom: 5px;
 }
 
-.loading {
+.loading, .error {
 	font-size: 120%;
 	font-style: italic;
 	padding: 10px;
+}
+
+.error {
+	width: 80%;
+	margin-left: 10%;
+	margin-right: 10%;
 }
