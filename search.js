@@ -74,6 +74,9 @@ function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
     }
   }
 
+  if ("lat" in entity)
+    ret.push(`<span class="stat">GPS ${entity["lat"]},${entity["lon"]}</span>`);
+
   if ("rating" in entity) {
     var stars = "&starf;".repeat(entity.rating) + "&star;".repeat(5 - entity.rating);
     ret.push(`<span class="stat">${stars}</span>`);
