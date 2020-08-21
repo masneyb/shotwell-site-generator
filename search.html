@@ -79,7 +79,7 @@
           </span>
         </a>
         <span class="media_title"></span>
-        <span class="media_stats"></span>
+        <span class="media_metadata"></span>
       </span>
     </template>
 
@@ -147,8 +147,8 @@
           if (media.title)
             clone.querySelector(".media_title").innerText = media.title;
 
-          clone.querySelector(".media_stats").innerHTML = createMediaStatsHtml(media, eventNames,
-                                                                               tagNames, false);
+          clone.querySelector(".media_metadata").innerHTML = createMediaStatsHtml(media, eventNames,
+                                                                                  tagNames, false);
 
           allMediaEle.appendChild(clone);
         }
