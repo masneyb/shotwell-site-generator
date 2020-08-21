@@ -333,6 +333,20 @@ const numberSearch = {
   ]
 };
 
+function gpsIsWithin(field, op, values, media) {
+  if (!("lat" in media))
+    return false;
+
+  const userLat = parseFloat(values[0]);
+  const userLon = parseFloat(values[1]);
+  const userRadius = parseFloat(values[2]);
+
+  return (userLat - userRadius) <= media["lat"] &&
+         (userLat + userRadius) >= media["lat"] &&
+         (userLon - userRadius) <= media["lon"] &&
+         (userLon + userRadius) >= media["lon"];
+}
+
 const gpsSearch = {
   ops: [
     {
@@ -356,17 +370,17 @@ const gpsSearch = {
     {
       descr: "is within lat/lon/radius",
       matches: function (field, op, values, media) {
+        return gpsIsWithin(field, op, values, media);
+      },
+      numValues: 3
+    },
+    {
+      descr: "is outside lat/lon/radius",
+      matches: function (field, op, values, media) {
         if (!("lat" in media))
           return false;
 
-        const userLat = parseFloat(values[0]);
-        const userLon = parseFloat(values[1]);
-        const userRadius = parseFloat(values[2]);
-
-        return (userLat - userRadius) <= media["lat"] &&
-               (userLat + userRadius) >= media["lat"] &&
-               (userLon - userRadius) <= media["lon"] &&
-               (userLon + userRadius) >= media["lon"];
+        return !gpsIsWithin(field, op, values, media);
       },
       numValues: 3
     },
