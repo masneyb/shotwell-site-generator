@@ -83,6 +83,9 @@ function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
              '</span>');
   }
 
+  if ("camera" in entity)
+    ret.push(`<span class="stat">${entity["camera"]}</span>`);
+
   if ("rating" in entity) {
     var stars = "&starf;".repeat(entity.rating) + "&star;".repeat(5 - entity.rating);
     ret.push(`<span class="stat">${stars}</span>`);
@@ -458,6 +461,11 @@ const searchFields = [
     title: "GPS Coordinate",
     search: gpsSearch,
     searchFields: ["lat"],
+  },
+  {
+    title: "Camera",
+    search: textSearch,
+    searchFields: ["camera"],
   },
 ];
 

@@ -395,6 +395,9 @@ class Html(CommonWriter):
         if "exif" in media:
             detailed += media["exif"]
 
+        if "camera" in media:
+            detailed.append(media["camera"])
+
         if "rating" in media:
             detailed.append(("&starf;" * media["rating"]) + ("&star;" * (5 - media["rating"])))
 
@@ -913,8 +916,8 @@ class Json(CommonWriter):
             shown_events.append(item)
 
             for media in event["media"]:
-                item = self.__copy_fields(["title", "comment", "event_id", "rating", "filesize"],
-                                          media)
+                item = self.__copy_fields(["title", "comment", "event_id", "rating", "filesize",
+                                           "camera"], media)
                 if "clip_duration" in media:
                     item["clip_duration"] = humanize.naturaldelta(int(media["clip_duration"]))
                     item["clip_duration_secs"] = int(media["clip_duration"])
