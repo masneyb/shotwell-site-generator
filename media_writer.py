@@ -21,6 +21,7 @@ import html
 import os
 from collections import Counter
 import json
+import urllib.parse
 import dateutil.tz
 import humanize
 from common import add_date_to_stats, cleanup_event_title
@@ -386,7 +387,10 @@ class Html(CommonWriter):
                                 (tag_id, html.escape(tag_name)))
 
         if "lat" in media:
-            detailed.append("GPS %.5f,%.5f" % (media["lat"], media["lon"]))
+            search = "%s,%s,%.5f,%.5f,0.1" % \
+                     ("GPS Coordinate", "is within lat/lon/radius", media["lat"], media["lon"])
+            detailed.append("<a href='../../search.html?search=%s'>GPS %.5f,%.5f</a>" % \
+                            (urllib.parse.quote(search), media["lat"], media["lon"]))
 
         if "exif" in media:
             detailed += media["exif"]

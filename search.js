@@ -74,8 +74,14 @@ function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
     }
   }
 
-  if ("lat" in entity)
-    ret.push(`<span class="stat">GPS ${entity["lat"]},${entity["lon"]}</span>`);
+  if ("lat" in entity) {
+    var search = `GPS Coordinate,is within lat/lon/radius,${entity["lat"]},${entity["lon"]},0.1`;
+    ret.push('<span class="stat">' +
+             `<a href='search.html?search=${encodeURI(search)}'>` +
+             `GPS ${entity["lat"]},${entity["lon"]}` +
+             '</a>' +
+             '</span>');
+  }
 
   if ("rating" in entity) {
     var stars = "&starf;".repeat(entity.rating) + "&star;".repeat(5 - entity.rating);
