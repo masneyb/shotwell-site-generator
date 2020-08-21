@@ -124,6 +124,11 @@
           return;
         }
 
+        if (allMedia.length == 0) {
+           allMediaEle.innerHTML = "<div class='notfound'>No results found</div>";
+           return;
+        }
+
         const pageSize = getIntQueryParameter("page_size", 24);
         const totalPages = Math.ceil(allMedia.length / pageSize);
         if (pageNumber < 1 || pageNumber > totalPages)
