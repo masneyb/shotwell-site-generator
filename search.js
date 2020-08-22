@@ -561,10 +561,14 @@ function performSearch(allItems) {
         // Write out the event name into the media element to simplify code for the text search.
         media.event_name = eventNames[media["event_id"]]
       }
+
       if (mediaType[0] == "events")
         media.event_name = media.title;
       else if (mediaType[0] == "tags")
         media.tag_name = media.title;
+
+      if ("width" in media)
+        media.photo_ratio = media.width / media.height;
 
       var numFound = 0;
       for (const criteria of allCriteria) {

@@ -939,9 +939,6 @@ class Json(CommonWriter):
 
                 item["all_media_page"] = all_media_index["media"][media["media_id"]]["page"]
 
-                if "width" in media and media["width"]:
-                    item["photo_ratio"] = float("%.2f" % (media["width"] / media["height"]))
-
                 if "lat" in media:
                     item["lat"] = float("%.5f" % (media["lat"]))
                     item["lon"] = float("%.5f" % (media["lon"]))
