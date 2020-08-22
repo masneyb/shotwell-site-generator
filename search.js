@@ -290,6 +290,51 @@ const dateSearch = {
         });
       },
       numValues: 0
+    },
+    {
+      descr: "was taken on day (mm-dd)",
+      matches: function (field, op, values, media) {
+        return performGenericOp(field, media, null, function(input, value) {
+          if (input == null)
+            return false;
+
+          const compareTo = input.split("T")[0].split("-").slice(1, 3).join("-");
+          return compareTo === values[0];
+        });
+      },
+      numValues: 1
+    },
+    {
+      descr: "was taken today",
+      matches: function (field, op, values, media) {
+        return performGenericOp(field, media, null, function(input, value) {
+          if (input == null)
+            return false;
+
+          const today = new Date();
+          const monthDay = String(today.getMonth() + 1).padStart(2, '0') + "-" +
+                           String(today.getDate()).padStart(2, '0');
+
+          const compareTo = input.split("T")[0].split("-").slice(1, 3).join("-");
+          return compareTo === monthDay;
+        });
+      },
+      numValues: 0
+    },
+    {
+      descr: "was taken this month",
+      matches: function (field, op, values, media) {
+        return performGenericOp(field, media, null, function(input, value) {
+          if (input == null)
+            return false;
+
+          const today = new Date();
+          const month = String(today.getMonth() + 1).padStart(2, '0');
+
+          return input.split("T")[0].split("-")[1] === month;
+        });
+      },
+      numValues: 0
     }
   ]
 };
