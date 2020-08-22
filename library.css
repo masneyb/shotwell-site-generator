@@ -50,7 +50,7 @@ a {
 	width: 360px;
 }
 
-.media_title, .media_comment, .media_date, .media_stats, .media_metadata {
+.media_title, .media_comment, .media_metadata {
 	display: block;
 	padding-left: 13px;
 	width: 334px;
@@ -60,12 +60,12 @@ a {
 	font-weight: bold;
 }
 
-.media_comment, .media_date, .media_stats {
+.media_comment {
 	font-size: 80%;
 }
 
 .media_metadata {
-	font-size: 70%;
+	font-size: 80%;
 	padding-top: 2px;
 }
 

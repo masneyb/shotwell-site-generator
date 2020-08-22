@@ -343,14 +343,13 @@ class Html(CommonWriter):
                                                       media["title"], "media_title"))
 
         if stats:
-            output.write("<span class='media_stats'>%s</span>" % \
-                         (self.__get_stats_description(stats)))
-
+            descr = self.__get_stats_description(stats)
             if show_daterange:
-                date_range = self._get_date_range(stats["min_date"],
-                                                  stats["max_date"])
+                date_range = self._get_date_range(stats["min_date"], stats["max_date"])
                 if date_range:
-                    output.write("<span class='media_date'>%s</span>" % (html.escape(date_range)))
+                    descr += " &nbsp; " + date_range
+
+            output.write("<span class='media_metadata'>%s</span>" % (descr))
 
         if media["comment"]:
             output.write(self.__get_expandable_string("comment%s" % (media["id"]),
