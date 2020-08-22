@@ -54,6 +54,9 @@ function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
   if (entity.filesize)
     ret.push(`<span class="stat">${getPrettyFileSize(entity.filesize)}</span>`);
 
+  if (entity.width)
+    ret.push(`<span class="stat">${entity.width}x${entity.height}</span>`);
+
   if (entity.clip_duration)
     ret.push(`<span class="stat">${entity.clip_duration}</span>`);
 
@@ -437,6 +440,21 @@ const searchFields = [
     searchFields: ["lat"],
   },
   {
+    title: "Photo Height",
+    search: numberSearch,
+    searchFields: ["height"],
+  },
+  {
+    title: "Photo Width",
+    search: numberSearch,
+    searchFields: ["width"],
+  },
+  {
+    title: "Photo Width/Height Ratio",
+    search: numberSearch,
+    searchFields: ["photo_ratio"],
+  },
+  {
     title: "Rating",
     search: numberSearch,
     searchFields: ["rating"],
@@ -465,11 +483,6 @@ const searchFields = [
     title: "Video Duration (secs)",
     search: numberSearch,
     searchFields: ["clip_duration_secs"],
-  },
-  {
-    title: "Width/Height Ratio",
-    search: numberSearch,
-    searchFields: ["photo_ratio"],
   },
 ];
 
