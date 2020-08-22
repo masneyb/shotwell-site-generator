@@ -83,6 +83,10 @@ function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
              '</span>');
   }
 
+  if ("exif" in entity) {
+    ret = ret.concat(entity["exif"]);
+  }
+
   if ("camera" in entity)
     ret.push(`<span class="stat">${entity["camera"]}</span>`);
 
