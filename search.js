@@ -403,9 +403,9 @@ const searchFields = [
     searchFields: ["title", "comment", "link", "event_name", "tag_name"],
   },
   {
-    title: "Title",
+    title: "Camera",
     search: textSearch,
-    searchFields: ["title"],
+    searchFields: ["camera"],
   },
   {
     title: "Comment",
@@ -413,14 +413,14 @@ const searchFields = [
     searchFields: ["comment"],
   },
   {
+    title: "Date",
+    search: dateSearch,
+    searchFields: ["exposure_time"],
+  },
+  {
     title: "Event Name",
     search: textSearch,
     searchFields: ["event_name"],
-  },
-  {
-    title: "Tag Name",
-    search: textSearch,
-    searchFields: ["tag_name"],
   },
   {
     title: "Filename",
@@ -428,9 +428,9 @@ const searchFields = [
     searchFields: ["link"],
   },
   {
-    title: "Date",
-    search: dateSearch,
-    searchFields: ["exposure_time"],
+    title: "GPS Coordinate",
+    search: gpsSearch,
+    searchFields: ["lat"],
   },
   {
     title: "Rating",
@@ -441,6 +441,16 @@ const searchFields = [
                   ["&starf;&starf;&starf;&starf;&starf;", "5"]],
   },
   {
+    title: "Tag Name",
+    search: textSearch,
+    searchFields: ["tag_name"],
+  },
+  {
+    title: "Title",
+    search: textSearch,
+    searchFields: ["title"],
+  },
+  {
     title: "Type",
     search: mediaTypeSearch,
     searchFields: ["type"],
@@ -448,24 +458,14 @@ const searchFields = [
                   ["event", "events"], ["tag", "tags"]],
   },
   {
-    title: "Width/Height Ratio",
-    search: numberSearch,
-    searchFields: ["photo_ratio"],
-  },
-  {
-    title: "Clip Duration (secs)",
+    title: "Video Duration (secs)",
     search: numberSearch,
     searchFields: ["clip_duration_secs"],
   },
   {
-    title: "GPS Coordinate",
-    search: gpsSearch,
-    searchFields: ["lat"],
-  },
-  {
-    title: "Camera",
-    search: textSearch,
-    searchFields: ["camera"],
+    title: "Width/Height Ratio",
+    search: numberSearch,
+    searchFields: ["photo_ratio"],
   },
 ];
 
