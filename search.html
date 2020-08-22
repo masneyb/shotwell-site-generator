@@ -32,13 +32,13 @@
     </span>
 
     <span class="breadcrumbs">
-      <a href="#" onClick="showMedia(currentPageNumber - 1)">
-        <span class="breadcrumb">&lt;&lt;</span>
-      </a>
+      <a href="#" clas="skiplimits" onClick="showMedia(1)"><span class="breadcrumb">|&lt;</span></a>
+      <a href="#" class="skip10" onClick="showMedia(currentPageNumber - 10)"><span class="breadcrumb">&lt;&lt;&lt;&lt;</span></a>
+      <a href="#" onClick="showMedia(currentPageNumber - 1)"><span class="breadcrumb">&lt;&lt;</span></a>
       <span class="breadcrumb" id="page_info"></span>
-      <a href="#" onClick="showMedia(currentPageNumber + 1)">
-        <span class="breadcrumb">&gt;&gt;</span>
-      </a>
+      <a href="#" onClick="showMedia(currentPageNumber + 1)"><span class="breadcrumb">&gt;&gt;</span></a>
+      <a href="#" class="skip10" onClick="showMedia(currentPageNumber + 10)"><span class="breadcrumb">&gt;&gt;&gt;&gt;</span></a>
+      <a href="#" class="skiplimits" onClick="showMedia(Math.ceil(allMedia.length / pageSize))"><span class="breadcrumb">&gt;|</span></a>
     </span>
 
     <span id="search_criterias"></span>
@@ -55,13 +55,13 @@
     <div id="all_media"><div class='loading'>Loading</div></div>
 
     <span class="breadcrumbs">
-      <a href="#" onClick="showMedia(currentPageNumber - 1)">
-        <span class="breadcrumb">&lt;&lt;</span>
-      </a>
+      <a href="#" clas="skiplimits" onClick="showMedia(1)"><span class="breadcrumb">|&lt;</span></a>
+      <a href="#" class="skip10" onClick="showMedia(currentPageNumber - 10)"><span class="breadcrumb">&lt;&lt;&lt;&lt;</span></a>
+      <a href="#" onClick="showMedia(currentPageNumber - 1)"><span class="breadcrumb">&lt;&lt;</span></a>
       <span class="breadcrumb" id="page_info"></span>
-      <a href="#" onClick="showMedia(currentPageNumber + 1)">
-        <span class="breadcrumb">&gt;&gt;</span>
-      </a>
+      <a href="#" onClick="showMedia(currentPageNumber + 1)"><span class="breadcrumb">&gt;&gt;</span></a>
+      <a href="#" class="skip10" onClick="showMedia(currentPageNumber + 10)"><span class="breadcrumb">&gt;&gt;&gt;&gt;</span></a>
+      <a href="#" class="skiplimits" onClick="showMedia(Math.ceil(allMedia.length / pageSize))"><span class="breadcrumb">&gt;|</span></a>
     </span>
 
     <span class="generated_at">Site generated from
@@ -129,7 +129,6 @@
            return;
         }
 
-        const pageSize = getIntQueryParameter("page_size", 24);
         const totalPages = Math.ceil(allMedia.length / pageSize);
         if (pageNumber < 1 || pageNumber > totalPages)
           return;
@@ -163,9 +162,15 @@
           ele.innerText = `Page ${pageNumber.toLocaleString()} of ${totalPages.toLocaleString()}`;
 
         for (ele of document.querySelectorAll(".breadcrumbs"))
-          ele.style.display = totalPages == 1 ? "none" : "black";
+          ele.style.display = totalPages == 1 ? "none" : "block";
 
         currentPageNumber = pageNumber;
+
+        for (ele of document.querySelectorAll(".skip10"))
+          ele.style.display = totalPages > 25 ? "" : "none";
+
+        for (ele of document.querySelectorAll(".skiplimits"))
+          ele.style.display = totalPages > 2 ? "" : "none";
 
         window.scrollTo(0, 0);
       }
@@ -337,6 +342,8 @@
         if (nextSearchInput == 0)
           addSearchInputRow();
       }
+
+      const pageSize = getIntQueryParameter("page_size", 24);
 
       var currentPageNumber = 1;
       var nextSearchInput = 0;
