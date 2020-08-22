@@ -248,9 +248,12 @@
           } else {
             var input = document.createElement("input");
             input.className = `search_value${i}`;
-            input.type = "text";
+            input.type = "inputType" in op ? op.inputType[i] : "text";
+            if ("inputStep" in op)
+              input.step = op.inputStep[i];
             input.size = 10;
             input.addEventListener("change", function() { updateCritieraIfValuesPopulated(idx); });
+
             values.appendChild(input);
           }
         }

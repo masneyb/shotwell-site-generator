@@ -326,7 +326,8 @@ const numberSearch = {
           return input != null && input >= value;
         });
       },
-      numValues: 1
+      numValues: 1,
+      inputType: ["number"]
     },
     {
       descr: "is at most",
@@ -335,7 +336,8 @@ const numberSearch = {
           return input != null && input <= value;
         });
       },
-      numValues: 1
+      numValues: 1,
+      inputType: ["number"]
     },
     {
       descr: "equals",
@@ -344,7 +346,8 @@ const numberSearch = {
           return input != null && input == value;
         });
       },
-      numValues: 1
+      numValues: 1,
+      inputType: ["number"]
     }
   ]
 };
@@ -388,7 +391,9 @@ const gpsSearch = {
       matches: function (field, op, values, media) {
         return gpsIsWithin(field, op, values, media);
       },
-      numValues: 3
+      numValues: 3,
+      inputType: ["number", "number", "number"],
+      inputStep: ["any", "any", "any"]
     },
     {
       descr: "is outside lat/lon/radius",
@@ -398,7 +403,9 @@ const gpsSearch = {
 
         return !gpsIsWithin(field, op, values, media);
       },
-      numValues: 3
+      numValues: 3,
+      inputType: ["number", "number", "number"],
+      inputStep: ["any", "any", "any"]
     },
   ]
 };
@@ -450,7 +457,7 @@ const searchFields = [
     searchFields: ["width"],
   },
   {
-    title: "Photo Width/Height Ratio",
+    title: "Photo W/H Ratio",
     search: numberSearch,
     searchFields: ["photo_ratio"],
   },
