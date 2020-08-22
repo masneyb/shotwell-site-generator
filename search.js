@@ -305,7 +305,7 @@ const dateSearch = {
       numValues: 1
     },
     {
-      descr: "was taken today",
+      descr: "was taken on this day",
       matches: function (field, op, values, media) {
         return performGenericOp(field, media, null, function(input, value) {
           if (input == null)
@@ -322,7 +322,7 @@ const dateSearch = {
       numValues: 0
     },
     {
-      descr: "was taken this month",
+      descr: "was taken on this month",
       matches: function (field, op, values, media) {
         return performGenericOp(field, media, null, function(input, value) {
           if (input == null)
