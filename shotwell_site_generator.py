@@ -24,7 +24,8 @@ import sqlite3
 import sys
 import media_fetcher
 import media_thumbnailer
-import media_writer
+import media_writer_html
+import media_writer_json
 
 def process_photos(options):
     conn = sqlite3.connect(options.input_database)
@@ -49,20 +50,21 @@ def process_photos(options):
                                          __get_image_path(options, "raw-icon.png"))
         all_media = fetcher.get_all_media(rating)
 
-        photos = media_writer.Html(all_media, options.dest_directory, rating, all_media_ratings,
-                                   options.title, options.years_prior_are_approximate,
-                                   options.max_media_per_page, options.expand_all_elements,
-                                   options.version_label)
+        photos = media_writer_html.Html(all_media, options.dest_directory, rating,
+                                        all_media_ratings, options.title,
+                                        options.years_prior_are_approximate,
+                                        options.max_media_per_page, options.expand_all_elements,
+                                        options.version_label)
 
         all_media_year_index = photos.write_all_media_index_file()
         photos.write_year_and_event_html_files(all_media_year_index)
         photos.write_tag_html_files()
 
         if rating == 0:
-            json_writer = media_writer.Json(all_media, options.title, options.max_media_per_page,
-                                            options.dest_directory,
-                                            options.years_prior_are_approximate,
-                                            options.version_label)
+            json_writer = media_writer_json.Json(all_media, options.title,
+                                                 options.max_media_per_page, options.dest_directory,
+                                                 options.years_prior_are_approximate,
+                                                 options.version_label)
             json_writer.write()
 
         write_redirect(os.path.join(options.dest_directory, str(rating), "index.html"),
