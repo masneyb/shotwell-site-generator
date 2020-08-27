@@ -549,7 +549,7 @@ function performSearch(allItems) {
       continue;
     }
 
-    criteria = {field: null, op: null, searchValues: parts.slice(2, parts.length)};
+    var criteria = {field: null, op: null, searchValues: parts.slice(2, parts.length)};
 
     for (const searchField of searchFields) {
       if (searchField.title === parts[0]) {
@@ -579,24 +579,24 @@ function performSearch(allItems) {
 
   if (allCriteria.length == 0) {
     // Create an operator that always returns true so that all media, events and tags are shown.
-    noopField = {title: null, search: textSearch, searchFields: ["noop"]};
-    trueOp = {descr: "equals", matches: function (field, op, values, media) { return true; }, numValues: 0};
+    var noopField = {title: null, search: textSearch, searchFields: ["noop"]};
+    var trueOp = {descr: "equals", matches: function (field, op, values, media) { return true; }, numValues: 0};
     allCriteria.push({field: noopField, op: trueOp, searchValues: []});
   }
 
   var matchPolicy = getQueryParameter("match_policy", "all"); // any,none,all
 
   var tagNames = {}
-  for (tag of allItems["tags"]) {
+  for (var tag of allItems["tags"]) {
     tagNames[tag["id"]] = tag["title"];
   }
 
   var eventNames = {}
-  for (tag of allItems["events"]) {
-    eventNames[tag["id"]] = tag["title"];
+  for (var event of allItems["events"]) {
+    eventNames[event["id"]] = event["title"];
   }
 
-  ret = []
+  var ret = []
   for (const mediaType of [["events", "Event: "], ["tags", "Tag: "], ["media", ""]]) {
     for (const media of allItems[mediaType[0]]) {
       if (!("type" in media))
@@ -605,7 +605,7 @@ function performSearch(allItems) {
       if ("tags" in media) {
         // Write out the tag name into the media element to simplify code for the text search.
         media.tag_name = [];
-        for (tag_id of media["tags"])
+        for (var tag_id of media["tags"])
           media.tag_name.push(tagNames[tag_id]);
       }
 
@@ -662,12 +662,12 @@ function loadJson(readyFunc, errorFunc) {
       var resp = JSON.parse(this.responseText);
 
       var eventNames = {}
-      for (evt of resp["events"]) {
+      for (var evt of resp["events"]) {
         eventNames[evt["id"]] = "title" in evt ? evt["title"] : `Unnamed ${event["id"]}`;
       }
 
       var tagNames = {}
-      for (tag of resp["tags"]) {
+      for (var tag of resp["tags"]) {
         tagNames[tag["id"]] = tag["title"];
       }
 

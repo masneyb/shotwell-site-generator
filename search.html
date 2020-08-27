@@ -103,7 +103,7 @@
             totalsByTypes[media.type]++;
         }
 
-        ret = []
+        var ret = []
         if ("photo" in totalsByTypes)
           ret.push(`<span class="stat">${totalsByTypes["photo"].toLocaleString()} photos</span>`);
         if ("video" in totalsByTypes)
@@ -158,7 +158,7 @@
 
         document.querySelector(".summary_stats").innerHTML = createAllStatsHtml();
 
-        for (ele of document.querySelectorAll("#page_info"))
+        for (var ele of document.querySelectorAll("#page_info"))
           ele.innerText = `Page ${pageNumber.toLocaleString()} of ${totalPages.toLocaleString()}`;
 
         for (ele of document.querySelectorAll(".breadcrumbs"))
@@ -209,7 +209,7 @@
 
       function updateCritieraIfValuesPopulated(idx) {
         var searchEles = document.querySelector(`#search_criteria${idx}`);
-        for (child of searchEles.querySelector(".search_values").children) {
+        for (var child of searchEles.querySelector(".search_values").children) {
           if (child.value == "")
             return;
         }
@@ -237,7 +237,7 @@
         for (var i = 0; i < op.numValues; i++) {
           if ("validValues" in field) {
             var select = document.createElement("select");
-            for (validValue of field.validValues) {
+            for (var validValue of field.validValues) {
               var option = document.createElement("option");
               option.value = validValue[1];
               option.innerHTML = validValue[0];
@@ -296,13 +296,13 @@
       }
 
       function updateSearchCriteria() {
-        searchArgs = []
-        for (critChild of document.querySelector("#search_criterias").children) {
+        var searchArgs = []
+        for (var critChild of document.querySelector("#search_criterias").children) {
           const field = critChild.querySelector(".search_field").value;
           const op = critChild.querySelector(".search_op").value;
 
           var search = `${field},${op}`;
-          for (valChild of critChild.querySelector(".search_values").children) {
+          for (var valChild of critChild.querySelector(".search_values").children) {
             search += `,${valChild.value}`;
           }
           searchArgs.push(`search=${encodeURIComponent(search)}`);
@@ -334,7 +334,7 @@
           searchOpChanged(curIdx);
           var op = field.search.ops[opEle.selectedIndex];
 
-          for (i = 0; i < Math.min(parts.length - 2, op.numValues); i++) {
+          for (var i = 0; i < Math.min(parts.length - 2, op.numValues); i++) {
             searchEles.querySelector(".search_values").children[i].value = parts[i + 2];
           }
         }
