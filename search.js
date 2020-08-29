@@ -487,6 +487,11 @@ const searchFields = [
     searchFields: ["link"],
   },
   {
+    title: "File Size (bytes)",
+    search: numberSearch,
+    searchFields: ["filesize"],
+  },
+  {
     title: "GPS Coordinate",
     search: gpsSearch,
     searchFields: ["lat"],
