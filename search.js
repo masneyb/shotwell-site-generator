@@ -198,6 +198,15 @@ const textSearch = {
       numValues: 1
     },
     {
+      descr: "not equals",
+      matches: function (field, op, values, media) {
+        return performGenericOp(field, media, values[0], function(input, value) {
+          return input == null || input.toLowerCase() !== value.toLowerCase();
+        });
+      },
+      numValues: 1
+    },
+    {
       descr: "starts with",
       matches: function (field, op, values, media) {
         return performGenericOp(field, media, values[0], function(input, value) {
