@@ -484,9 +484,9 @@ class Database:
         if focal_length:
             ret["exif"].append("%smm" % (focal_length))
 
-        if "Exif.Image.Make" in metadata:
-            ret["camera"] = "%s %s" % (metadata["Exif.Image.Make"].value,
-                                       metadata["Exif.Image.Model"].value)
+        if "Exif.Image.Make" in metadata and metadata["Exif.Image.Make"].value.strip():
+            ret["camera"] = "%s %s" % (metadata["Exif.Image.Make"].value.strip(),
+                                       metadata["Exif.Image.Model"].value.strip())
 
         return ret
 
