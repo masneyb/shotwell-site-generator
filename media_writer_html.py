@@ -286,7 +286,9 @@ class Html(CommonWriter):
             detailed += media["exif"]
 
         if "camera" in media:
-            detailed.append(media["camera"])
+            detailed.append("<a href='../../search.html?search=%s'>%s</a>" % \
+                            (urllib.parse.quote("Camera,equals,%s" % (media["camera"])),
+                             media["camera"]))
 
         if "rating" in media:
             detailed.append(("&starf;" * media["rating"]) + ("&star;" * (5 - media["rating"])))

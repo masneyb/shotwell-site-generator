@@ -90,8 +90,12 @@ function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
     ret = ret.concat(entity["exif"]);
   }
 
-  if ("camera" in entity)
-    ret.push(`<span class="stat">${entity["camera"]}</span>`);
+  if ("camera" in entity) {
+    var search = `Camera,equals,${entity["camera"]}`;
+    ret.push('<span class="stat">' +
+             `<a href='search.html?search=${encodeURI(search)}'>${entity["camera"]}</a>` +
+             '</span>');
+  }
 
   if ("rating" in entity) {
     var stars = "&starf;".repeat(entity.rating) + "&star;".repeat(5 - entity.rating);
