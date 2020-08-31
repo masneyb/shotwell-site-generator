@@ -543,6 +543,16 @@ const searchFields = [
     searchFields: ["title"],
   },
   {
+    title: "Total Photos",
+    search: numberSearch,
+    searchFields: ["num_photos"],
+  },
+  {
+    title: "Total Videos",
+    search: numberSearch,
+    searchFields: ["num_videos"],
+  },
+  {
     title: "Type",
     search: mediaTypeSearch,
     searchFields: ["type"],
