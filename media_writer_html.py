@@ -278,7 +278,7 @@ class Html(CommonWriter):
 
         if "lat" in media:
             search = "%s,%s,%.5f,%.5f,0.1" % \
-                     ("GPS Coordinate", "is within lat/lon/radius", media["lat"], media["lon"])
+                     ("GPS Coordinate", "is within", media["lat"], media["lon"])
             detailed.append("<a href='../../search.html?search=%s'>GPS %.5f,%.5f</a>" % \
                             (urllib.parse.quote(search), media["lat"], media["lon"]))
 

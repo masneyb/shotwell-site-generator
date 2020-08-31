@@ -78,7 +78,7 @@ function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
   }
 
   if ("lat" in entity) {
-    var search = `GPS Coordinate,is within lat/lon/radius,${entity["lat"]},${entity["lon"]},0.1`;
+    var search = `GPS Coordinate,is within,${entity["lat"]},${entity["lon"]},0.1`;
     ret.push('<span class="stat">' +
              `<a href='search.html?search=${encodeURI(search)}'>` +
              `GPS ${entity["lat"]},${entity["lon"]}` +
