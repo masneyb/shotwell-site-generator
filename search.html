@@ -252,6 +252,9 @@
             if ("inputStep" in op)
               input.step = op.inputStep[i];
             input.size = 10;
+            if ("placeholder" in op && op.placeholder[i] != null)
+              input.placeholder = op.placeholder[i];
+
             input.addEventListener("change", function() { updateCritieraIfValuesPopulated(idx); });
 
             values.appendChild(input);

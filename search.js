@@ -257,6 +257,7 @@ const dateSearch = {
           return input != null && input.startsWith(value);
         });
       },
+      placeholder: ["yyyy-MM-dd"],
       numValues: 1
     },
     {
@@ -266,6 +267,7 @@ const dateSearch = {
           return input != null && input < value;
         });
       },
+      placeholder: ["yyyy-MM-dd"],
       numValues: 1
     },
     {
@@ -275,6 +277,7 @@ const dateSearch = {
           return input != null && input > value;
         });
       },
+      placeholder: ["yyyy-MM-dd"],
       numValues: 1
     },
     {
@@ -284,6 +287,7 @@ const dateSearch = {
           return input != null && input >= values[0] && input <= values[1];
         });
       },
+      placeholder: ["yyyy-MM-dd", "yyyy-MM-dd"],
       numValues: 2
     },
     {
@@ -305,7 +309,7 @@ const dateSearch = {
       numValues: 0
     },
     {
-      descr: "was taken on day (mm-dd)",
+      descr: "was taken on day",
       matches: function (field, op, values, media) {
         return performGenericOp(field, media, null, function(input, value) {
           if (input == null)
@@ -315,6 +319,7 @@ const dateSearch = {
           return compareTo === values[0];
         });
       },
+      placeholder: ["MM-dd"],
       numValues: 1
     },
     {
@@ -375,40 +380,45 @@ const mediaTypeSearch = {
   ]
 };
 
-const numberSearch = {
-  ops: [
-    {
-      descr: "is at least",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values[0], function(input, value) {
-          return input != null && input >= value;
-        });
+function createNumberSearch(placeholderText) {
+  return {
+    ops: [
+      {
+        descr: "is at least",
+        matches: function (field, op, values, media) {
+          return performGenericOp(field, media, values[0], function(input, value) {
+            return input != null && input >= value;
+          });
+        },
+        placeholder: [placeholderText],
+        numValues: 1,
+        inputType: ["number"]
       },
-      numValues: 1,
-      inputType: ["number"]
-    },
-    {
-      descr: "is at most",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values[0], function(input, value) {
-          return input != null && input <= value;
-        });
+      {
+        descr: "is at most",
+        matches: function (field, op, values, media) {
+          return performGenericOp(field, media, values[0], function(input, value) {
+            return input != null && input <= value;
+          });
+        },
+        placeholder: [placeholderText],
+        numValues: 1,
+        inputType: ["number"]
       },
-      numValues: 1,
-      inputType: ["number"]
-    },
-    {
-      descr: "equals",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values[0], function(input, value) {
-          return input != null && input == value;
-        });
-      },
-      numValues: 1,
-      inputType: ["number"]
-    }
-  ]
-};
+      {
+        descr: "equals",
+        matches: function (field, op, values, media) {
+          return performGenericOp(field, media, values[0], function(input, value) {
+            return input != null && input == value;
+          });
+        },
+        placeholder: [placeholderText],
+        numValues: 1,
+        inputType: ["number"]
+      }
+    ]
+  };
+}
 
 function gpsIsWithin(field, op, values, media) {
   if (!("lat" in media))
@@ -445,22 +455,24 @@ const gpsSearch = {
       numValues: 0
     },
     {
-      descr: "is within lat/lon/radius",
+      descr: "is within",
       matches: function (field, op, values, media) {
         return gpsIsWithin(field, op, values, media);
       },
+      placeholder: ["lat", "lon", "radius"],
       numValues: 3,
       inputType: ["number", "number", "number"],
       inputStep: ["any", "any", "any"]
     },
     {
-      descr: "is outside lat/lon/radius",
+      descr: "is outside",
       matches: function (field, op, values, media) {
         if (!("lat" in media))
           return false;
 
         return !gpsIsWithin(field, op, values, media);
       },
+      placeholder: ["lat", "lon", "radius"],
       numValues: 3,
       inputType: ["number", "number", "number"],
       inputStep: ["any", "any", "any"]
@@ -500,8 +512,8 @@ const searchFields = [
     searchFields: ["link"],
   },
   {
-    title: "File Size (bytes)",
-    search: numberSearch,
+    title: "File Size",
+    search: createNumberSearch("bytes"),
     searchFields: ["filesize"],
   },
   {
@@ -511,22 +523,22 @@ const searchFields = [
   },
   {
     title: "Photo Height",
-    search: numberSearch,
+    search: createNumberSearch("pixels"),
     searchFields: ["height"],
   },
   {
     title: "Photo Width",
-    search: numberSearch,
+    search: createNumberSearch("pixels"),
     searchFields: ["width"],
   },
   {
     title: "Photo W/H Ratio",
-    search: numberSearch,
+    search: createNumberSearch(null),
     searchFields: ["photo_ratio"],
   },
   {
     title: "Rating",
-    search: numberSearch,
+    search: createNumberSearch(null),
     searchFields: ["rating"],
     validValues: [["Unrated", "0"], ["&starf;", "1"], ["&starf;&starf;", "2"],
                   ["&starf;&starf;&starf;", "3"], ["&starf;&starf;&starf;&starf;", "4"],
@@ -544,12 +556,12 @@ const searchFields = [
   },
   {
     title: "Total Photos",
-    search: numberSearch,
+    search: createNumberSearch(null),
     searchFields: ["num_photos"],
   },
   {
     title: "Total Videos",
-    search: numberSearch,
+    search: createNumberSearch(null),
     searchFields: ["num_videos"],
   },
   {
@@ -560,8 +572,8 @@ const searchFields = [
                   ["event", "events"], ["tag", "tags"]],
   },
   {
-    title: "Video Duration (secs)",
-    search: numberSearch,
+    title: "Video Duration",
+    search: createNumberSearch("secs"),
     searchFields: ["clip_duration_secs"],
   },
 ];
