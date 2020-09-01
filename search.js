@@ -692,43 +692,44 @@ function performSearch(allItems) {
   return ret;
 }
 
+function processJson(resp, readyFunc) {
+  var eventNames = {}
+  for (var evt of resp["events"]) {
+    eventNames[evt["id"]] = "title" in evt ? evt["title"] : `Unnamed ${event["id"]}`;
+  }
+
+  var tagNames = {}
+  for (var tag of resp["tags"]) {
+    tagNames[tag["id"]] = tag["title"];
+  }
+
+  document.title = `${resp["title"]}: Search`;
+  var ele = document.querySelector("#title");
+  if (ele)
+    ele.innerText = document.title;
+
+  ele = document.querySelector("#generated_timestamp");
+  if (ele)
+    ele.innerText = `at ${resp["generated_at"]}`;
+
+  ele = document.querySelector("#app_version");
+  if (ele)
+    ele.innerText = resp["version_label"];
+
+  var allMedia = performSearch(resp);
+  readyFunc(allMedia, eventNames, tagNames);
+}
+
 function loadJson(readyFunc, errorFunc) {
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
     if (this.readyState !== XMLHttpRequest.DONE)
       return;
 
-    if (this.status >= 200 && this.status < 400) {
-      var resp = JSON.parse(this.responseText);
-
-      var eventNames = {}
-      for (var evt of resp["events"]) {
-        eventNames[evt["id"]] = "title" in evt ? evt["title"] : `Unnamed ${event["id"]}`;
-      }
-
-      var tagNames = {}
-      for (var tag of resp["tags"]) {
-        tagNames[tag["id"]] = tag["title"];
-      }
-
-      document.title = `${resp["title"]}: Search`;
-      var ele = document.querySelector("#title");
-      if (ele)
-        ele.innerText = document.title;
-
-      ele = document.querySelector("#generated_timestamp");
-      if (ele)
-        ele.innerText = resp["generated_at"];
-
-      ele = document.querySelector("#app_version");
-      if (ele)
-        ele.innerText = resp["version_label"];
-
-      var allMedia = performSearch(resp);
-      readyFunc(allMedia, eventNames, tagNames);
-    } else {
+    if (this.status >= 200 && this.status < 400)
+      processJson(JSON.parse(this.responseText), readyFunc);
+    else
       errorFunc();
-    }
   };
 
   xmlhttp.open("GET", "media.json", true);
