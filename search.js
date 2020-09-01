@@ -721,17 +721,15 @@ function processJson(resp, readyFunc) {
 }
 
 function loadJson(readyFunc, errorFunc) {
-  var xmlhttp = new XMLHttpRequest();
-  xmlhttp.onreadystatechange = function() {
-    if (this.readyState !== XMLHttpRequest.DONE)
-      return;
+  /*
+   * Read the media from a javascript file rather than as a JSON file using XMLHttpRequest
+   * to work around browser mitigations that are in place for CVE-2019-11730. This change allows
+   * the search and screensaver pages to function correctly when accessed over a file URI.
+   */
 
-    if (this.status >= 200 && this.status < 400)
-      processJson(JSON.parse(this.responseText), readyFunc);
-    else
-      errorFunc();
-  };
-
-  xmlhttp.open("GET", "media.json", true);
-  xmlhttp.send();
+  var scr = document.createElement("script");
+  scr.setAttribute("src", "media.js");
+  scr.onload = function() { processJson(getAllMediaViaJsFile(), readyFunc); }
+  scr.onerror = function() { errorFunc(); }
+  document.body.appendChild(scr);
 }

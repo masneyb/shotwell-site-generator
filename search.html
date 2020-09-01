@@ -374,21 +374,7 @@
         showMedia(1);
       }, function() {
         var allMediaEle = document.querySelector("#all_media");
-        allMediaEle.innerHTML =
-          "<div class='error'>" +
-          "There was an error loading the JSON document. If you are accessing this using a " +
-          "file:// URI, then this error is most likely due to browser mitigations that are in " +
-          "place for " +
-          "<a href='https://nvd.nist.gov/vuln/detail/CVE-2019-11730'>CVE-2019-11730</a>. The " +
-          "search and screensaver pages will work correctly when accessed over a http:// or " +
-          "https:// URI. More information about this issue is available from " +
-          "<a href='https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSRequestNotHttp'>Mozilla</a>. " +
-          "You can work around this issue by starting a web server on your machine with " +
-          "'python3 -mhttp.server' and then access this photo library with " +
-          "<a href='http://localhost:8000'>http://localhost:8000</a>. All of the other " +
-          "statically-generated pages on this site will work correctly when accessed over a " +
-          "file:// URI." +
-          "</div>";
+        allMediaEle.innerHTML = "<div class='error'>Error loading media</div>";
       });
 
       populateSearchValuesFromUrl();

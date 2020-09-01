@@ -102,8 +102,23 @@ class Json(CommonWriter):
                "generated_at": self.generated_at, "media": shown_media,
                "events": shown_events, "tags": shown_tags}
 
+        self.__write_json_files(ret)
+
+    def __write_json_files(self, ret):
+        # No part of the generated site reads this generated media.json file. Including here
+        # for scripting purposes.
         with open(os.path.join(self.dest_directory, "media.json"), "w") as outfile:
             outfile.write(json.dumps(ret, indent="\t"))
+
+        # Write out the media in an embedded Javascript file to work around browser mitigations
+        # for CVE-2019-11730 so that the search/screensaver pages will work for file URIs.
+        with open(os.path.join(self.dest_directory, "media.js"), "w") as outfile:
+            outfile.write("var _allMedia = ")
+            outfile.write(json.dumps(ret, indent="\t"))
+            outfile.write(";\n")
+            outfile.write("function getAllMediaViaJsFile() {\n")
+            outfile.write("  return _allMedia;\n")
+            outfile.write("}\n")
 
     def __get_all_media_index(self):
         shown_media = []
