@@ -11,12 +11,13 @@
     <span id="title" class="page_title">Search</span>
     <span class="summary_stats"></span>
     <span class="header_links">
-      <a id="screensaver_link">
+      <a id="screensaver_link" style="display: none">
         <span class="header_link">Screensaver with only these photos</span>
       </a>
     </span>
     <span class="header_links">
-      <a href="#" onclick="shuffleArray(allMedia); showMedia(1);">
+      <a href="#" id="shuffle_link" style="display: none"
+       onclick="shuffleArray(allMedia); showMedia(1);">
         <span class="header_link">Shuffle media in search results</span>
       </a>
     </span>
@@ -41,8 +42,9 @@
       <a href="#" class="skiplimits" onClick="showMedia(Math.ceil(allMedia.length / pageSize))"><span class="breadcrumb">&gt;|</span></a>
     </span>
 
-    <span id="search_criterias"></span>
-    <span class="search_controls">
+    <span id="search_criterias" style="display: none"></span>
+
+    <span class="search_controls" style="display: none">
       <input type="button" onClick="addSearchInputRow();" value="+"></input>
       <select id="match_policy" onChange="updateSearchCriteria();">
         <option value="any">Match Any</option>
@@ -153,8 +155,13 @@
         }
 
         var params = window.location.search.startsWith("?") ? window.location.search : "?";
-        document.querySelector("#screensaver_link").href =
-            `screensaver.html${params}&photo_update_secs=10&kiosk=0`;
+
+        var screensaverLink = document.querySelector("#screensaver_link");
+        screensaverLink.href = `screensaver.html${params}&photo_update_secs=10&kiosk=0`;
+        screensaverLink.style.display = "block";
+        document.querySelector("#shuffle_link").style.display = "block";
+        document.querySelector(".search_controls").style.display = "block";
+        document.querySelector("#search_criterias").style.display = "block";
 
         document.querySelector(".summary_stats").innerHTML = createAllStatsHtml();
 
