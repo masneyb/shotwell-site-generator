@@ -33,13 +33,13 @@
     </span>
 
     <span class="breadcrumbs" style="display: none">
-      <a href="#" clas="skiplimits" onClick="showMedia(1)"><span class="breadcrumb">|&lt;</span></a>
-      <a href="#" class="skip10" onClick="showMedia(currentPageNumber - 10)"><span class="breadcrumb">&lt;&lt;&lt;&lt;</span></a>
-      <a href="#" onClick="showMedia(currentPageNumber - 1)"><span class="breadcrumb">&lt;&lt;</span></a>
+      <a class="firstpage"><span class="breadcrumb">|&lt;</span></a>
+      <a class="backten"><span class="breadcrumb">&lt;&lt;&lt;&lt;</span></a>
+      <a class="backone"><span class="breadcrumb">&lt;&lt;</span></a>
       <span class="breadcrumb" id="page_info"></span>
-      <a href="#" onClick="showMedia(currentPageNumber + 1)"><span class="breadcrumb">&gt;&gt;</span></a>
-      <a href="#" class="skip10" onClick="showMedia(currentPageNumber + 10)"><span class="breadcrumb">&gt;&gt;&gt;&gt;</span></a>
-      <a href="#" class="skiplimits" onClick="showMedia(Math.ceil(allMedia.length / pageSize))"><span class="breadcrumb">&gt;|</span></a>
+      <a class="forwardone"><span class="breadcrumb">&gt;&gt;</span></a>
+      <a class="forwardten"><span class="breadcrumb">&gt;&gt;&gt;&gt;</span></a>
+      <a class="lastpage"><span class="breadcrumb">&gt;|</span></a>
     </span>
 
     <span id="search_criterias" style="display: none"></span>
@@ -57,13 +57,13 @@
     <div id="all_media"><div class='loading'>Loading</div></div>
 
     <span class="breadcrumbs" style="display: none">
-      <a href="#" clas="skiplimits" onClick="showMedia(1)"><span class="breadcrumb">|&lt;</span></a>
-      <a href="#" class="skip10" onClick="showMedia(currentPageNumber - 10)"><span class="breadcrumb">&lt;&lt;&lt;&lt;</span></a>
-      <a href="#" onClick="showMedia(currentPageNumber - 1)"><span class="breadcrumb">&lt;&lt;</span></a>
+      <a class="firstpage"><span class="breadcrumb">|&lt;</span></a>
+      <a class="backten"><span class="breadcrumb">&lt;&lt;&lt;&lt;</span></a>
+      <a class="backone"><span class="breadcrumb">&lt;&lt;</span></a>
       <span class="breadcrumb" id="page_info"></span>
-      <a href="#" onClick="showMedia(currentPageNumber + 1)"><span class="breadcrumb">&gt;&gt;</span></a>
-      <a href="#" class="skip10" onClick="showMedia(currentPageNumber + 10)"><span class="breadcrumb">&gt;&gt;&gt;&gt;</span></a>
-      <a href="#" class="skiplimits" onClick="showMedia(Math.ceil(allMedia.length / pageSize))"><span class="breadcrumb">&gt;|</span></a>
+      <a class="forwardone"><span class="breadcrumb">&gt;&gt;</span></a>
+      <a class="forwardten"><span class="breadcrumb">&gt;&gt;&gt;&gt;</span></a>
+      <a class="lastpage"><span class="breadcrumb">&gt;|</span></a>
     </span>
 
     <span class="generated_at">Site generated from
@@ -172,14 +172,42 @@
           ele.style.display = totalPages == 1 ? "none" : "block";
 
         currentPageNumber = pageNumber;
+        var lastPageNumber = Math.ceil(allMedia.length / pageSize);
 
-        for (ele of document.querySelectorAll(".skip10"))
-          ele.style.display = totalPages > 25 ? "" : "none";
+        for (ele of document.querySelectorAll(".firstpage"))
+          updateBreadcrumb(ele, 1, currentPageNumber > 1, totalPages > 2);
 
-        for (ele of document.querySelectorAll(".skiplimits"))
-          ele.style.display = totalPages > 2 ? "" : "none";
+        for (ele of document.querySelectorAll(".backten"))
+          updateBreadcrumb(ele, currentPageNumber - 10, currentPageNumber > 10, totalPages > 25);
+
+        for (ele of document.querySelectorAll(".backone"))
+          updateBreadcrumb(ele, currentPageNumber - 1, currentPageNumber > 1, true);
+
+        for (ele of document.querySelectorAll(".forwardone"))
+          updateBreadcrumb(ele, currentPageNumber + 1, currentPageNumber < lastPageNumber, true);
+
+        for (ele of document.querySelectorAll(".forwardten"))
+          updateBreadcrumb(ele, currentPageNumber + 10, currentPageNumber + 10 <= lastPageNumber,
+                           totalPages > 25);
+
+        for (ele of document.querySelectorAll(".lastpage"))
+          updateBreadcrumb(ele, lastPageNumber, currentPageNumber < lastPageNumber, totalPages > 2);
 
         window.scrollTo(0, 0);
+      }
+
+      function updateBreadcrumb(ele, pageNumber, active, shown) {
+        if (active && shown) {
+          ele.style.display = "";
+          ele.href = "#";
+          ele.onclick = function() { showMedia(pageNumber); }
+        } else if (!shown) {
+          ele.style.display = "none";
+        } else {
+          ele.style.display = "";
+          ele.removeAttribute("href");
+          ele.onclick = "";
+        }
       }
 
       function populateSearchFields(idx) {
