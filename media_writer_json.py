@@ -114,7 +114,7 @@ class Json(CommonWriter):
         # for CVE-2019-11730 so that the search/screensaver pages will work for file URIs.
         with open(os.path.join(self.dest_directory, "media.js"), "w") as outfile:
             outfile.write("var _allMedia = ")
-            outfile.write(json.dumps(ret, indent="\t"))
+            outfile.write(json.dumps(ret, indent=None))
             outfile.write(";\n")
             outfile.write("function getAllMediaViaJsFile() {\n")
             outfile.write("  return _allMedia;\n")
