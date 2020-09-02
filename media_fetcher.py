@@ -39,12 +39,12 @@ class Database:
         self.play_icon = play_icon
         self.raw_icon = raw_icon
 
-    def get_all_media(self, min_rating):
+    def get_all_media(self):
         all_media = {"events_by_year": {}, "all_stats": self.__create_new_stats(),
                      "events_by_id": {}, "media_by_id": {}, "tags_by_id": {},
                      "tags": []}
 
-        self.__fetch_media(all_media, min_rating)
+        self.__fetch_media(all_media)
         self.__fetch_events(all_media)
 
         for event in all_media["events_by_id"].values():
@@ -115,14 +115,13 @@ class Database:
 
         return ret
 
-    def __fetch_media(self, all_media, min_rating):
+    def __fetch_media(self, all_media):
         # Download regular photos...
         qry = "SELECT event_id, id, filename, title, comment, filesize, exposure_time, " + \
               "rating, width, height, orientation, transformations FROM PhotoTable " + \
-              "WHERE rating >= ? AND develop_embedded_id = -1 AND event_id != -1 " + \
-              "ORDER BY PhotoTable.exposure_time"
+              "WHERE develop_embedded_id = -1 AND event_id != -1 ORDER BY PhotoTable.exposure_time"
         cursor = self.conn.cursor()
-        for row in cursor.execute(qry, str(min_rating)):
+        for row in cursor.execute(qry):
             self.__process_photo_row(all_media, row, None, False)
 
         if self.__does_table_exist("BackingPhotoTable"):
@@ -134,20 +133,20 @@ class Database:
                   "PhotoTable.rating, PhotoTable.width, PhotoTable.height, " + \
                   "PhotoTable.orientation, PhotoTable.transformations " + \
                   "FROM PhotoTable, BackingPhotoTable " + \
-                  "WHERE PhotoTable.rating >= ? AND PhotoTable.develop_embedded_id != -1 AND " + \
+                  "WHERE PhotoTable.develop_embedded_id != -1 AND " + \
                   "BackingPhotoTable.id=PhotoTable.develop_embedded_id AND " + \
                   "PhotoTable.event_id != -1 " + \
                   "ORDER BY PhotoTable.exposure_time"
             cursor = self.conn.cursor()
-            for row in cursor.execute(qry, str(min_rating)):
+            for row in cursor.execute(qry):
                 self.__process_photo_row(all_media, row, row["download_filename"], True)
 
         if self.__does_table_exist("VideoTable"):
             qry = "SELECT event_id, id, filename, title, comment, filesize, exposure_time, " + \
-                  "rating, clip_duration FROM VideoTable WHERE rating >= ? AND event_id != -1 " + \
+                  "rating, clip_duration FROM VideoTable WHERE event_id != -1 " + \
                   "ORDER BY exposure_time"
             cursor = self.conn.cursor()
-            for row in cursor.execute(qry, str(min_rating)):
+            for row in cursor.execute(qry):
                 media_id = "video-%016x" % (row["id"])
                 media = self.__add_media(all_media, row, media_id, row["filename"], None, None, 0,
                                          self.play_icon)
@@ -302,9 +301,6 @@ class Database:
             tags_by_name[row["name"]] = tag
 
     def __fetch_event_max_dates(self, all_media):
-        # Ensure that events are sorted consistently across all of the different rating views
-        # by fetching the maximum dates from the photo and video tables.
-
         qry = "SELECT EventTable.id, MAX(PhotoTable.exposure_time) AS max_date " + \
               "FROM PhotoTable, EventTable WHERE EventTable.id=PhotoTable.event_id " + \
               "GROUP BY EventTable.id"

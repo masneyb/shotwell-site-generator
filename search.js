@@ -65,13 +65,13 @@ function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
 
   if (entity.event_id)
     ret.push('<span class="stat">Event: ' +
-             `<a ${extraLinkAttr}href="0/event/${entity.event_id}.html">` +
+             `<a ${extraLinkAttr}href="event/${entity.event_id}.html">` +
              eventNames[entity.event_id] +
              '</a></span>');
 
   if (entity.tags) {
     for (var tag_id of entity.tags) {
-      ret.push(`<span class="stat">Tag: <a ${extraLinkAttr}href="0/tag/${tag_id}.html">` +
+      ret.push(`<span class="stat">Tag: <a ${extraLinkAttr}href="tag/${tag_id}.html">` +
                tagNames[tag_id] +
                '</a></span>');
     }
@@ -105,7 +105,7 @@ function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
   if (entity.all_media_page) {
     var link = entity.all_media_page == 1 ? "" : `_${entity.all_media_page}`;
     ret.push('<span class="stat">' +
-             `<a href="0/media/index${link}.html">Browse Nearby Media</a>` +
+             `<a href="media/index${link}.html">Browse Nearby Media</a>` +
              '</span>');
   }
 

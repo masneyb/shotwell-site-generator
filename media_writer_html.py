@@ -26,15 +26,12 @@ from media_writer_common import CommonWriter
 
 class Html(CommonWriter):
     # pylint: disable=too-many-instance-attributes
-    def __init__(self, all_media, dest_directory, min_media_rating, all_media_ratings,
-                 main_title, years_prior_are_approximate, max_media_per_page,
-                 expand_all_elements, version_label):
+    def __init__(self, all_media, dest_directory, main_title, years_prior_are_approximate,
+                 max_media_per_page, expand_all_elements, version_label):
         # pylint: disable=too-many-arguments
         CommonWriter.__init__(self, all_media, main_title, max_media_per_page,
                               years_prior_are_approximate, version_label)
-        self.html_basedir = os.path.join(dest_directory, str(min_media_rating))
-        self.min_media_rating = min_media_rating
-        self.all_media_ratings = all_media_ratings
+        self.html_basedir = dest_directory
         self.expand_all_elements = expand_all_elements
 
     def write_year_and_event_html_files(self, all_media_index):
@@ -80,9 +77,6 @@ class Html(CommonWriter):
 
             shown_media = []
             for event in year_block["events"]:
-                if not self.__has_shown_media(year_block["stats"]) and self.min_media_rating > 0:
-                    continue
-
                 shown_media.append(event)
 
             all_year_index[year] = {}
@@ -99,7 +93,7 @@ class Html(CommonWriter):
         shown_media = []
         for event in self.all_media["events_by_id"].values():
             for media in event["media"]:
-                relpath = "../../%s" % (media["filename"])
+                relpath = "../%s" % (media["filename"])
                 shown_media.append({"media": media, "link": relpath,
                                     "thumbnail_path": media["thumbnail_path"],
                                     "stats": None, "show_daterange": True})
@@ -144,7 +138,7 @@ class Html(CommonWriter):
             shown_media = []
             for media in tag["media"]:
                 shown_media.append({"media": media,
-                                    "link": "../../%s" % (media["filename"]),
+                                    "link": "../%s" % (media["filename"]),
                                     "thumbnail_path": media["thumbnail_path"],
                                     "stats": None, "show_daterange": False})
 
@@ -207,7 +201,7 @@ class Html(CommonWriter):
                              "<span class='main_view%s'>%s</span>" % (extra_css, view[1]) + \
                              "</a></span>")
 
-        output.write("<span><a href='../../search.html#'>" + \
+        output.write("<span><a href='../search.html#'>" + \
                      "<span class='main_view'>Search</span>" + \
                      "</a></span>")
 
@@ -224,7 +218,7 @@ class Html(CommonWriter):
         else:
             output.write("<a href='%s'>" % (html.escape(link)))
 
-        output.write("<span class='media_thumb'><img src='../../thumbnails/%s'/></span>" % \
+        output.write("<span class='media_thumb'><img src='../thumbnails/%s'/></span>" % \
                      (html.escape(thumbnail_path)))
 
         output.write("</a>")
@@ -279,14 +273,14 @@ class Html(CommonWriter):
         if "lat" in media:
             search = "%s,%s,%.5f,%.5f,0.1" % \
                      ("GPS Coordinate", "is within", media["lat"], media["lon"])
-            detailed.append("<a href='../../search.html?search=%s'>GPS %.5f,%.5f</a>" % \
+            detailed.append("<a href='../search.html?search=%s'>GPS %.5f,%.5f</a>" % \
                             (urllib.parse.quote(search), media["lat"], media["lon"]))
 
         if "exif" in media:
             detailed += media["exif"]
 
         if "camera" in media:
-            detailed.append("<a href='../../search.html?search=%s'>%s</a>" % \
+            detailed.append("<a href='../search.html?search=%s'>%s</a>" % \
                             (urllib.parse.quote("Camera,equals,%s" % (media["camera"])),
                              media["camera"]))
 
@@ -300,19 +294,6 @@ class Html(CommonWriter):
         output.write(self.__get_expandable_element("meta%s" % (media["media_id"]),
                                                    sep.join(summary), sep.join(summary + detailed),
                                                    "media_metadata", "More"))
-
-    def __write_ratings_dropdown(self, output, current_html_basename):
-        output.write("<span class='media_ratings'>Photo Rating: ")
-        output.write("<select onchange='location = this.options[this.selectedIndex].value;'>")
-
-        joined_path = html.escape(os.path.join(*current_html_basename)) + ".html"
-        for rating, description in self.all_media_ratings.items():
-            extra = "selected='selected' " if rating == self.min_media_rating else ""
-            output.write("<option %svalue='../../%d/%s'>%s</option>" % \
-                         (extra, rating, joined_path, html.escape(description)))
-
-        output.write("</select>")
-        output.write("</span>")
 
     def __js_hide_show(self, hide_element, show_element):
         return "document.getElementById('%s').style.display='block'; " % (show_element) + \
@@ -380,9 +361,6 @@ class Html(CommonWriter):
 
         shown_media = []
         for event in year_block["events"]:
-            if not self.__has_shown_media(year_block["stats"]) and self.min_media_rating > 0:
-                continue
-
             event_idx = all_event_index[event["id"]][year]
             link = self.__get_page_url_with_anchor(["event", str(event["id"])],
                                                    event_idx["page"])
@@ -425,8 +403,7 @@ class Html(CommonWriter):
     def __write_event_index_file(self):
         shown_media = []
         for event in self.all_media["events_by_id"].values():
-            if event["date"] is None or \
-               (not self.__has_shown_media(event["stats"]) and self.min_media_rating > 0):
+            if event["date"] is None:
                 continue
 
             shown_media.append({"media": event, "link": "%d.html" % (event["id"]),
@@ -444,7 +421,7 @@ class Html(CommonWriter):
         for event in self.all_media["events_by_id"].values():
             shown_media = []
             for media in event["media"]:
-                relpath = "../../%s" % (media["filename"])
+                relpath = "../%s" % (media["filename"])
                 shown_media.append({"media": media, "link": relpath,
                                     "thumbnail_path": media["thumbnail_path"],
                                     "stats": None, "show_daterange": True})
@@ -648,7 +625,7 @@ class Html(CommonWriter):
             if breadcrumb_config:
                 self.__write_breadcrumbs(output, breadcrumb_config)
 
-            self.__write_html_footer(output, current_page_link)
+            self.__write_html_footer(output)
 
     def __write_page_link(self, output, current_page_link, condition, label, page_number):
         # pylint: disable=too-many-arguments
@@ -713,7 +690,7 @@ class Html(CommonWriter):
 
         output.write("<html lang='en'>")
         output.write("<head>")
-        output.write("<link rel='stylesheet' type='text/css' href='../../library.css'/>")
+        output.write("<link rel='stylesheet' type='text/css' href='../library.css'/>")
         output.write("<meta name='viewport' content='width=device-width'/>")
         output.write("<meta charset='UTF-8'/>")
 
@@ -742,9 +719,7 @@ class Html(CommonWriter):
 
         return output
 
-    def __write_html_footer(self, output, current_page):
-        self.__write_ratings_dropdown(output, current_page)
-
+    def __write_html_footer(self, output):
         url = "https://github.com/masneyb/shotwell-site-generator"
         output.write("<span class='generated_at'>Site generated from " + \
                      "<a href='https://wiki.gnome.org/Apps/Shotwell'>Shotwell</a> " + \

@@ -250,19 +250,3 @@ class Imagemagick:
     def remove_thumbnails(self):
         self.remove_thumbnails_in_path(self.dest_thumbs_directory)
         self.remove_thumbnails_in_path(self.transformed_origs_directory)
-
-class Noop:
-    def create_composite_media_thumbnail(self, title, source_media, dest_filename):
-        pass
-
-    def create_rounded_and_square_thumbnail(self, source_image, rotate, resized_image,
-                                            overlay_icon):
-        pass
-
-    def remove_thumbnails(self):
-        pass
-
-    def transform_original_image(self, original_image, transformed_image, transformations,
-                                 thumbnail):
-        # pylint: disable=unused-argument
-        return transformed_image if os.path.exists(transformed_image) else original_image

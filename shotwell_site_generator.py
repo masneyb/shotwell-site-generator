@@ -31,49 +31,37 @@ def process_photos(options):
     conn = sqlite3.connect(options.input_database)
     conn.row_factory = sqlite3.Row
 
-    all_media_ratings = get_ratings(options.ratings_to_skip)
-    for rating in all_media_ratings:
-        logging.info("Processing photo ratings %d", rating)
+    thumbnailer = media_thumbnailer.Imagemagick(options.thumbnail_size,
+                                                options.dest_directory,
+                                                options.remove_stale_thumbnails)
 
-        if rating == 0:
-            thumbnailer = media_thumbnailer.Imagemagick(options.thumbnail_size,
-                                                        options.dest_directory,
-                                                        options.remove_stale_thumbnails)
-        else:
-            thumbnailer = media_thumbnailer.Noop()
+    fetcher = media_fetcher.Database(conn, options.input_media_path,
+                                     options.input_thumbs_directory, options.dest_directory,
+                                     thumbnailer, set(options.tags_to_skip),
+                                     __get_image_path(options, "panorama-icon.png"),
+                                     __get_image_path(options, "play-icon.png"),
+                                     __get_image_path(options, "raw-icon.png"))
+    all_media = fetcher.get_all_media()
 
-        fetcher = media_fetcher.Database(conn, options.input_media_path,
-                                         options.input_thumbs_directory, options.dest_directory,
-                                         thumbnailer, set(options.tags_to_skip),
-                                         __get_image_path(options, "panorama-icon.png"),
-                                         __get_image_path(options, "play-icon.png"),
-                                         __get_image_path(options, "raw-icon.png"))
-        all_media = fetcher.get_all_media(rating)
+    photos = media_writer_html.Html(all_media, options.dest_directory, options.title,
+                                    options.years_prior_are_approximate,
+                                    options.max_media_per_page, options.expand_all_elements,
+                                    options.version_label)
 
-        photos = media_writer_html.Html(all_media, options.dest_directory, rating,
-                                        all_media_ratings, options.title,
-                                        options.years_prior_are_approximate,
-                                        options.max_media_per_page, options.expand_all_elements,
-                                        options.version_label)
+    all_media_year_index = photos.write_all_media_index_file()
+    photos.write_year_and_event_html_files(all_media_year_index)
+    photos.write_tag_html_files()
 
-        all_media_year_index = photos.write_all_media_index_file()
-        photos.write_year_and_event_html_files(all_media_year_index)
-        photos.write_tag_html_files()
-
-        if rating == 0:
-            json_writer = media_writer_json.Json(all_media, options.title,
-                                                 options.max_media_per_page, options.dest_directory,
-                                                 options.years_prior_are_approximate,
-                                                 options.version_label)
-            json_writer.write()
-
-        write_redirect(os.path.join(options.dest_directory, str(rating), "index.html"),
-                       "%s/index.html" % (options.default_view))
-
-        thumbnailer.remove_thumbnails()
+    json_writer = media_writer_json.Json(all_media, options.title,
+                                         options.max_media_per_page, options.dest_directory,
+                                         options.years_prior_are_approximate,
+                                         options.version_label)
+    json_writer.write()
 
     write_redirect(os.path.join(options.dest_directory, "index.html"),
-                   "0/%s/index.html" % (options.default_view))
+                   "%s/index.html" % (options.default_view))
+
+    thumbnailer.remove_thumbnails()
 
     shutil.copyfile(__get_assets_path(options, "library.css"),
                     os.path.join(options.dest_directory, "library.css"))
@@ -89,17 +77,6 @@ def process_photos(options):
         if os.path.islink(media_symlink):
             os.unlink(media_symlink)
         os.symlink(options.input_media_path, media_symlink)
-
-def get_ratings(ratings_to_skip):
-    if "0" in ratings_to_skip:
-        logging.warning("Tag and year thumbnails will not be generated since rating 0 is skipped.")
-
-    all_media_ratings = {0: "0+ stars", 1: "1+ star", 2: "2+ stars",
-                         3: "3+ stars", 4: "4+ stars", 5: "5 stars"}
-    for rating in ratings_to_skip:
-        del all_media_ratings[int(rating)]
-
-    return all_media_ratings
 
 def write_redirect(filename, redirect_to):
     with open(filename, "w", encoding="UTF-8") as output:
@@ -126,7 +103,6 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--years-prior-are-approximate", default="2000")
     ARGPARSER.add_argument("--max-media-per-page", type=int, default=24)
     ARGPARSER.add_argument("--default-view", default="media")
-    ARGPARSER.add_argument("--ratings-to-skip", nargs="+", default=[])
     ARGPARSER.add_argument("--tags-to-skip", nargs="+", default=[])
     ARGPARSER.add_argument("--expand-all-elements", action="store_true", default=False)
     ARGPARSER.add_argument("--remove-stale-thumbnails", action="store_true", default=False)

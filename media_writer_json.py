@@ -42,7 +42,7 @@ class Json(CommonWriter):
 
             item = self.__copy_fields(["title", "comment", "id", "date"], event)
             item["thumbnail_path"] = "thumbnails/" + event["thumbnail_path"]
-            item["link"] = "0/event/%s.html" % (event["id"])
+            item["link"] = "event/%s.html" % (event["id"])
             item.update(self.__get_stats(event["stats"]))
             shown_events.append(item)
 
@@ -84,7 +84,7 @@ class Json(CommonWriter):
 
             item = self.__copy_fields(["title", "full_title", "id"], tag)
             item["thumbnail_path"] = "thumbnails/" + tag["thumbnail_path"]
-            item["link"] = "0/tag/%s.html" % (tag["id"])
+            item["link"] = "tag/%s.html" % (tag["id"])
             item.update(self.__get_stats(tag["stats"]))
 
             if tag["parent_tag"]:
