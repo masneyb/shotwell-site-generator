@@ -74,7 +74,7 @@ function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
 
   if ("lat" in entity) {
     var search = `GPS Coordinate,is within,${entity["lat"]},${entity["lon"]},0.1`;
-    ret.push(`<a href='search.html?search=${encodeURI(search)}'>` +
+    ret.push(`<a href='${appendToExistingSearchUrl(search)}'>` +
              `GPS ${entity["lat"]},${entity["lon"]}` +
              '</a>');
   }
@@ -84,7 +84,7 @@ function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
 
   if ("camera" in entity) {
     var search = `Camera,equals,${entity["camera"]}`;
-    ret.push(`<a href='search.html?search=${encodeURI(search)}'>${entity["camera"]}</a>`);
+    ret.push(`<a href='${appendToExistingSearchUrl(search)}'>${entity["camera"]}</a>`);
   }
 
   if ("rating" in entity)
@@ -96,6 +96,14 @@ function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
   }
 
   return ret.join(" &nbsp; ");
+}
+
+function appendToExistingSearchUrl(additionalCriteria) {
+  var ret = `search.html?search=${encodeURI(additionalCriteria)}`;
+  if (window.location.search != null && window.location.search !== "")
+    ret += `&${window.location.search.replace('?', '')}`;
+
+  return ret;
 }
 
 function shuffleArray(arr) {
