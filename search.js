@@ -43,70 +43,56 @@ function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
 
   var ret = []
   if (entity.num_photos > 0)
-    ret.push(`<span class="stat">${entity.num_photos.toLocaleString()} photos</span>`);
+    ret.push(`${entity.num_photos.toLocaleString()} photos`);
 
   if (entity.num_videos > 0)
-    ret.push(`<span class="stat">${entity.num_videos.toLocaleString()} videos</span>`);
+    ret.push(`${entity.num_videos.toLocaleString()} videos`);
 
   if ("exposure_time_pretty" in entity)
-    ret.push(`<span class="stat">${entity.exposure_time_pretty}</span>`);
+    ret.push(entity.exposure_time_pretty);
 
   if (entity.filesize)
-    ret.push(`<span class="stat">${getPrettyFileSize(entity.filesize)}</span>`);
+    ret.push(getPrettyFileSize(entity.filesize));
 
   if (entity.width)
-    ret.push(`<span class="stat">${entity.width}x${entity.height}</span>`);
+    ret.push(`${entity.width}x${entity.height}`);
 
   if (entity.clip_duration)
-    ret.push(`<span class="stat">${entity.clip_duration}</span>`);
+    ret.push(entity.clip_duration);
 
   if (entity.date_range)
-    ret.push(`<span class="stat">${entity.date_range}</span>`);
+    ret.push(entity.date_range);
 
   if (entity.event_id)
-    ret.push('<span class="stat">Event: ' +
-             `<a ${extraLinkAttr}href="event/${entity.event_id}.html">` +
-             eventNames[entity.event_id] +
-             '</a></span>');
+    ret.push(`Event: <a ${extraLinkAttr}href="event/${entity.event_id}.html">${eventNames[entity.event_id]}</a>`);
 
   if (entity.tags) {
     for (var tag_id of entity.tags) {
-      ret.push(`<span class="stat">Tag: <a ${extraLinkAttr}href="tag/${tag_id}.html">` +
-               tagNames[tag_id] +
-               '</a></span>');
+      ret.push(`Tag: <a ${extraLinkAttr}href="tag/${tag_id}.html">${tagNames[tag_id]}</a>`);
     }
   }
 
   if ("lat" in entity) {
     var search = `GPS Coordinate,is within,${entity["lat"]},${entity["lon"]},0.1`;
-    ret.push('<span class="stat">' +
-             `<a href='search.html?search=${encodeURI(search)}'>` +
+    ret.push(`<a href='search.html?search=${encodeURI(search)}'>` +
              `GPS ${entity["lat"]},${entity["lon"]}` +
-             '</a>' +
-             '</span>');
+             '</a>');
   }
 
-  if ("exif" in entity) {
+  if ("exif" in entity)
     ret = ret.concat(entity["exif"]);
-  }
 
   if ("camera" in entity) {
     var search = `Camera,equals,${entity["camera"]}`;
-    ret.push('<span class="stat">' +
-             `<a href='search.html?search=${encodeURI(search)}'>${entity["camera"]}</a>` +
-             '</span>');
+    ret.push(`<a href='search.html?search=${encodeURI(search)}'>${entity["camera"]}</a>`);
   }
 
-  if ("rating" in entity) {
-    var stars = "&starf;".repeat(entity.rating) + "&star;".repeat(5 - entity.rating);
-    ret.push(`<span class="stat">${stars}</span>`);
-  }
+  if ("rating" in entity)
+    ret.push("&starf;".repeat(entity.rating) + "&star;".repeat(5 - entity.rating));
 
   if (entity.all_media_page) {
     var link = entity.all_media_page == 1 ? "" : `_${entity.all_media_page}`;
-    ret.push('<span class="stat">' +
-             `<a href="media/index${link}.html">Browse Nearby Media</a>` +
-             '</span>');
+    ret.push(`<a href="media/index${link}.html">Browse Nearby Media</a>`);
   }
 
   return ret.join(" &nbsp; ");
