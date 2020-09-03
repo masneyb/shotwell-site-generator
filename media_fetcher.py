@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Exports a static HTML view of your shotwell photo/video library.
+# Reads photos, videos, events, and tags from a Shotwell sqlite database.
 #
 # Copyright (C) 2020 Brian Masney <masneyb@onstation.org>
 #

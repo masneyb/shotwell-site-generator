@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Exports a static HTML view of your shotwell photo/video library.
+# Creates regular and composite thumbnails.
 #
 # Copyright (C) 2020 Brian Masney <masneyb@onstation.org>
 #

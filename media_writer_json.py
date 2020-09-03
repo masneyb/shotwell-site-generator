@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Exports a static HTML view of your shotwell photo/video library.
+# Exports a JSON file with the contents a shotwell photo/video library.
 #
 # Copyright (C) 2020 Brian Masney <masneyb@onstation.org>
 #

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Exports a static HTML view of your shotwell photo/video library.
+# Functions that are common to writing out media for the JSON and HTML views.
 #
 # Copyright (C) 2020 Brian Masney <masneyb@onstation.org>
 #
