@@ -431,24 +431,6 @@ function gpsIsWithin(field, op, values, media) {
 const gpsSearch = {
   ops: [
     {
-      descr: "is set",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, null, function(input, value) {
-          return input != null && input !== "";
-        });
-      },
-      numValues: 0
-    },
-    {
-      descr: "is not set",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, null, function(input, value) {
-          return input == null || input === "";
-        });
-      },
-      numValues: 0
-    },
-    {
       descr: "is within",
       matches: function (field, op, values, media) {
         return gpsIsWithin(field, op, values, media);
@@ -470,6 +452,24 @@ const gpsSearch = {
       numValues: 3,
       inputType: ["number", "number", "number"],
       inputStep: ["any", "any", "any"]
+    },
+    {
+      descr: "is set",
+      matches: function (field, op, values, media) {
+        return performGenericOp(field, media, null, function(input, value) {
+          return input != null && input !== "";
+        });
+      },
+      numValues: 0
+    },
+    {
+      descr: "is not set",
+      matches: function (field, op, values, media) {
+        return performGenericOp(field, media, null, function(input, value) {
+          return input == null || input === "";
+        });
+      },
+      numValues: 0
     },
   ]
 };
