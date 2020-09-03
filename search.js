@@ -196,7 +196,7 @@ const textSearch = {
       numValues: 1
     },
     {
-      descr: "not equals",
+      descr: "does not equal",
       matches: function (field, op, values, media) {
         return performGenericOp(field, media, values[0], function(input, value) {
           return input == null || input.toLowerCase() !== value.toLowerCase();
