@@ -86,7 +86,7 @@ on your home server for the long term.
 
 ---
 
-![Events on Mobile](screenshots/mobile-event-view.png?raw=1)
+![Events on Mobile](screenshots/mobile-event-view-350x.png?raw=1)
 
 ---
 
