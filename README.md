@@ -84,33 +84,24 @@ on your home server for the long term.
 
 ![All Events](screenshots/all_events.png?raw=1)
 
-Above: Web view of the all events page. Composite thumbnails are generated based on the photos
-that are in that event.
-
 ---
 
 ![Events on Mobile](screenshots/mobile-event-view.png?raw=1)
-
-Above: Mobile view of the all events page.
 
 ---
 
 ![All Media](screenshots/all_media.png?raw=1)
 
-Above: All media over time page.
-
 ---
 
 ![Search](screenshots/search.png?raw=1)
-
-Above: Advanced search page allows searching on over 18 fields and allows chaining together
-multiple criterias.
 
 ---
 
 ![Photo Frame](screenshots/photoframe-front.jpg?raw=1)
 
-Raspberry Pi photo frame that's described on the [PHOTOFRAME.md](PHOTOFRAME.md) page.
+Above: Raspberry Pi photo frame that's described on the [PHOTOFRAME.md](PHOTOFRAME.md) page that
+runs the [screensaver.html](screensaver.html) file.
 
 ## Contact
 
