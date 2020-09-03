@@ -126,6 +126,9 @@
           return;
         }
 
+        document.querySelector(".search_controls").style.display = "block";
+        document.querySelector("#search_criterias").style.display = "block";
+
         if (allMedia.length == 0) {
            allMediaEle.innerHTML = "<div class='notfound'>No results found</div>";
            return;
@@ -160,8 +163,6 @@
         screensaverLink.href = `screensaver.html${params}&photo_update_secs=10&kiosk=0`;
         screensaverLink.style.display = "block";
         document.querySelector("#shuffle_link").style.display = "block";
-        document.querySelector(".search_controls").style.display = "block";
-        document.querySelector("#search_criterias").style.display = "block";
 
         document.querySelector(".summary_stats").innerHTML = createAllStatsHtml();
 
