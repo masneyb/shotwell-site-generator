@@ -474,6 +474,29 @@ const gpsSearch = {
   ]
 };
 
+const fileExtSearch = {
+  ops: [
+    {
+      descr: "is",
+      matches: function (field, op, values, media) {
+        return performGenericOp(field, media, values[0], function(input, value) {
+          return input != null && input.toLowerCase().endsWith(`.${value.toLowerCase()}`);
+        });
+      },
+      numValues: 1
+    },
+    {
+      descr: "is not",
+      matches: function (field, op, values, media) {
+        return performGenericOp(field, media, values[0], function(input, value) {
+          return input == null || !input.toLowerCase().endsWith(`.${value.toLowerCase()}`);
+        });
+      },
+      numValues: 1
+    }
+  ]
+};
+
 const searchFields = [
   {
     title: "Any Text",
@@ -503,6 +526,11 @@ const searchFields = [
   {
     title: "Filename",
     search: textSearch,
+    searchFields: ["link"],
+  },
+  {
+    title: "File Extension",
+    search: fileExtSearch,
     searchFields: ["link"],
   },
   {
@@ -630,6 +658,8 @@ function performSearch(allItems) {
     eventNames[event["id"]] = event["title"];
   }
 
+  var fileExtensions = new Set([]);
+
   var ret = []
   for (const mediaType of [["events", "Event: "], ["tags", "Tag: "], ["media", ""]]) {
     for (const media of allItems[mediaType[0]]) {
@@ -656,6 +686,13 @@ function performSearch(allItems) {
       if ("width" in media)
         media.photo_ratio = media.width / media.height;
 
+      if ("link" in media) {
+        const idx = media["link"].lastIndexOf('.');
+        if (idx != -1) {
+          fileExtensions.add(media["link"].substring(idx + 1).toLowerCase());
+        }
+      }
+
       var numFound = 0;
       for (const criteria of allCriteria) {
         if (criteria.op.matches(criteria.field, criteria.op, criteria.searchValues, media))
@@ -680,6 +717,21 @@ function performSearch(allItems) {
 
         ret.push(media);
       }
+    }
+  }
+
+  for (var field of searchFields) {
+    if (field.title === "File Extension") {
+      field.validValues = [];
+
+      var sortedExtensions = Array.from(fileExtensions);
+      sortedExtensions.sort();
+
+      for (var ext of sortedExtensions) {
+        field.validValues.push([ext, ext]);
+      }
+      console.log(`setting valid values to ${field.validValues}`);
+      break;
     }
   }
 
