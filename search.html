@@ -404,13 +404,13 @@
         eventNames = newEventNames;
         tagNames = newTagNames;
 
+        populateSearchValuesFromUrl();
+
         showMedia(1);
       }, function() {
         var allMediaEle = document.querySelector("#all_media");
         allMediaEle.innerHTML = "<div class='error'>Error loading media</div>";
       });
-
-      populateSearchValuesFromUrl();
     </script>
   </body>
 </html>
