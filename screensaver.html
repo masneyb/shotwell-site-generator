@@ -109,7 +109,11 @@
         if (shownPhotos == null || idx < 0 || idx >= shownPhotos.length)
           return;
 
-        var descr = createMediaStatsHtml(shownPhotos[idx], eventNames, tagNames, true);
+        var descr = "";
+        if (shownPhotos[idx].title)
+          descr = shownPhotos[idx].title + " &nbsp; ";
+        descr += createMediaStatsHtml(shownPhotos[idx], eventNames, tagNames, true);
+
         var imageEle = document.querySelector("#image");
         var descrEle = document.querySelector("#description");
 
