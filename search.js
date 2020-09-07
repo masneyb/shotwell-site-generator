@@ -63,12 +63,15 @@ function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
   if (entity.date_range)
     ret.push(entity.date_range);
 
-  if (entity.event_id)
-    ret.push(`Event: <a ${extraLinkAttr}href="event/${entity.event_id}.html">${eventNames[entity.event_id]}</a>`);
+  if (entity.event_id) {
+    var search = `Event ID,equals,${entity.event_id}`;
+    ret.push(`Event: <a href='${appendToExistingSearchUrl(search)}'>${eventNames[entity.event_id]}</a>`);
+  }
 
   if (entity.tags) {
     for (var tag_id of entity.tags) {
-      ret.push(`Tag: <a ${extraLinkAttr}href="tag/${tag_id}.html">${tagNames[tag_id]}</a>`);
+      var search = `Tag ID,equals,${tag_id}`;
+      ret.push(`Tag: <a href='${appendToExistingSearchUrl(search)}'>${tagNames[tag_id]}</a>`);
     }
   }
 
@@ -374,44 +377,60 @@ const mediaTypeSearch = {
   ]
 };
 
-function createNumberSearch(placeholderText) {
-  return {
-    ops: [
-      {
-        descr: "is at least",
-        matches: function (field, op, values, media) {
-          return performGenericOp(field, media, values[0], function(input, value) {
-            return input != null && input >= value;
-          });
-        },
-        placeholder: [placeholderText],
-        numValues: 1,
-        inputType: ["number"]
+function createNumberSearch(placeholderText, showGtLt) {
+  var ops = [];
+
+  if (showGtLt) {
+    ops.push({
+      descr: "is at least",
+      matches: function (field, op, values, media) {
+        return performGenericOp(field, media, values[0], function(input, value) {
+          return input != null && input >= value;
+        });
       },
-      {
-        descr: "is at most",
-        matches: function (field, op, values, media) {
-          return performGenericOp(field, media, values[0], function(input, value) {
-            return input != null && input <= value;
-          });
-        },
-        placeholder: [placeholderText],
-        numValues: 1,
-        inputType: ["number"]
+      placeholder: [placeholderText],
+      numValues: 1,
+      inputType: ["number"]
+    });
+
+    ops.push({
+      descr: "is at most",
+      matches: function (field, op, values, media) {
+        return performGenericOp(field, media, values[0], function(input, value) {
+          return input != null && input <= value;
+        });
       },
-      {
-        descr: "equals",
-        matches: function (field, op, values, media) {
-          return performGenericOp(field, media, values[0], function(input, value) {
-            return input != null && input == value;
-          });
-        },
-        placeholder: [placeholderText],
-        numValues: 1,
-        inputType: ["number"]
-      }
-    ]
-  };
+      placeholder: [placeholderText],
+      numValues: 1,
+      inputType: ["number"]
+    });
+  }
+
+  ops.push({
+    descr: "equals",
+    matches: function (field, op, values, media) {
+      return performGenericOp(field, media, values[0], function(input, value) {
+        return input != null && input == value;
+      });
+    },
+    placeholder: [placeholderText],
+    numValues: 1,
+    inputType: ["number"]
+  });
+
+  ops.push({
+    descr: "not equals",
+    matches: function (field, op, values, media) {
+      return performGenericOp(field, media, values[0], function(input, value) {
+        return input == null || input !== value;
+      });
+    },
+    placeholder: [placeholderText],
+    numValues: 1,
+    inputType: ["number"]
+  });
+
+  return { ops: ops };
 }
 
 function gpsIsWithin(field, op, values, media) {
@@ -519,6 +538,11 @@ const searchFields = [
     searchFields: ["exposure_time"],
   },
   {
+    title: "Event ID",
+    search: createNumberSearch(null, false),
+    searchFields: ["event_id"],
+  },
+  {
     title: "Event Name",
     search: textSearch,
     searchFields: ["event_name"],
@@ -535,7 +559,7 @@ const searchFields = [
   },
   {
     title: "File Size",
-    search: createNumberSearch("bytes"),
+    search: createNumberSearch("bytes", true),
     searchFields: ["filesize"],
   },
   {
@@ -545,26 +569,31 @@ const searchFields = [
   },
   {
     title: "Photo Height",
-    search: createNumberSearch("pixels"),
+    search: createNumberSearch("pixels", true),
     searchFields: ["height"],
   },
   {
     title: "Photo Width",
-    search: createNumberSearch("pixels"),
+    search: createNumberSearch("pixels", true),
     searchFields: ["width"],
   },
   {
     title: "Photo W/H Ratio",
-    search: createNumberSearch(null),
+    search: createNumberSearch(null, true),
     searchFields: ["photo_ratio"],
   },
   {
     title: "Rating",
-    search: createNumberSearch(null),
+    search: createNumberSearch(null, true),
     searchFields: ["rating"],
     validValues: [["Unrated", "0"], ["&starf;", "1"], ["&starf;&starf;", "2"],
                   ["&starf;&starf;&starf;", "3"], ["&starf;&starf;&starf;&starf;", "4"],
                   ["&starf;&starf;&starf;&starf;&starf;", "5"]],
+  },
+  {
+    title: "Tag ID",
+    search: createNumberSearch(null, false),
+    searchFields: ["tag_id"],
   },
   {
     title: "Tag Name",
@@ -578,12 +607,12 @@ const searchFields = [
   },
   {
     title: "Total Photos",
-    search: createNumberSearch(null),
+    search: createNumberSearch(null, true),
     searchFields: ["num_photos"],
   },
   {
     title: "Total Videos",
-    search: createNumberSearch(null),
+    search: createNumberSearch(null, true),
     searchFields: ["num_videos"],
   },
   {
@@ -595,7 +624,7 @@ const searchFields = [
   },
   {
     title: "Video Duration",
-    search: createNumberSearch("secs"),
+    search: createNumberSearch("secs", true),
     searchFields: ["clip_duration_secs"],
   },
 ];
@@ -668,8 +697,10 @@ function performSearch(allItems) {
 
       if ("tags" in media) {
         // Write out the tag name into the media element to simplify code for the text search.
+        media.tag_id = [];
         media.tag_name = [];
         for (var tag_id of media["tags"])
+          media.tag_id.push(tag_id);
           media.tag_name.push(tagNames[tag_id]);
       }
 
@@ -678,10 +709,13 @@ function performSearch(allItems) {
         media.event_name = eventNames[media["event_id"]]
       }
 
-      if (mediaType[0] == "events")
+      if (mediaType[0] == "events") {
+        media.event_id = media.id;
         media.event_name = media.title;
-      else if (mediaType[0] == "tags")
+      } else if (mediaType[0] == "tags") {
+        media.tag_id = media.id;
         media.tag_name = media.title;
+      }
 
       if ("width" in media)
         media.photo_ratio = media.width / media.height;
