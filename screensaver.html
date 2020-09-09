@@ -169,7 +169,7 @@
         if (updateImageTimer == null) {
           display = "none";
           if (userInitiated)
-            showImage(curIdx + 1);
+            showImage(curIdx);
           updateImageTimer = setInterval(showNextImage, photoUpdateSecs * 1000);
         } else {
           display = "block";
