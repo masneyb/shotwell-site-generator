@@ -63,12 +63,12 @@ function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
   if (entity.date_range)
     ret.push(entity.date_range);
 
-  if (entity.event_id) {
+  if (entity.event_id && entity.type != 'events') {
     var search = `Event ID,equals,${entity.event_id}`;
     ret.push(`Event: <a href='${appendToExistingSearchUrl(search)}'>${eventNames[entity.event_id]}</a>`);
   }
 
-  if (entity.tags) {
+  if (entity.tags && entity.type != 'tags') {
     for (var tag_id of entity.tags) {
       var search = `Tag ID,equals,${tag_id}`;
       ret.push(`Tag: <a href='${appendToExistingSearchUrl(search)}'>${tagNames[tag_id]}</a>`);
