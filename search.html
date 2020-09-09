@@ -99,6 +99,7 @@
           </span>
         </a>
         <span class="media_title"></span>
+        <span class="media_comment"></span>
         <span class="media_metadata"></span>
       </span>
     </template>
@@ -166,8 +167,18 @@
 
           clone.querySelector("a").href = media.link;
           clone.querySelector("img").src = media.thumbnail_path;
-          if (media.title)
-            clone.querySelector(".media_title").innerText = media.title;
+
+          if (media.title) {
+            var name = `title${media.type}${media.id}`;
+            clone.querySelector(".media_title").innerHTML = getExpandableString(name,
+                                                                                media.title);
+          }
+
+          if (media.comment) {
+            var name = `comment${media.type}${media.id}`;
+            clone.querySelector(".media_comment").innerHTML = getExpandableString(name,
+                                                                                  media.comment);
+          }
 
           clone.querySelector(".media_metadata").innerHTML = createMediaStatsHtml(media, eventNames,
                                                                                   tagNames, false);
@@ -405,6 +416,43 @@
 
         if (nextSearchInput == 0)
           addSearchInputRow();
+      }
+
+      function getExpandableString(name, value) {
+        value = value.trim();
+        if (value.length < 60 && !value.includes("\n"))
+          return escapeString(value);
+
+        var shortId = `${name}_short`;
+        var longId = `${name}_long`;
+
+        var shortVal = escapeString(value.substring(0, 50).trim() + "...");
+        var longVal = escapeString(value).replace(/\n/g, "<br/>");
+
+        var ret = `<span id="${shortId}" class="clickable"` +
+                  `      style="display: block;" onClick="${jsHideShow(shortId, longId)}">` +
+                  `${shortVal} &nbsp; <span class='more_less'>More</span>` +
+                  '</span>';
+
+        ret += `<span id="${longId}" class="clickable"` +
+               `      style="display: none;" onClick="${jsHideShow(longId, shortId)}">` +
+               `${longVal} &nbsp; <span class='more_less'>Less</span>` +
+               '</span>';
+
+        return ret;
+      }
+
+      function escapeString(input) {
+        /*
+         * Surely there has to be a built-in function for this? It's not encodeURI() or
+         * encodeURIComponent() since it escapes too many characters, like spaces.
+         */
+        return input.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt");
+      }
+
+      function jsHideShow(hideElement, showElement) {
+        return `document.getElementById('${showElement}').style.display='block'; ` +
+               `document.getElementById('${hideElement}').style.display='none';`;
       }
 
       const pageSize = getIntQueryParameter("page_size", 24);
