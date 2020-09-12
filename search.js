@@ -768,7 +768,6 @@ function performSearch(allItems) {
       for (var ext of sortedExtensions) {
         field.validValues.push([ext, ext]);
       }
-      console.log(`setting valid values to ${field.validValues}`);
       break;
     }
   }
