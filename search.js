@@ -702,9 +702,10 @@ function performSearch(allItems) {
         // Write out the tag name into the media element to simplify code for the text search.
         media.tag_id = [];
         media.tag_name = [];
-        for (var tag_id of media["tags"])
+        for (var tag_id of media["tags"]) {
           media.tag_id.push(tag_id);
           media.tag_name.push(tagNames[tag_id]);
+        }
       }
 
       if ("event_id" in media) {
