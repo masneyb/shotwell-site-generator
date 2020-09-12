@@ -117,7 +117,8 @@ class Json(CommonWriter):
             outfile.write(json.dumps(ret, indent=None))
             outfile.write(";\n")
             outfile.write("function getAllMediaViaJsFile() {\n")
-            outfile.write("  return _allMedia;\n")
+            outfile.write("  // Perform deep copy\n")
+            outfile.write("  return JSON.parse(JSON.stringify(_allMedia));\n")
             outfile.write("}\n")
 
     def __get_all_media_index(self):
