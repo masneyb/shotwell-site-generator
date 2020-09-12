@@ -388,10 +388,14 @@
         }
 
         const matchPolicy = document.querySelector("#match_policy").value;
-        window.location.href = `search.html?${searchArgs.join("&")}&match_policy=${matchPolicy}`;
+        window.history.pushState({}, null,
+                                 `search.html?${searchArgs.join("&")}&match_policy=${matchPolicy}`);
+        processJson(getAllMediaViaJsFile(), populateMedia);
       }
 
       function populateSearchValuesFromUrl() {
+        document.querySelector("#search_criterias").innerHTML = "";
+
         var urlParams = new URLSearchParams(window.location.search);
         for (const searchCriteria of urlParams.getAll("search")) {
           var curIdx = nextSearchInput;
@@ -462,6 +466,15 @@
                `document.getElementById('${hideElement}').style.display='none';`;
       }
 
+      function populateMedia(newAllMedia, newEventNames, newTagNames) {
+        allMedia = newAllMedia;
+        eventNames = newEventNames;
+        tagNames = newTagNames;
+
+        showMedia(1);
+        populateSearchValuesFromUrl();
+      }
+
       const pageSize = getIntQueryParameter("page_size", 24);
 
       var currentPageNumber = 1;
@@ -472,18 +485,14 @@
       var eventNames = null;
       var tagNames = null;
 
-      loadJson(function(newAllMedia, newEventNames, newTagNames) {
-        allMedia = newAllMedia;
-        eventNames = newEventNames;
-        tagNames = newTagNames;
-
-        populateSearchValuesFromUrl();
-
-        showMedia(1);
-      }, function() {
+      loadJson(populateMedia, function() {
         var allMediaEle = document.querySelector("#all_media");
         allMediaEle.innerHTML = "<div class='error'>Error loading media</div>";
       });
+
+      window.onpopstate = function (event) {
+        processJson(getAllMediaViaJsFile(), populateMedia);
+      };
     </script>
   </body>
 </html>
