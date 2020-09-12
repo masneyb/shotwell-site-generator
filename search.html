@@ -149,8 +149,15 @@
         document.querySelector("#search_criterias").style.display = "block";
 
         if (allMedia.length == 0) {
-           allMediaEle.innerHTML = "<div class='notfound'>No results found</div>";
-           return;
+          allMediaEle.innerHTML = "<div class='notfound'>No results found</div>";
+
+          document.querySelector(".summary_stats").innerHTML = "";
+          document.querySelector("#screensaver_link").style.display = "none";
+          document.querySelector("#shuffle_link").style.display = "none";
+          for (ele of document.querySelectorAll(".breadcrumbs"))
+            ele.style.display = "none";
+
+          return;
         }
 
         const totalPages = Math.ceil(allMedia.length / pageSize);
