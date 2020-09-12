@@ -123,7 +123,10 @@ function shuffleArray(arr) {
 }
 
 function textSearchContains(fieldInfo, op, value, media) {
-  for (var part of value.toLowerCase().split(" ")) {
+  const allParts = value.toLowerCase().split(" ");
+  var numPartsMatched = 0;
+
+  for (var part of allParts) {
     var partFound = false;
 
     for (const fieldname of fieldInfo.searchFields) {
@@ -149,11 +152,11 @@ function textSearchContains(fieldInfo, op, value, media) {
       }
     }
 
-    if (!partFound)
-      return false;
+    if (partFound)
+      numPartsMatched++;
   }
 
-  return true;
+  return numPartsMatched == allParts.length;
 }
 
 function performGenericOp(fieldInfo, media, value, opFunc) {
