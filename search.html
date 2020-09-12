@@ -332,6 +332,7 @@
               input.placeholder = op.placeholder[i];
 
             input.addEventListener("change", function() { updateCritieraIfValuesPopulated(idx); });
+            input.addEventListener("keyup", function(event) { if (event.which === 13) { window.blur(); } });
 
             values.appendChild(input);
           }
