@@ -27,6 +27,11 @@ function getIntQueryParameter(name, defaultValue) {
   return val != null ? parseInt(val, 10) : defaultValue;
 }
 
+function getSearchQueryParams() {
+  var urlParams = new URLSearchParams(window.location.search);
+  return urlParams.getAll("search");
+}
+
 function getPrettyFileSize(size) {
   if (size > 1024*1024*1024)
     return `${(size / (1024*1024*1024)).toFixed(1)} GiB`;
@@ -633,10 +638,9 @@ const searchFields = [
 ];
 
 function performSearch(allItems) {
-  var urlParams = new URLSearchParams(window.location.search);
   var allCriteria = [];
 
-  for (const searchCriteria of urlParams.getAll("search")) {
+  for (const searchCriteria of getSearchQueryParams()) {
     // FIXME - doesn't support comma in value
     var parts = searchCriteria.split(",");
     if (parts.length < 2) {

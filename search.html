@@ -397,8 +397,7 @@
       function populateSearchValuesFromUrl() {
         document.querySelector("#search_criterias").innerHTML = "";
 
-        var urlParams = new URLSearchParams(window.location.search);
-        for (const searchCriteria of urlParams.getAll("search")) {
+        for (const searchCriteria of getSearchQueryParams()) {
           var curIdx = nextSearchInput;
           addSearchInputRow();
 
