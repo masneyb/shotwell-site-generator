@@ -150,13 +150,7 @@
 
         if (allMedia.length == 0) {
           allMediaEle.innerHTML = "<div class='notfound'>No results found</div>";
-
-          document.querySelector(".summary_stats").innerHTML = "";
-          document.querySelector("#screensaver_link").style.display = "none";
-          document.querySelector("#shuffle_link").style.display = "none";
-          for (ele of document.querySelectorAll(".breadcrumbs"))
-            ele.style.display = "none";
-
+          hideResultsInfo();
           return;
         }
 
@@ -337,8 +331,7 @@
             if ("placeholder" in op && op.placeholder[i] != null)
               input.placeholder = op.placeholder[i];
 
-            input.addEventListener("change", function() { updateCritieraIfValuesPopulated(idx); });
-            input.addEventListener("keyup", function(event) { if (event.which === 13) { window.blur(); } });
+            input.addEventListener("change", function() { window.blur(); updateCritieraIfValuesPopulated(idx); });
 
             values.appendChild(input);
           }
@@ -382,22 +375,27 @@
       }
 
       function updateSearchCriteria() {
-        var searchArgs = []
-        for (var critChild of document.querySelector("#search_criterias").children) {
-          const field = critChild.querySelector(".search_field").value;
-          const op = critChild.querySelector(".search_op").value;
+        document.querySelector("#all_media").innerHTML = "<div class='loading'>Searching</div>";
+        hideResultsInfo();
 
-          var search = `${field},${op}`;
-          for (var valChild of critChild.querySelector(".search_values").children) {
-            search += `,${valChild.value}`;
+        window.setTimeout(function() {
+          var searchArgs = []
+          for (var critChild of document.querySelector("#search_criterias").children) {
+            const field = critChild.querySelector(".search_field").value;
+            const op = critChild.querySelector(".search_op").value;
+
+            var search = `${field},${op}`;
+            for (var valChild of critChild.querySelector(".search_values").children) {
+              search += `,${valChild.value}`;
+            }
+            searchArgs.push(`search=${encodeURIComponent(search)}`);
           }
-          searchArgs.push(`search=${encodeURIComponent(search)}`);
-        }
 
-        const matchPolicy = document.querySelector("#match_policy").value;
-        window.history.pushState({}, "",
-                                 `search.html?${searchArgs.join("&")}&match_policy=${matchPolicy}&page=1`);
-        processJson(getAllMediaViaJsFile(), populateMedia);
+          const matchPolicy = document.querySelector("#match_policy").value;
+          window.history.pushState({}, "",
+                                   `search.html?${searchArgs.join("&")}&match_policy=${matchPolicy}&page=1`);
+          processJson(getAllMediaViaJsFile(), populateMedia);
+        }, 0);
       }
 
       function populateSearchValuesFromUrl() {
@@ -470,6 +468,14 @@
       function jsHideShow(hideElement, showElement) {
         return `document.getElementById('${showElement}').style.display='block'; ` +
                `document.getElementById('${hideElement}').style.display='none';`;
+      }
+
+      function hideResultsInfo() {
+        document.querySelector(".summary_stats").innerHTML = "";
+        document.querySelector("#screensaver_link").style.display = "none";
+        document.querySelector("#shuffle_link").style.display = "none";
+        for (ele of document.querySelectorAll(".breadcrumbs"))
+          ele.style.display = "none";
       }
 
       function populateMedia(newAllMedia, newEventNames, newTagNames) {
