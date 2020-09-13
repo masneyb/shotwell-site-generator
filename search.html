@@ -35,7 +35,7 @@
     </span>
     <span class="header_links">
       <a href="#" id="shuffle_link" style="display: none"
-       onclick="shuffleArray(allMedia); showMedia(1);">
+       onclick="shuffleArray(allMedia); showMedia(1, true);">
         <span class="header_link">Shuffle media in search results</span>
       </a>
     </span>
@@ -137,7 +137,7 @@
         return ret.join(", ");
       }
 
-      function showMedia(pageNumber) {
+      function showMedia(pageNumber, addToHistory) {
         var allMediaEle = document.querySelector("#all_media");
 
         if (allMedia == null) {
@@ -208,6 +208,12 @@
         for (ele of document.querySelectorAll(".breadcrumbs"))
           ele.style.display = totalPages == 1 ? "none" : "block";
 
+        if (addToHistory) {
+          var urlParams = new URLSearchParams(window.location.search);
+          urlParams.set("page", pageNumber.toString());
+          window.history.pushState({}, "", `search.html?${urlParams.toString()}#`);
+        }
+
         currentPageNumber = pageNumber;
         var lastPageNumber = Math.ceil(allMedia.length / pageSize);
 
@@ -237,7 +243,7 @@
         if (active && shown) {
           ele.style.display = "";
           ele.href = "#";
-          ele.onclick = function() { showMedia(pageNumber); }
+          ele.onclick = function() { showMedia(pageNumber, true); }
         } else if (!shown) {
           ele.style.display = "none";
         } else {
@@ -389,8 +395,8 @@
         }
 
         const matchPolicy = document.querySelector("#match_policy").value;
-        window.history.pushState({}, null,
-                                 `search.html?${searchArgs.join("&")}&match_policy=${matchPolicy}`);
+        window.history.pushState({}, "",
+                                 `search.html?${searchArgs.join("&")}&match_policy=${matchPolicy}&page=1`);
         processJson(getAllMediaViaJsFile(), populateMedia);
       }
 
@@ -471,7 +477,7 @@
         eventNames = newEventNames;
         tagNames = newTagNames;
 
-        showMedia(1);
+        showMedia(parseInt(getQueryParameter("page", "1")), false);
         populateSearchValuesFromUrl();
       }
 
