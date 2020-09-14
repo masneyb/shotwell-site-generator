@@ -528,7 +528,7 @@ const searchFields = [
   {
     title: "Any Text",
     search: textSearch,
-    searchFields: ["title", "comment", "link", "event_name", "tag_name"],
+    searchFields: ["camera", "comment", "event_name", "link", "tag_name", "title"],
   },
   {
     title: "Camera",
