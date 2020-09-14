@@ -175,14 +175,13 @@
 
           if (media.title) {
             var name = `title${media.type}${media.id}`;
-            clone.querySelector(".media_title").innerHTML = getExpandableString(name,
-                                                                                media.title);
+            clone.querySelector(".media_title").appendChild(getExpandableString(name, media.title));
           }
 
           if (media.comment) {
             var name = `comment${media.type}${media.id}`;
-            clone.querySelector(".media_comment").innerHTML = getExpandableString(name,
-                                                                                  media.comment);
+            clone.querySelector(".media_comment").appendChild(getExpandableString(name,
+                                                                                  media.comment));
           }
 
           clone.querySelector(".media_metadata").innerHTML =
@@ -451,38 +450,36 @@
       function getExpandableString(name, value) {
         value = value.trim();
         if (value.length < 60 && !value.includes("\n"))
-          return escapeString(value);
+          return document.createTextNode(value);
 
         var shortId = `${name}_short`;
         var longId = `${name}_long`;
 
-        var shortVal = escapeString(value.substring(0, 50).trim() + "...");
-        var longVal = escapeString(value).replace(/\n/g, "<br/>");
+        var parentEle = document.createElement("span");
 
-        var ret = `<span id="${shortId}" class="clickable"` +
-                  `      style="display: block;" onClick="${jsHideShow(shortId, longId)}">` +
-                  `${shortVal} &nbsp; <span class='more_less'>More</span>` +
-                  '</span>';
+        var ele = document.createElement("span");
+        ele.id = shortId;
+        ele.class = "clickable";
+        ele.style.display = "block";
+        ele.addEventListener("click", function() { jsHideShow(shortId, longId); });
+        ele.innerHTML = `${value.substring(0, 50).trim()}... &nbsp; <span class='more_less'>More</span>`;
+        parentEle.appendChild(ele);
 
-        ret += `<span id="${longId}" class="clickable"` +
-               `      style="display: none;" onClick="${jsHideShow(longId, shortId)}">` +
-               `${longVal} &nbsp; <span class='more_less'>Less</span>` +
-               '</span>';
+        ele = document.createElement("span");
+        ele.id = longId;
+        ele.class = "clickable";
+        ele.style.display = "none";
+        ele.addEventListener("click", function() { jsHideShow(longId, shortId); });
+        const longValEscaped = value.replace(/</g, "&lt;").replace(/>/g, "&gt").replace(/\n/g, "<br/>");
+        ele.innerHTML = `${longValEscaped} &nbsp; <span class='more_less'>Less</span>`;
+        parentEle.appendChild(ele);
 
-        return ret;
-      }
-
-      function escapeString(input) {
-        /*
-         * Surely there has to be a built-in function for this? It's not encodeURI() or
-         * encodeURIComponent() since it escapes too many characters, like spaces.
-         */
-        return input.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt");
+        return parentEle;
       }
 
       function jsHideShow(hideElement, showElement) {
-        return `document.getElementById('${showElement}').style.display='block'; ` +
-               `document.getElementById('${hideElement}').style.display='none';`;
+        document.getElementById(showElement).style.display='block';
+        document.getElementById(hideElement).style.display='none';
       }
 
       function hideResultsInfo() {
