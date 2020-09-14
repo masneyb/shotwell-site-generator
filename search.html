@@ -115,187 +115,74 @@
     </template>
 
     <script type="text/javascript">
+      const pageSize = getIntQueryParameter('page_size', 24);
+
+      let currentPageNumber = 1;
+      let nextSearchInput = 0;
+
+      let allMedia = null;
+      let eventNames = null;
+      let tagNames = null;
+
       function createAllStatsHtml() {
-        var totalsByTypes = {};
+        const totalsByTypes = {};
 
         for (const media of allMedia) {
-          if (!(media.type in totalsByTypes))
+          if (!(media.type in totalsByTypes)) {
             totalsByTypes[media.type] = 1;
-          else
-            totalsByTypes[media.type]++;
-        }
-
-        var ret = []
-        if ("photo" in totalsByTypes)
-          ret.push(`<span class="stat">${totalsByTypes["photo"].toLocaleString()} photos</span>`);
-        if ("video" in totalsByTypes)
-          ret.push(`<span class="stat">${totalsByTypes["video"].toLocaleString()} videos</span>`);
-        if ("events" in totalsByTypes)
-          ret.push(`<span class="stat">${totalsByTypes["events"].toLocaleString()} events</span>`);
-        if ("tags" in totalsByTypes)
-          ret.push(`<span class="stat">${totalsByTypes["tags"].toLocaleString()} tags</span>`);
-
-        return ret.join(", ");
-      }
-
-      function showMedia(pageNumber, addToHistory) {
-        var allMediaEle = document.querySelector("#all_media");
-
-        if (allMedia == null) {
-          removeAllChildren(allMediaEle);
-          return;
-        }
-
-        document.querySelector(".search_controls").style.display = "block";
-        document.querySelector("#search_criterias").style.display = "block";
-
-        if (allMedia.length == 0) {
-          allMediaEle.innerHTML = "<div class='notfound'>No results found</div>";
-          hideResultsInfo();
-          return;
-        }
-
-        const totalPages = Math.ceil(allMedia.length / pageSize);
-        if (pageNumber < 1 || pageNumber > totalPages)
-          return;
-
-        removeAllChildren(allMediaEle);
-
-        var template = document.querySelector("#media_template");
-        var startIdx = (pageNumber - 1) * pageSize;
-        var searchLinkGenerator = function(field, op, val) {
-          return `href="#" onclick="searchPageLinkGenerator('${field}', '${op}', '${val}');"`;
-        };
-
-        for (const media of allMedia.slice(startIdx, startIdx + pageSize)) {
-          var clone = template.content.cloneNode(true);
-
-          clone.querySelector("a").href = media.link;
-          clone.querySelector("img").src = media.thumbnail_path;
-
-          if (media.title) {
-            var name = `title${media.type}${media.id}`;
-            clone.querySelector(".media_title").appendChild(getExpandableString(name, media.title));
+          } else {
+            totalsByTypes[media.type] += 1;
           }
-
-          if (media.comment) {
-            var name = `comment${media.type}${media.id}`;
-            clone.querySelector(".media_comment").appendChild(getExpandableString(name,
-                                                                                  media.comment));
-          }
-
-          clone.querySelector(".media_metadata").innerHTML =
-              createMediaStatsHtml(media, eventNames, tagNames, searchLinkGenerator, false);
-
-          allMediaEle.appendChild(clone);
         }
 
-        var params = window.location.search.startsWith("?") ? window.location.search : "?";
-
-        var screensaverLink = document.querySelector("#screensaver_link");
-        screensaverLink.href = `screensaver.html${params}&photo_update_secs=10&kiosk=0`;
-        screensaverLink.style.display = "block";
-        document.querySelector("#shuffle_link").style.display = "block";
-
-        document.querySelector(".summary_stats").innerHTML = createAllStatsHtml();
-
-        for (var ele of document.querySelectorAll("#page_info"))
-          ele.innerText = `Page ${pageNumber.toLocaleString()} of ${totalPages.toLocaleString()}`;
-
-        for (ele of document.querySelectorAll(".breadcrumbs"))
-          ele.style.display = totalPages == 1 ? "none" : "block";
-
-        if (addToHistory) {
-          var urlParams = new URLSearchParams(window.location.search);
-          urlParams.set("page", pageNumber.toString());
-          window.history.pushState({}, "", `search.html?${urlParams.toString()}#`);
+        const ret = [];
+        if ('photo' in totalsByTypes) {
+          ret.push(`<span class="stat">${totalsByTypes.photo.toLocaleString()} photos</span>`);
+        } if ('video' in totalsByTypes) {
+          ret.push(`<span class="stat">${totalsByTypes.video.toLocaleString()} videos</span>`);
+        } if ('events' in totalsByTypes) {
+          ret.push(`<span class="stat">${totalsByTypes.events.toLocaleString()} events</span>`);
+        } if ('tags' in totalsByTypes) {
+          ret.push(`<span class="stat">${totalsByTypes.tags.toLocaleString()} tags</span>`);
         }
 
-        currentPageNumber = pageNumber;
-        var lastPageNumber = Math.ceil(allMedia.length / pageSize);
-
-        for (ele of document.querySelectorAll(".firstpage"))
-          updateBreadcrumb(ele, 1, currentPageNumber > 1, totalPages > 2);
-
-        for (ele of document.querySelectorAll(".backten"))
-          updateBreadcrumb(ele, currentPageNumber - 10, currentPageNumber > 10, totalPages > 25);
-
-        for (ele of document.querySelectorAll(".backone"))
-          updateBreadcrumb(ele, currentPageNumber - 1, currentPageNumber > 1, true);
-
-        for (ele of document.querySelectorAll(".forwardone"))
-          updateBreadcrumb(ele, currentPageNumber + 1, currentPageNumber < lastPageNumber, true);
-
-        for (ele of document.querySelectorAll(".forwardten"))
-          updateBreadcrumb(ele, currentPageNumber + 10, currentPageNumber + 10 <= lastPageNumber,
-                           totalPages > 25);
-
-        for (ele of document.querySelectorAll(".lastpage"))
-          updateBreadcrumb(ele, lastPageNumber, currentPageNumber < lastPageNumber, totalPages > 2);
-
-        window.scrollTo(0, 0);
+        return ret.join(', ');
       }
 
-      function searchPageLinkGenerator(field, op, val) {
-        var search = appendToExistingSearchUrl(`${field},${op},${val}`, true);
-        window.history.pushState({}, "", search);
-        processJson(getAllMediaViaJsFile(), populateMedia);
+      function jsHideShow(hideElement, showElement) {
+        document.getElementById(showElement).style.display = 'block';
+        document.getElementById(hideElement).style.display = 'none';
       }
 
-      function updateBreadcrumb(ele, pageNumber, active, shown) {
-        if (active && shown) {
-          ele.style.display = "";
-          ele.href = "#";
-          ele.onclick = function() { showMedia(pageNumber, true); }
-        } else if (!shown) {
-          ele.style.display = "none";
-        } else {
-          ele.style.display = "";
-          ele.removeAttribute("href");
-          ele.onclick = "";
-        }
-      }
-
-      function populateSearchFields(idx) {
-        var searchEles = document.querySelector(`#search_criteria${idx}`);
-        var select = searchEles.querySelector(".search_field");
-        removeAllChildren(select);
-
-        for (var field of searchFields) {
-          var option = document.createElement("option");
-          option.textContent = option.value = field.title;
-          select.appendChild(option);
+      function getExpandableString(name, value) {
+        const trimmedValue = value.trim();
+        if (trimmedValue.length < 60 && !trimmedValue.includes('\n')) {
+          return document.createTextNode(trimmedValue);
         }
 
-        searchFieldChanged(idx);
-      }
+        const shortId = `${name}_short`;
+        const longId = `${name}_long`;
 
-      function searchFieldChanged(idx) {
-        var searchEles = document.querySelector(`#search_criteria${idx}`);
-        var field = searchFields[searchEles.querySelector(".search_field").selectedIndex];
+        const parentEle = document.createElement('span');
 
-        var select = searchEles.querySelector(".search_op");
-        removeAllChildren(select);
+        let ele = document.createElement('span');
+        ele.id = shortId;
+        ele.class = 'clickable';
+        ele.style.display = 'block';
+        ele.addEventListener('click', () => { jsHideShow(shortId, longId); });
+        ele.innerHTML = `${trimmedValue.substring(0, 50).trim()}... &nbsp; <span class='more_less'>More</span>`;
+        parentEle.appendChild(ele);
 
-        for (var op of field.search.ops) {
-          var option = document.createElement("option");
-          option.textContent = option.value = op.descr;
-          select.appendChild(option);
-        }
+        ele = document.createElement('span');
+        ele.id = longId;
+        ele.class = 'clickable';
+        ele.style.display = 'none';
+        ele.addEventListener('click', () => { jsHideShow(longId, shortId); });
+        const longValEscaped = trimmedValue.replace(/</g, '&lt;').replace(/>/g, '&gt').replace(/\n/g, '<br/>');
+        ele.innerHTML = `${longValEscaped} &nbsp; <span class='more_less'>Less</span>`;
+        parentEle.appendChild(ele);
 
-        removeAllChildren(searchEles.querySelector(".search_values"));
-
-        searchOpChanged(idx);
-      }
-
-      function updateCritieraIfValuesPopulated(idx) {
-        var searchEles = document.querySelector(`#search_criteria${idx}`);
-        for (var child of searchEles.querySelector(".search_values").children) {
-          if (child.value == "")
-            return;
-        }
-
-        updateSearchCriteria();
+        return parentEle;
       }
 
       function removeAllChildren(node) {
@@ -304,190 +191,217 @@
         }
       }
 
+      function hideResultsInfo() {
+        removeAllChildren(document.querySelector('.summary_stats'));
+        document.querySelector('#screensaver_link').style.display = 'none';
+        document.querySelector('#shuffle_link').style.display = 'none';
+        for (const ele of document.querySelectorAll('.breadcrumbs')) {
+          ele.style.display = 'none';
+        }
+      }
+
+      function updateBreadcrumbs(selector, pageNumber, active, shown) {
+        for (const ele of document.querySelectorAll(selector)) {
+          if (active && shown) {
+            ele.style.display = '';
+            ele.href = '#';
+            ele.onclick = function () { showMedia(pageNumber, true); };
+          } else if (!shown) {
+            ele.style.display = 'none';
+          } else {
+            ele.style.display = '';
+            ele.removeAttribute('href');
+            ele.onclick = '';
+          }
+        }
+      }
+
       function createOptionNode(text, value) {
-        var option = document.createElement("option");
+        const option = document.createElement('option');
         option.value = value;
         option.innerHTML = text;
         return option;
       }
 
-      function searchOpChanged(idx) {
-        var searchEles = document.querySelector(`#search_criteria${idx}`);
-        var field = searchFields[searchEles.querySelector(".search_field").selectedIndex];
-        var op = field.search.ops[searchEles.querySelector(".search_op").selectedIndex];
+      function updateSearchCriteria() {
+        document.querySelector('#all_media').innerHTML = "<div class='loading'>Searching</div>";
+        hideResultsInfo();
 
-        var values = searchEles.querySelector(".search_values");
-        if (op.numValues == values.children.length)
+        window.setTimeout(() => {
+          const searchArgs = [];
+          for (const critChild of document.querySelector('#search_criterias').children) {
+            const field = critChild.querySelector('.search_field').value;
+            const op = critChild.querySelector('.search_op').value;
+
+            let search = `${field},${op}`;
+            for (const valChild of critChild.querySelector('.search_values').children) {
+              search += `,${valChild.value}`;
+            }
+            searchArgs.push(`search=${encodeURIComponent(search)}`);
+          }
+
+          const matchPolicy = document.querySelector('#match_policy').value;
+          window.history.pushState({}, '',
+            `search.html?${searchArgs.join('&')}&match_policy=${matchPolicy}&page=1`);
+          processJson(getAllMediaViaJsFile(), populateMedia);
+        }, 0);
+      }
+
+      function updateCritieraIfValuesPopulated(idx) {
+        const searchEles = document.querySelector(`#search_criteria${idx}`);
+        for (const child of searchEles.querySelector('.search_values').children) {
+          if (child.value === '') {
+            return;
+          }
+        }
+
+        updateSearchCriteria();
+      }
+
+      function searchOpChanged(idx) {
+        const searchEles = document.querySelector(`#search_criteria${idx}`);
+        const field = searchFields[searchEles.querySelector('.search_field').selectedIndex];
+        const op = field.search.ops[searchEles.querySelector('.search_op').selectedIndex];
+
+        const values = searchEles.querySelector('.search_values');
+        if (op.numValues === values.children.length) {
           return;
+        }
 
         removeAllChildren(values);
 
-        for (var i = 0; i < op.numValues; i++) {
-          if ("validValues" in field) {
-            var select = document.createElement("select");
-            select.appendChild(createOptionNode("", ""));
-            for (var validValue of field.validValues)
+        for (let i = 0; i < op.numValues; i += 1) {
+          if ('validValues' in field) {
+            const select = document.createElement('select');
+            select.appendChild(createOptionNode('', ''));
+            for (const validValue of field.validValues) {
               select.appendChild(createOptionNode(validValue[0], validValue[1]));
-            select.addEventListener("change", function() { updateCritieraIfValuesPopulated(idx); });
+            }
+            select.addEventListener('change', () => { updateCritieraIfValuesPopulated(idx); });
             values.appendChild(select);
           } else {
-            var input = document.createElement("input");
+            const input = document.createElement('input');
             input.className = `search_value${i}`;
-            input.type = "inputType" in op ? op.inputType[i] : "text";
-            if ("inputStep" in op)
+            input.type = 'inputType' in op ? op.inputType[i] : 'text';
+            if ('inputStep' in op) {
               input.step = op.inputStep[i];
+            }
             input.size = 10;
-            if ("placeholder" in op && op.placeholder[i] != null)
+            if ('placeholder' in op && op.placeholder[i] != null) {
               input.placeholder = op.placeholder[i];
+            }
 
-            input.addEventListener("change", function() { window.blur(); updateCritieraIfValuesPopulated(idx); });
+            input.addEventListener('change', () => { window.blur(); updateCritieraIfValuesPopulated(idx); });
 
             values.appendChild(input);
           }
         }
       }
 
+      function searchFieldChanged(idx) {
+        const searchEles = document.querySelector(`#search_criteria${idx}`);
+        const field = searchFields[searchEles.querySelector('.search_field').selectedIndex];
+
+        const select = searchEles.querySelector('.search_op');
+        removeAllChildren(select);
+
+        for (const op of field.search.ops) {
+          const option = document.createElement('option');
+          option.textContent = option.value = op.descr;
+          select.appendChild(option);
+        }
+
+        removeAllChildren(searchEles.querySelector('.search_values'));
+
+        searchOpChanged(idx);
+      }
+
+      function populateSearchFields(idx) {
+        const searchEles = document.querySelector(`#search_criteria${idx}`);
+        const select = searchEles.querySelector('.search_field');
+        removeAllChildren(select);
+
+        for (const field of searchFields) {
+          const option = document.createElement('option');
+          option.textContent = option.value = field.title;
+          select.appendChild(option);
+        }
+
+        searchFieldChanged(idx);
+      }
+
       function addSearchInputRow() {
-        var template = document.querySelector("#search_criteria_row");
+        const template = document.querySelector('#search_criteria_row');
 
-        var row = template.content.cloneNode(true);
-        row.querySelector(".search_criteria").id = `search_criteria${nextSearchInput}`;
+        const row = template.content.cloneNode(true);
+        row.querySelector('.search_criteria').id = `search_criteria${nextSearchInput}`;
 
-        var fieldOnChange = function(idx) {
-          return function() {
+        const fieldOnChange = function (idx) {
+          return function () {
             searchFieldChanged(idx);
             updateCritieraIfValuesPopulated(idx);
-          }
+          };
         };
-        row.querySelector(".search_field").addEventListener("change",
-                                                            fieldOnChange(nextSearchInput));
+        row.querySelector('.search_field').addEventListener('change',
+          fieldOnChange(nextSearchInput));
 
-        var opOnChange = function(idx) {
-          return function() {
+        const opOnChange = function (idx) {
+          return function () {
             searchOpChanged(idx);
             updateCritieraIfValuesPopulated(idx);
-          }
+          };
         };
-        row.querySelector(".search_op").addEventListener("change", opOnChange(nextSearchInput));
+        row.querySelector('.search_op').addEventListener('change', opOnChange(nextSearchInput));
 
-        var delRow = function(idx) {
-          return function() {
-            var ele = document.querySelector(`#search_criteria${idx}`);
+        const delRow = function (idx) {
+          return function () {
+            const ele = document.querySelector(`#search_criteria${idx}`);
             ele.remove();
             updateSearchCriteria();
-          }
+          };
         };
-        row.querySelector(".search_delete_row").addEventListener("click", delRow(nextSearchInput));
+        row.querySelector('.search_delete_row').addEventListener('click', delRow(nextSearchInput));
 
-        document.querySelector("#search_criterias").appendChild(row);
-        populateSearchFields(nextSearchInput++);
-      }
-
-      function updateSearchCriteria() {
-        document.querySelector("#all_media").innerHTML = "<div class='loading'>Searching</div>";
-        hideResultsInfo();
-
-        window.setTimeout(function() {
-          var searchArgs = []
-          for (var critChild of document.querySelector("#search_criterias").children) {
-            const field = critChild.querySelector(".search_field").value;
-            const op = critChild.querySelector(".search_op").value;
-
-            var search = `${field},${op}`;
-            for (var valChild of critChild.querySelector(".search_values").children) {
-              search += `,${valChild.value}`;
-            }
-            searchArgs.push(`search=${encodeURIComponent(search)}`);
-          }
-
-          const matchPolicy = document.querySelector("#match_policy").value;
-          window.history.pushState({}, "",
-                                   `search.html?${searchArgs.join("&")}&match_policy=${matchPolicy}&page=1`);
-          processJson(getAllMediaViaJsFile(), populateMedia);
-        }, 0);
-      }
-
-      function clearSearchCriteria() {
-        window.history.pushState({}, "", "search.html");
-        processJson(getAllMediaViaJsFile(), populateMedia);
+        document.querySelector('#search_criterias').appendChild(row);
+        populateSearchFields(nextSearchInput);
+        nextSearchInput += 1;
       }
 
       function populateSearchValuesFromUrl() {
-        removeAllChildren(document.querySelector("#search_criterias"));
+        removeAllChildren(document.querySelector('#search_criterias'));
 
         for (const searchCriteria of getSearchQueryParams()) {
-          var curIdx = nextSearchInput;
+          const curIdx = nextSearchInput;
           addSearchInputRow();
 
-          var parts = searchCriteria.split(",");
-          if (parts.length < 2)
+          const parts = searchCriteria.split(',');
+          if (parts.length < 2) {
             continue;
+          }
 
-          var searchEles = document.querySelector(`#search_criteria${curIdx}`);
+          const searchEles = document.querySelector(`#search_criteria${curIdx}`);
 
-          var fieldEle = searchEles.querySelector(".search_field");
+          const fieldEle = searchEles.querySelector('.search_field');
           fieldEle.value = parts[0];
           searchFieldChanged(curIdx);
-          var field = searchFields[fieldEle.selectedIndex];
+          const field = searchFields[fieldEle.selectedIndex];
 
-          var opEle = searchEles.querySelector(".search_op")
+          const opEle = searchEles.querySelector('.search_op');
           opEle.value = parts[1];
           searchOpChanged(curIdx);
-          var op = field.search.ops[opEle.selectedIndex];
+          const op = field.search.ops[opEle.selectedIndex];
 
-          for (var i = 0; i < Math.min(parts.length - 2, op.numValues); i++) {
-            searchEles.querySelector(".search_values").children[i].value = parts[i + 2];
+          for (let i = 0; i < Math.min(parts.length - 2, op.numValues); i += 1) {
+            searchEles.querySelector('.search_values').children[i].value = parts[i + 2];
           }
         }
 
-        var matchPolicy = getQueryParameter("match_policy", "all"); // any,none,all
-        document.querySelector(`#match_policy`).value = matchPolicy;
+        const matchPolicy = getQueryParameter('match_policy', 'all'); // any,none,all
+        document.querySelector('#match_policy').value = matchPolicy;
 
-        if (nextSearchInput == 0)
+        if (nextSearchInput === 0) {
           addSearchInputRow();
-      }
-
-      function getExpandableString(name, value) {
-        value = value.trim();
-        if (value.length < 60 && !value.includes("\n"))
-          return document.createTextNode(value);
-
-        var shortId = `${name}_short`;
-        var longId = `${name}_long`;
-
-        var parentEle = document.createElement("span");
-
-        var ele = document.createElement("span");
-        ele.id = shortId;
-        ele.class = "clickable";
-        ele.style.display = "block";
-        ele.addEventListener("click", function() { jsHideShow(shortId, longId); });
-        ele.innerHTML = `${value.substring(0, 50).trim()}... &nbsp; <span class='more_less'>More</span>`;
-        parentEle.appendChild(ele);
-
-        ele = document.createElement("span");
-        ele.id = longId;
-        ele.class = "clickable";
-        ele.style.display = "none";
-        ele.addEventListener("click", function() { jsHideShow(longId, shortId); });
-        const longValEscaped = value.replace(/</g, "&lt;").replace(/>/g, "&gt").replace(/\n/g, "<br/>");
-        ele.innerHTML = `${longValEscaped} &nbsp; <span class='more_less'>Less</span>`;
-        parentEle.appendChild(ele);
-
-        return parentEle;
-      }
-
-      function jsHideShow(hideElement, showElement) {
-        document.getElementById(showElement).style.display='block';
-        document.getElementById(hideElement).style.display='none';
-      }
-
-      function hideResultsInfo() {
-        removeAllChildren(document.querySelector(".summary_stats"));
-        document.querySelector("#screensaver_link").style.display = "none";
-        document.querySelector("#shuffle_link").style.display = "none";
-        for (ele of document.querySelectorAll(".breadcrumbs"))
-          ele.style.display = "none";
+        }
       }
 
       function populateMedia(newAllMedia, newEventNames, newTagNames) {
@@ -495,26 +409,114 @@
         eventNames = newEventNames;
         tagNames = newTagNames;
 
-        showMedia(parseInt(getQueryParameter("page", "1")), false);
+        showMedia(parseInt(getQueryParameter('page', '1'), 10), false);
         populateSearchValuesFromUrl();
       }
 
-      const pageSize = getIntQueryParameter("page_size", 24);
+      function searchPageLinkGenerator(field, op, val) {
+        const search = appendToExistingSearchUrl(`${field},${op},${val}`, true);
+        window.history.pushState({}, '', search);
+        processJson(getAllMediaViaJsFile(), populateMedia);
+      }
 
-      var currentPageNumber = 1;
-      var nextSearchInput = 0;
-      var allMedia;
+      function showMedia(pageNumber, addToHistory) {
+        const allMediaEle = document.querySelector('#all_media');
 
-      var allMedia = null;
-      var eventNames = null;
-      var tagNames = null;
+        if (allMedia == null) {
+          removeAllChildren(allMediaEle);
+          return;
+        }
 
-      loadJson(populateMedia, function() {
-        var allMediaEle = document.querySelector("#all_media");
+        document.querySelector('.search_controls').style.display = 'block';
+        document.querySelector('#search_criterias').style.display = 'block';
+
+        if (allMedia.length === 0) {
+          allMediaEle.innerHTML = "<div class='notfound'>No results found</div>";
+          hideResultsInfo();
+          return;
+        }
+
+        const totalPages = Math.ceil(allMedia.length / pageSize);
+        if (pageNumber < 1 || pageNumber > totalPages) {
+          return;
+        }
+
+        removeAllChildren(allMediaEle);
+
+        const template = document.querySelector('#media_template');
+        const startIdx = (pageNumber - 1) * pageSize;
+        const searchLinkGenerator = function (field, op, val) {
+          return `href="#" onclick="searchPageLinkGenerator('${field}', '${op}', '${val}');"`;
+        };
+
+        for (const media of allMedia.slice(startIdx, startIdx + pageSize)) {
+          const clone = template.content.cloneNode(true);
+
+          clone.querySelector('a').href = media.link;
+          clone.querySelector('img').src = media.thumbnail_path;
+
+          if (media.title) {
+            const name = `title${media.type}${media.id}`;
+            clone.querySelector('.media_title').appendChild(getExpandableString(name, media.title));
+          }
+
+          if (media.comment) {
+            const name = `comment${media.type}${media.id}`;
+            clone.querySelector('.media_comment').appendChild(getExpandableString(name, media.comment));
+          }
+
+          clone.querySelector('.media_metadata').innerHTML = createMediaStatsHtml(media, eventNames, tagNames, searchLinkGenerator, false);
+
+          allMediaEle.appendChild(clone);
+        }
+
+        const params = window.location.search.startsWith('?') ? window.location.search : '?';
+
+        const screensaverLink = document.querySelector('#screensaver_link');
+        screensaverLink.href = `screensaver.html${params}&photo_update_secs=10&kiosk=0`;
+        screensaverLink.style.display = 'block';
+        document.querySelector('#shuffle_link').style.display = 'block';
+
+        document.querySelector('.summary_stats').innerHTML = createAllStatsHtml();
+
+        for (const ele of document.querySelectorAll('#page_info')) {
+          ele.innerText = `Page ${pageNumber.toLocaleString()} of ${totalPages.toLocaleString()}`;
+        }
+
+        for (const ele of document.querySelectorAll('.breadcrumbs')) {
+          ele.style.display = totalPages === 1 ? 'none' : 'block';
+        }
+
+        if (addToHistory) {
+          const urlParams = new URLSearchParams(window.location.search);
+          urlParams.set('page', pageNumber.toString());
+          window.history.pushState({}, '', `search.html?${urlParams.toString()}#`);
+        }
+
+        currentPageNumber = pageNumber;
+        const lastPageNumber = Math.ceil(allMedia.length / pageSize);
+
+        updateBreadcrumbs('.firstpage', 1, currentPageNumber > 1, totalPages > 2);
+        updateBreadcrumbs('.backten', currentPageNumber - 10, currentPageNumber > 10, totalPages > 25);
+        updateBreadcrumbs('.backone', currentPageNumber - 1, currentPageNumber > 1, true);
+        updateBreadcrumbs('.forwardone', currentPageNumber + 1, currentPageNumber < lastPageNumber, true);
+        updateBreadcrumbs('.forwardten', currentPageNumber + 10, currentPageNumber + 10 <= lastPageNumber, totalPages > 25);
+        updateBreadcrumbs('.lastpage', lastPageNumber, currentPageNumber < lastPageNumber, totalPages > 2);
+
+        window.scrollTo(0, 0);
+      }
+
+      function clearSearchCriteria() {
+        window.history.pushState({}, '', 'search.html');
+        processJson(getAllMediaViaJsFile(), populateMedia);
+      }
+
+      loadJson(populateMedia, () => {
+        const allMediaEle = document.querySelector('#all_media');
         allMediaEle.innerHTML = "<div class='error'>Error loading media</div>";
       });
 
-      window.onpopstate = function (event) {
+      window.onpopstate = function () {
         processJson(getAllMediaViaJsFile(), populateMedia);
       };
     </script>

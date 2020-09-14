@@ -18,98 +18,109 @@
  */
 
 function getQueryParameter(name, defaultValue) {
-  var urlParams = new URLSearchParams(window.location.search);
+  const urlParams = new URLSearchParams(window.location.search);
   return urlParams.has(name) ? urlParams.get(name) : defaultValue;
 }
 
 function getIntQueryParameter(name, defaultValue) {
-  var val = getQueryParameter(name, null);
+  const val = getQueryParameter(name, null);
   return val != null ? parseInt(val, 10) : defaultValue;
 }
 
 function getSearchQueryParams() {
-  var urlParams = new URLSearchParams(window.location.search);
-  return urlParams.getAll("search");
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.getAll('search');
 }
 
 function getPrettyFileSize(size) {
-  if (size > 1024*1024*1024)
-    return `${(size / (1024*1024*1024)).toFixed(1)} GiB`;
-  if (size > 1024*1024)
-    return `${(size / (1024*1024)).toFixed(1)} MiB`;
-  if (size > 1024)
+  if (size > 1024 * 1024 * 1024) {
+    return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GiB`;
+  } if (size > 1024 * 1024) {
+    return `${(size / (1024 * 1024)).toFixed(1)} MiB`;
+  } if (size > 1024) {
     return `${(size / (1024)).toFixed(1)} KiB`;
-
+  }
   return `${size} bytes`;
 }
 
 function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator, showTitle) {
-  var ret = []
-  if (showTitle && "title" in entity && entity["title"])
+  let ret = [];
+  if (showTitle && 'title' in entity && entity.title) {
     ret.push(entity.title);
+  }
 
-  if (entity.num_photos > 0)
+  if (entity.num_photos > 0) {
     ret.push(`${entity.num_photos.toLocaleString()} photos`);
+  }
 
-  if (entity.num_videos > 0)
+  if (entity.num_videos > 0) {
     ret.push(`${entity.num_videos.toLocaleString()} videos`);
+  }
 
-  if ("exposure_time_pretty" in entity)
+  if ('exposure_time_pretty' in entity) {
     ret.push(entity.exposure_time_pretty);
+  }
 
-  if (entity.filesize)
+  if (entity.filesize) {
     ret.push(getPrettyFileSize(entity.filesize));
+  }
 
-  if (entity.width)
+  if (entity.width) {
     ret.push(`${entity.width}x${entity.height}`);
+  }
 
-  if (entity.clip_duration)
+  if (entity.clip_duration) {
     ret.push(entity.clip_duration);
+  }
 
-  if (entity.date_range)
+  if (entity.date_range) {
     ret.push(entity.date_range);
+  }
 
-  if (entity.event_id && entity.type != 'events') {
-    var anchorOpts = searchLinkGenerator('Event ID', 'equals', entity.event_id);
+  if (entity.event_id && entity.type !== 'events') {
+    const anchorOpts = searchLinkGenerator('Event ID', 'equals', entity.event_id);
     ret.push(`Event: <a ${anchorOpts}>${eventNames[entity.event_id]}</a>`);
   }
 
-  if (entity.tags && entity.type != 'tags') {
-    for (var tag_id of entity.tags) {
-      var anchorOpts = searchLinkGenerator('Tag ID', 'equals', tag_id);
-      ret.push(`Tag: <a ${anchorOpts}>${tagNames[tag_id]}</a>`);
+  if (entity.tags && entity.type !== 'tags') {
+    for (const tagId of entity.tags) {
+      const anchorOpts = searchLinkGenerator('Tag ID', 'equals', tagId);
+      ret.push(`Tag: <a ${anchorOpts}>${tagNames[tagId]}</a>`);
     }
   }
 
-  if ("lat" in entity) {
-    var anchorOpts = searchLinkGenerator('GPS Coordinate', 'is within',
-                                         `${entity["lat"]},${entity["lon"]},0.1`);
-    ret.push(`<a ${anchorOpts}>GPS ${entity["lat"]},${entity["lon"]}</a>`);
+  if ('lat' in entity) {
+    const anchorOpts = searchLinkGenerator('GPS Coordinate', 'is within',
+      `${entity.lat},${entity.lon},0.1`);
+    ret.push(`<a ${anchorOpts}>GPS ${entity.lat},${entity.lon}</a>`);
   }
 
-  if ("exif" in entity)
-    ret = ret.concat(entity["exif"]);
-
-  if ("camera" in entity) {
-    var anchorOpts = searchLinkGenerator('Camera', 'equals', entity["camera"]);
-    ret.push(`<a ${anchorOpts}>${entity["camera"]}</a>`);
+  if ('exif' in entity) {
+    ret = ret.concat(entity.exif);
   }
 
-  if ("rating" in entity)
-    ret.push("&starf;".repeat(entity.rating) + "&star;".repeat(5 - entity.rating));
+  if ('camera' in entity) {
+    const anchorOpts = searchLinkGenerator('Camera', 'equals', entity.camera);
+    ret.push(`<a ${anchorOpts}>${entity.camera}</a>`);
+  }
+
+  if ('rating' in entity) {
+    ret.push('&starf;'.repeat(entity.rating) + '&star;'.repeat(5 - entity.rating));
+  }
 
   if (entity.all_media_page) {
-    var link = entity.all_media_page == 1 ? "" : `_${entity.all_media_page}`;
+    const link = entity.all_media_page === 1 ? '' : `_${entity.all_media_page}`;
     ret.push(`<a href="media/index${link}.html">Browse Nearby Media</a>`);
   }
 
-  return ret.join(" &nbsp; ");
+  return ret.join(' &nbsp; ');
 }
 
 function appendToExistingSearchUrl(criteria, appendOntoExisting) {
-  var ret = `search.html?search=${encodeURI(criteria)}`;
-  if (appendOntoExisting && window.location.search != null && window.location.search !== "")
+  let ret = `search.html?search=${encodeURI(criteria)}`;
+  if (appendOntoExisting && window.location.search != null && window.location.search !== '') {
     ret += `&${window.location.search.replace('?', '')}`;
+  }
 
   return ret;
 }
@@ -119,7 +130,7 @@ function shuffleArray(arr) {
     return;
   }
 
-  for (var i = arr.length - 1; i > 0; i--) {
+  for (let i = arr.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * i);
     const tmp = arr[i];
     arr[i] = arr[j];
@@ -128,53 +139,52 @@ function shuffleArray(arr) {
 }
 
 function textSearchContains(fieldInfo, op, value, media) {
-  const allParts = value.toLowerCase().split(" ");
-  var numPartsMatched = 0;
+  const allParts = value.toLowerCase().split(' ');
+  let numPartsMatched = 0;
 
-  for (var part of allParts) {
-    var partFound = false;
+  for (const part of allParts) {
+    let partFound = false;
 
     for (const fieldname of fieldInfo.searchFields) {
-      var input = fieldname in media ? media[fieldname] : null;
-      if (input == null)
-        continue;
-
-      if (Array.isArray(input)) {
-        for (var inputpart of input) {
+      const input = fieldname in media ? media[fieldname] : null;
+      if (input == null) {
+        // NOOP
+      } else if (Array.isArray(input)) {
+        for (const inputpart of input) {
           if (inputpart.toLowerCase().includes(part)) {
             partFound = true;
             break;
           }
         }
 
-        if (partFound)
-          break;
-      } else {
-        if (input.toLowerCase().includes(part)) {
-          partFound = true;
+        if (partFound) {
           break;
         }
+      } else if (input.toLowerCase().includes(part)) {
+        partFound = true;
+        break;
       }
     }
 
-    if (partFound)
-      numPartsMatched++;
+    if (partFound) {
+      numPartsMatched += 1;
+    }
   }
 
-  return numPartsMatched == allParts.length;
+  return numPartsMatched === allParts.length;
 }
 
 function performGenericOp(fieldInfo, media, value, opFunc) {
   for (const fieldname of fieldInfo.searchFields) {
-    var input = fieldname in media ? media[fieldname] : null;
+    const input = fieldname in media ? media[fieldname] : null;
     if (Array.isArray(input)) {
-      for (var inputpart of input) {
-        if (opFunc(inputpart, value))
+      for (const inputpart of input) {
+        if (opFunc(inputpart, value)) {
           return true;
+        }
       }
-    } else {
-      if (opFunc(input, value))
-        return true;
+    } else if (opFunc(input, value)) {
+      return true;
     }
   }
 
@@ -184,470 +194,451 @@ function performGenericOp(fieldInfo, media, value, opFunc) {
 const textSearch = {
   ops: [
     {
-      descr: "contains",
-      matches: function (field, op, values, media) {
+      descr: 'contains',
+      matches(field, op, values, media) {
         return textSearchContains(field, op, values[0], media);
       },
-      numValues: 1
+      numValues: 1,
     },
     {
-      descr: "does not contain",
-      matches: function (field, op, values, media) {
+      descr: 'does not contain',
+      matches(field, op, values, media) {
         return !textSearchContains(field, op, values[0], media);
       },
-      numValues: 1
+      numValues: 1,
     },
     {
-      descr: "equals",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values[0], function(input, value) {
-          return input != null && input.toLowerCase() === value.toLowerCase();
-        });
+      descr: 'equals',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0],
+          (input, value) => input != null && input.toLowerCase() === value.toLowerCase());
       },
-      numValues: 1
+      numValues: 1,
     },
     {
-      descr: "does not equal",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values[0], function(input, value) {
-          return input == null || input.toLowerCase() !== value.toLowerCase();
-        });
+      descr: 'does not equal',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0],
+          (input, value) => input == null || input.toLowerCase() !== value.toLowerCase());
       },
-      numValues: 1
+      numValues: 1,
     },
     {
-      descr: "starts with",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values[0], function(input, value) {
-          return input != null && input.toLowerCase().startsWith(value.toLowerCase());
-        });
+      descr: 'starts with',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0],
+          (input, value) => input != null && input.toLowerCase().startsWith(value.toLowerCase()));
       },
     },
     {
-      descr: "ends with",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values[0], function(input, value) {
-          return input != null && input.toLowerCase().endsWith(value.toLowerCase());
-        });
+      descr: 'ends with',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0],
+          (input, value) => input != null && input.toLowerCase().endsWith(value.toLowerCase()));
       },
-      numValues: 1
+      numValues: 1,
     },
     {
-      descr: "is set",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values[0], function(input, value) {
-          return input != null && input !== "";
-        });
+      descr: 'is set',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0],
+          (input, value) => input != null && input !== '');
       },
-      numValues: 0
+      numValues: 0,
     },
     {
-      descr: "is not set",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values[0], function(input, value) {
-          return input == null || input === "";
-        });
+      descr: 'is not set',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0],
+          (input, value) => input == null || input === '');
       },
-      numValues: 0
-    }
-  ]
+      numValues: 0,
+    },
+  ],
 };
 
 const dateSearch = {
   ops: [
     {
-      descr: "starts with",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values[0], function(input, value) {
-          return input != null && input.startsWith(value);
-        });
+      descr: 'starts with',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0],
+          (input, value) => input != null && input.startsWith(value));
       },
-      placeholder: ["yyyy-MM-dd"],
-      numValues: 1
+      placeholder: ['yyyy-MM-dd'],
+      numValues: 1,
     },
     {
-      descr: "is before",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values[0], function(input, value) {
-          return input != null && input < value;
-        });
+      descr: 'is before',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0],
+          (input, value) => input != null && input < value);
       },
-      placeholder: ["yyyy-MM-dd"],
-      numValues: 1
+      placeholder: ['yyyy-MM-dd'],
+      numValues: 1,
     },
     {
-      descr: "is after",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values[0], function(input, value) {
-          return input != null && input > value;
-        });
+      descr: 'is after',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0],
+          (input, value) => input != null && input > value);
       },
-      placeholder: ["yyyy-MM-dd"],
-      numValues: 1
+      placeholder: ['yyyy-MM-dd'],
+      numValues: 1,
     },
     {
-      descr: "is between",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values, function(input, values) {
-          return input != null && input >= values[0] && input <= values[1];
-        });
+      descr: 'is between',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values,
+          (input, value) => input != null && input >= value[0] && input <= value[1]);
       },
-      placeholder: ["yyyy-MM-dd", "yyyy-MM-dd"],
-      numValues: 2
+      placeholder: ['yyyy-MM-dd', 'yyyy-MM-dd'],
+      numValues: 2,
     },
     {
-      descr: "is set",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, null, function(input, value) {
-          return input != null && input !== "";
-        });
+      descr: 'is set',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, null,
+          (input, value) => input != null && input !== '');
       },
-      numValues: 0
+      numValues: 0,
     },
     {
-      descr: "is not set",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, null, function(input, value) {
-          return input == null || input === "";
-        });
+      descr: 'is not set',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, null,
+          (input, value) => input == null || input === '');
       },
-      numValues: 0
+      numValues: 0,
     },
     {
-      descr: "was taken on day",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, null, function(input, value) {
-          if (input == null)
+      descr: 'was taken on day',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, null, (input, value) => {
+          if (input == null) {
             return false;
+          }
 
-          const compareTo = input.split("T")[0].split("-").slice(1, 3).join("-");
+          const compareTo = input.split('T')[0].split('-').slice(1, 3).join('-');
           return compareTo === values[0];
         });
       },
-      placeholder: ["MM-dd"],
-      numValues: 1
+      placeholder: ['MM-dd'],
+      numValues: 1,
     },
     {
-      descr: "was taken on this day",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, null, function(input, value) {
-          if (input == null)
+      descr: 'was taken on this day',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, null, (input, value) => {
+          if (input == null) {
             return false;
+          }
 
           const today = new Date();
-          const monthDay = String(today.getMonth() + 1).padStart(2, '0') + "-" +
-                           String(today.getDate()).padStart(2, '0');
+          const monthDay = `${String(today.getMonth() + 1).padStart(2, '0')}-${
+            String(today.getDate()).padStart(2, '0')}`;
 
-          const compareTo = input.split("T")[0].split("-").slice(1, 3).join("-");
+          const compareTo = input.split('T')[0].split('-').slice(1, 3).join('-');
           return compareTo === monthDay;
         });
       },
-      numValues: 0
+      numValues: 0,
     },
     {
-      descr: "was taken on this month",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, null, function(input, value) {
-          if (input == null)
+      descr: 'was taken on this month',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, null, (input, value) => {
+          if (input == null) {
             return false;
+          }
 
           const today = new Date();
           const month = String(today.getMonth() + 1).padStart(2, '0');
 
-          return input.split("T")[0].split("-")[1] === month;
+          return input.split('T')[0].split('-')[1] === month;
         });
       },
-      numValues: 0
-    }
-  ]
+      numValues: 0,
+    },
+  ],
 };
 
 const mediaTypeSearch = {
   ops: [
     {
-      descr: "is a",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values[0], function(input, value) {
-          return input != null && input.toLowerCase() === value.toLowerCase();
-        });
+      descr: 'is a',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0],
+          (input, value) => input != null && input.toLowerCase() === value.toLowerCase());
       },
-      numValues: 1
+      numValues: 1,
     },
     {
-      descr: "is not a",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values[0], function(input, value) {
-          return input == null || input.toLowerCase() !== value.toLowerCase();
-        });
+      descr: 'is not a',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0],
+          (input, value) => input == null || input.toLowerCase() !== value.toLowerCase());
       },
-      numValues: 1
-    }
-  ]
+      numValues: 1,
+    },
+  ],
 };
 
 function createNumberSearch(placeholderText, showGtLt) {
-  var ops = [];
+  const ops = [];
 
   if (showGtLt) {
     ops.push({
-      descr: "is at least",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values[0], function(input, value) {
-          return input != null && input >= value;
-        });
+      descr: 'is at least',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0],
+          (input, value) => input != null && input >= value);
       },
       placeholder: [placeholderText],
       numValues: 1,
-      inputType: ["number"]
+      inputType: ['number'],
     });
 
     ops.push({
-      descr: "is at most",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values[0], function(input, value) {
-          return input != null && input <= value;
-        });
+      descr: 'is at most',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0],
+          (input, value) => input != null && input <= value);
       },
       placeholder: [placeholderText],
       numValues: 1,
-      inputType: ["number"]
+      inputType: ['number'],
     });
   }
 
   ops.push({
-    descr: "equals",
-    matches: function (field, op, values, media) {
-      return performGenericOp(field, media, values[0], function(input, value) {
-        return input != null && input == value;
-      });
+    descr: 'equals',
+    matches(field, op, values, media) {
+      return performGenericOp(field, media, values[0],
+        (input, value) => input != null && input === value);
     },
     placeholder: [placeholderText],
     numValues: 1,
-    inputType: ["number"]
+    inputType: ['number'],
   });
 
   ops.push({
-    descr: "not equals",
-    matches: function (field, op, values, media) {
-      return performGenericOp(field, media, values[0], function(input, value) {
-        return input == null || input !== value;
-      });
+    descr: 'not equals',
+    matches(field, op, values, media) {
+      return performGenericOp(field, media, values[0],
+        (input, value) => input == null || input !== value);
     },
     placeholder: [placeholderText],
     numValues: 1,
-    inputType: ["number"]
+    inputType: ['number'],
   });
 
-  return { ops: ops };
+  return { ops };
 }
 
 function gpsIsWithin(field, op, values, media) {
-  if (!("lat" in media))
+  if (!('lat' in media)) {
     return false;
+  }
 
   const userLat = parseFloat(values[0]);
   const userLon = parseFloat(values[1]);
   const userRadius = parseFloat(values[2]);
 
-  return (userLat - userRadius) <= media["lat"] &&
-         (userLat + userRadius) >= media["lat"] &&
-         (userLon - userRadius) <= media["lon"] &&
-         (userLon + userRadius) >= media["lon"];
+  return (userLat - userRadius) <= media.lat && (userLat + userRadius) >= media.lat
+         && (userLon - userRadius) <= media.lon && (userLon + userRadius) >= media.lon;
 }
 
 const gpsSearch = {
   ops: [
     {
-      descr: "is within",
-      matches: function (field, op, values, media) {
+      descr: 'is within',
+      matches(field, op, values, media) {
         return gpsIsWithin(field, op, values, media);
       },
-      placeholder: ["lat", "lon", "radius"],
+      placeholder: ['lat', 'lon', 'radius'],
       numValues: 3,
-      inputType: ["number", "number", "number"],
-      inputStep: ["any", "any", "any"]
+      inputType: ['number', 'number', 'number'],
+      inputStep: ['any', 'any', 'any'],
     },
     {
-      descr: "is outside",
-      matches: function (field, op, values, media) {
-        if (!("lat" in media))
+      descr: 'is outside',
+      matches(field, op, values, media) {
+        if (!('lat' in media)) {
           return false;
+        }
 
         return !gpsIsWithin(field, op, values, media);
       },
-      placeholder: ["lat", "lon", "radius"],
+      placeholder: ['lat', 'lon', 'radius'],
       numValues: 3,
-      inputType: ["number", "number", "number"],
-      inputStep: ["any", "any", "any"]
+      inputType: ['number', 'number', 'number'],
+      inputStep: ['any', 'any', 'any'],
     },
     {
-      descr: "is set",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, null, function(input, value) {
-          return input != null && input !== "";
-        });
+      descr: 'is set',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, null,
+          (input, value) => input != null && input !== '');
       },
-      numValues: 0
+      numValues: 0,
     },
     {
-      descr: "is not set",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, null, function(input, value) {
-          return input == null || input === "";
-        });
+      descr: 'is not set',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, null,
+          (input, value) => input == null || input === '');
       },
-      numValues: 0
+      numValues: 0,
     },
-  ]
+  ],
 };
 
 const fileExtSearch = {
   ops: [
     {
-      descr: "is",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values[0], function(input, value) {
-          return input != null && input.toLowerCase().endsWith(`.${value.toLowerCase()}`);
-        });
+      descr: 'is',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0],
+          (input, value) => input != null && input.toLowerCase().endsWith(`.${value.toLowerCase()}`));
       },
-      numValues: 1
+      numValues: 1,
     },
     {
-      descr: "is not",
-      matches: function (field, op, values, media) {
-        return performGenericOp(field, media, values[0], function(input, value) {
-          return input == null || !input.toLowerCase().endsWith(`.${value.toLowerCase()}`);
-        });
+      descr: 'is not',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0],
+          (input, value) => input == null || !input.toLowerCase().endsWith(`.${value.toLowerCase()}`));
       },
-      numValues: 1
-    }
-  ]
+      numValues: 1,
+    },
+  ],
 };
 
 const searchFields = [
   {
-    title: "Any Text",
+    title: 'Any Text',
     search: textSearch,
-    searchFields: ["camera", "comment", "event_name", "link", "tag_name", "title"],
+    searchFields: ['camera', 'comment', 'event_name', 'link', 'tag_name', 'title'],
   },
   {
-    title: "Camera",
+    title: 'Camera',
     search: textSearch,
-    searchFields: ["camera"],
+    searchFields: ['camera'],
   },
   {
-    title: "Comment",
+    title: 'Comment',
     search: textSearch,
-    searchFields: ["comment"],
+    searchFields: ['comment'],
   },
   {
-    title: "Date",
+    title: 'Date',
     search: dateSearch,
-    searchFields: ["exposure_time"],
+    searchFields: ['exposure_time'],
   },
   {
-    title: "Event ID",
+    title: 'Event ID',
     search: createNumberSearch(null, false),
-    searchFields: ["event_id"],
+    searchFields: ['event_id'],
   },
   {
-    title: "Event Name",
+    title: 'Event Name',
     search: textSearch,
-    searchFields: ["event_name"],
+    searchFields: ['event_name'],
   },
   {
-    title: "Filename",
+    title: 'Filename',
     search: textSearch,
-    searchFields: ["link"],
+    searchFields: ['link'],
   },
   {
-    title: "File Extension",
+    title: 'File Extension',
     search: fileExtSearch,
-    searchFields: ["link"],
+    searchFields: ['link'],
   },
   {
-    title: "File Size",
-    search: createNumberSearch("bytes", true),
-    searchFields: ["filesize"],
+    title: 'File Size',
+    search: createNumberSearch('bytes', true),
+    searchFields: ['filesize'],
   },
   {
-    title: "GPS Coordinate",
+    title: 'GPS Coordinate',
     search: gpsSearch,
-    searchFields: ["lat"],
+    searchFields: ['lat'],
   },
   {
-    title: "Photo Height",
-    search: createNumberSearch("pixels", true),
-    searchFields: ["height"],
+    title: 'Photo Height',
+    search: createNumberSearch('pixels', true),
+    searchFields: ['height'],
   },
   {
-    title: "Photo Width",
-    search: createNumberSearch("pixels", true),
-    searchFields: ["width"],
+    title: 'Photo Width',
+    search: createNumberSearch('pixels', true),
+    searchFields: ['width'],
   },
   {
-    title: "Photo W/H Ratio",
+    title: 'Photo W/H Ratio',
     search: createNumberSearch(null, true),
-    searchFields: ["photo_ratio"],
+    searchFields: ['photo_ratio'],
   },
   {
-    title: "Rating",
+    title: 'Rating',
     search: createNumberSearch(null, true),
-    searchFields: ["rating"],
-    validValues: [["Unrated", "0"], ["&starf;", "1"], ["&starf;&starf;", "2"],
-                  ["&starf;&starf;&starf;", "3"], ["&starf;&starf;&starf;&starf;", "4"],
-                  ["&starf;&starf;&starf;&starf;&starf;", "5"]],
+    searchFields: ['rating'],
+    validValues: [['Unrated', '0'], ['&starf;', '1'], ['&starf;&starf;', '2'],
+      ['&starf;&starf;&starf;', '3'], ['&starf;&starf;&starf;&starf;', '4'],
+      ['&starf;&starf;&starf;&starf;&starf;', '5']],
   },
   {
-    title: "Tag ID",
+    title: 'Tag ID',
     search: createNumberSearch(null, false),
-    searchFields: ["tag_id"],
+    searchFields: ['tag_id'],
   },
   {
-    title: "Tag Name",
+    title: 'Tag Name',
     search: textSearch,
-    searchFields: ["tag_name"],
+    searchFields: ['tag_name'],
   },
   {
-    title: "Title",
+    title: 'Title',
     search: textSearch,
-    searchFields: ["title"],
+    searchFields: ['title'],
   },
   {
-    title: "Total Photos",
+    title: 'Total Photos',
     search: createNumberSearch(null, true),
-    searchFields: ["num_photos"],
+    searchFields: ['num_photos'],
   },
   {
-    title: "Total Videos",
+    title: 'Total Videos',
     search: createNumberSearch(null, true),
-    searchFields: ["num_videos"],
+    searchFields: ['num_videos'],
   },
   {
-    title: "Type",
+    title: 'Type',
     search: mediaTypeSearch,
-    searchFields: ["type"],
-    validValues: [["photo", "photo"], ["raw photo", "raw_photo"], ["video", "video"],
-                  ["event", "events"], ["tag", "tags"]],
+    searchFields: ['type'],
+    validValues: [['photo', 'photo'], ['raw photo', 'raw_photo'], ['video', 'video'],
+      ['event', 'events'], ['tag', 'tags']],
   },
   {
-    title: "Video Duration",
-    search: createNumberSearch("secs", true),
-    searchFields: ["clip_duration_secs"],
+    title: 'Video Duration',
+    search: createNumberSearch('secs', true),
+    searchFields: ['clip_duration_secs'],
   },
 ];
 
 function performSearch(allItems) {
-  var allCriteria = [];
+  const allCriteria = [];
 
   for (const searchCriteria of getSearchQueryParams()) {
     // FIXME - doesn't support comma in value
-    var parts = searchCriteria.split(",");
+    const parts = searchCriteria.split(',');
     if (parts.length < 2) {
       continue;
     }
 
-    var criteria = {field: null, op: null, searchValues: parts.slice(2, parts.length)};
+    const criteria = { field: null, op: null, searchValues: parts.slice(2, parts.length) };
 
     for (const searchField of searchFields) {
       if (searchField.title === parts[0]) {
@@ -656,105 +647,109 @@ function performSearch(allItems) {
       }
     }
 
-    if (criteria.field == null)
+    if (criteria.field == null) {
       continue;
+    }
 
     for (const searchOp of criteria.field.search.ops) {
       if (searchOp.descr === parts[1]) {
         criteria.op = searchOp;
-        break
+        break;
       }
     }
 
-    if (criteria.op == null)
+    if (criteria.op == null || criteria.op.numValues !== criteria.searchValues.length) {
       continue;
-
-    if (criteria.op.numValues != criteria.searchValues.length)
-      continue;
+    }
 
     allCriteria.push(criteria);
   }
 
-  if (allCriteria.length == 0) {
+  if (allCriteria.length === 0) {
     // Create an operator that always returns true so that all media, events and tags are shown.
-    var noopField = {title: null, search: textSearch, searchFields: ["noop"]};
-    var trueOp = {descr: "equals", matches: function (field, op, values, media) { return true; }, numValues: 0};
-    allCriteria.push({field: noopField, op: trueOp, searchValues: []});
+    const noopField = { title: null, search: textSearch, searchFields: ['noop'] };
+    const trueOp = { descr: 'equals', matches(field, op, values, media) { return true; }, numValues: 0 };
+    allCriteria.push({ field: noopField, op: trueOp, searchValues: [] });
   }
 
-  var matchPolicy = getQueryParameter("match_policy", "all"); // any,none,all
+  const matchPolicy = getQueryParameter('match_policy', 'all'); // any,none,all
 
-  var tagNames = {}
-  for (var tag of allItems["tags"]) {
-    tagNames[tag["id"]] = tag["title"];
+  const tagNames = {};
+  for (const tag of allItems.tags) {
+    tagNames[tag.id] = tag.title;
   }
 
-  var eventNames = {}
-  for (var event of allItems["events"]) {
-    eventNames[event["id"]] = event["title"];
+  const eventNames = {};
+  for (const event of allItems.events) {
+    eventNames[event.id] = event.title;
   }
 
-  var fileExtensions = new Set([]);
+  const fileExtensions = new Set([]);
 
-  var ret = []
-  for (const mediaType of [["events", "Event: "], ["tags", "Tag: "], ["media", ""]]) {
+  const ret = [];
+  for (const mediaType of [['events', 'Event: '], ['tags', 'Tag: '], ['media', '']]) {
     for (const media of allItems[mediaType[0]]) {
-      if (!("type" in media))
+      if (!('type' in media)) {
         media.type = mediaType[0];
+      }
 
-      if ("tags" in media) {
+      if ('tags' in media) {
         // Write out the tag name into the media element to simplify code for the text search.
         media.tag_id = [];
         media.tag_name = [];
-        for (var tag_id of media["tags"]) {
-          media.tag_id.push(tag_id);
-          media.tag_name.push(tagNames[tag_id]);
+        for (const tagId of media.tags) {
+          media.tag_id.push(tagId);
+          media.tag_name.push(tagNames[tagId]);
         }
       }
 
-      if ("event_id" in media) {
+      if ('event_id' in media) {
         // Write out the event name into the media element to simplify code for the text search.
-        media.event_name = eventNames[media["event_id"]]
+        media.event_name = eventNames[media.event_id];
       }
 
-      if (mediaType[0] == "events") {
+      if (mediaType[0] === 'events') {
         media.event_id = media.id;
         media.event_name = media.title;
-      } else if (mediaType[0] == "tags") {
+      } else if (mediaType[0] === 'tags') {
         media.tag_id = media.id;
         media.tag_name = media.title;
       }
 
-      if ("width" in media)
+      if ('width' in media) {
         media.photo_ratio = media.width / media.height;
+      }
 
-      if ("link" in media) {
-        const idx = media["link"].lastIndexOf('.');
-        if (idx != -1) {
-          fileExtensions.add(media["link"].substring(idx + 1).toLowerCase());
+      if ('link' in media) {
+        const idx = media.link.lastIndexOf('.');
+        if (idx !== -1) {
+          fileExtensions.add(media.link.substring(idx + 1).toLowerCase());
         }
       }
 
-      var numFound = 0;
+      let numFound = 0;
       for (const criteria of allCriteria) {
-        if (criteria.op.matches(criteria.field, criteria.op, criteria.searchValues, media))
-          numFound++;
+        if (criteria.op.matches(criteria.field, criteria.op, criteria.searchValues, media)) {
+          numFound += 1;
+        }
       }
 
-      var matches = false;
-      if (matchPolicy == "none")
-        matches = numFound == 0;
-      else if (matchPolicy == "all")
-        matches = numFound == allCriteria.length;
-      else
+      let matches = false;
+      if (matchPolicy === 'none') {
+        matches = numFound === 0;
+      } else if (matchPolicy === 'all') {
+        matches = numFound === allCriteria.length;
+      } else {
         matches = numFound > 0;
+      }
 
       if (matches) {
         if (mediaType[1]) {
-          if (media.title)
+          if (media.title) {
             media.title = mediaType[1] + media.title;
-          else
-            media.title = mediaType[1]
+          } else {
+            media.title = mediaType[1];
+          }
         }
 
         ret.push(media);
@@ -762,14 +757,14 @@ function performSearch(allItems) {
     }
   }
 
-  for (var field of searchFields) {
-    if (field.title === "File Extension") {
+  for (const field of searchFields) {
+    if (field.title === 'File Extension') {
       field.validValues = [];
 
-      var sortedExtensions = Array.from(fileExtensions);
+      const sortedExtensions = Array.from(fileExtensions);
       sortedExtensions.sort();
 
-      for (var ext of sortedExtensions) {
+      for (const ext of sortedExtensions) {
         field.validValues.push([ext, ext]);
       }
       break;
@@ -780,30 +775,33 @@ function performSearch(allItems) {
 }
 
 function processJson(resp, readyFunc) {
-  var eventNames = {}
-  for (var evt of resp["events"]) {
-    eventNames[evt["id"]] = "title" in evt ? evt["title"] : `Unnamed ${event["id"]}`;
+  const eventNames = {};
+  for (const evt of resp.events) {
+    eventNames[evt.id] = 'title' in evt ? evt.title : `Unnamed ${evt.id}`;
   }
 
-  var tagNames = {}
-  for (var tag of resp["tags"]) {
-    tagNames[tag["id"]] = tag["title"];
+  const tagNames = {};
+  for (const tag of resp.tags) {
+    tagNames[tag.id] = tag.title;
   }
 
-  document.title = `${resp["title"]}: Search`;
-  var ele = document.querySelector("#title");
-  if (ele)
+  document.title = `${resp.title}: Search`;
+  let ele = document.querySelector('#title');
+  if (ele) {
     ele.innerText = document.title;
+  }
 
-  ele = document.querySelector("#generated_timestamp");
-  if (ele)
-    ele.innerText = `at ${resp["generated_at"]}`;
+  ele = document.querySelector('#generated_timestamp');
+  if (ele) {
+    ele.innerText = `at ${resp.generated_at}`;
+  }
 
-  ele = document.querySelector("#app_version");
-  if (ele)
-    ele.innerText = resp["version_label"];
+  ele = document.querySelector('#app_version');
+  if (ele) {
+    ele.innerText = resp.version_label;
+  }
 
-  var allMedia = performSearch(resp);
+  const allMedia = performSearch(resp);
   readyFunc(allMedia, eventNames, tagNames);
 }
 
@@ -814,9 +812,9 @@ function loadJson(readyFunc, errorFunc) {
    * the search and screensaver pages to function correctly when accessed over a file URI.
    */
 
-  var scr = document.createElement("script");
-  scr.setAttribute("src", "media.js");
-  scr.onload = function() { processJson(getAllMediaViaJsFile(), readyFunc); }
-  scr.onerror = function() { errorFunc(); }
+  const scr = document.createElement('script');
+  scr.setAttribute('src', 'media.js');
+  scr.onload = function () { processJson(getAllMediaViaJsFile(), readyFunc); };
+  scr.onerror = function () { errorFunc(); };
   document.body.appendChild(scr);
 }
