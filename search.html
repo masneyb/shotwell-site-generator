@@ -162,6 +162,9 @@
 
         var template = document.querySelector("#media_template");
         var startIdx = (pageNumber - 1) * pageSize;
+        var searchLinkGenerator = function(field, op, val) {
+          return `href="#" onclick="searchPageLinkGenerator('${field}', '${op}', '${val}');"`;
+        };
 
         for (const media of allMedia.slice(startIdx, startIdx + pageSize)) {
           var clone = template.content.cloneNode(true);
@@ -181,8 +184,8 @@
                                                                                   media.comment);
           }
 
-          clone.querySelector(".media_metadata").innerHTML = createMediaStatsHtml(media, eventNames,
-                                                                                  tagNames, false);
+          clone.querySelector(".media_metadata").innerHTML =
+              createMediaStatsHtml(media, eventNames, tagNames, searchLinkGenerator, false);
 
           allMediaEle.appendChild(clone);
         }
@@ -231,6 +234,12 @@
           updateBreadcrumb(ele, lastPageNumber, currentPageNumber < lastPageNumber, totalPages > 2);
 
         window.scrollTo(0, 0);
+      }
+
+      function searchPageLinkGenerator(field, op, val) {
+        var search = appendToExistingSearchUrl(`${field},${op},${val}`, true);
+        window.history.pushState({}, "", search);
+        processJson(getAllMediaViaJsFile(), populateMedia);
       }
 
       function updateBreadcrumb(ele, pageNumber, active, shown) {

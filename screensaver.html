@@ -109,17 +109,19 @@
         if (shownPhotos == null || idx < 0 || idx >= shownPhotos.length)
           return;
 
-        var descr = "";
-        if (shownPhotos[idx].title)
-          descr = shownPhotos[idx].title + " &nbsp; ";
-        descr += createMediaStatsHtml(shownPhotos[idx], eventNames, tagNames, true);
-
         var imageEle = document.querySelector("#image");
         var descrEle = document.querySelector("#description");
 
         descrEle.innerHTML = "<div class='loading'>Loading</div>";
+
+        var searchLinkGenerator = function(field, op, value) {
+          var search = `${field},${op},${value}`;
+          return `target="_new" href='${appendToExistingSearchUrl(search, false)}'`;
+        };
+
         imageEle.addEventListener("load", function() {
-          descrEle.innerHTML = descr;
+          descrEle.innerHTML = createMediaStatsHtml(shownPhotos[idx], eventNames, tagNames,
+                                                    searchLinkGenerator, true);
         });
         imageEle.src = shownPhotos[idx].link;
 

@@ -43,10 +43,11 @@ function getPrettyFileSize(size) {
   return `${size} bytes`;
 }
 
-function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
-  var extraLinkAttr = openInNewWindow ? 'target="_new" ' : '';
-
+function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator, showTitle) {
   var ret = []
+  if (showTitle && "title" in entity && entity["title"])
+    ret.push(entity.title);
+
   if (entity.num_photos > 0)
     ret.push(`${entity.num_photos.toLocaleString()} photos`);
 
@@ -69,30 +70,29 @@ function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
     ret.push(entity.date_range);
 
   if (entity.event_id && entity.type != 'events') {
-    var search = `Event ID,equals,${entity.event_id}`;
-    ret.push(`Event: <a href='${appendToExistingSearchUrl(search)}'>${eventNames[entity.event_id]}</a>`);
+    var anchorOpts = searchLinkGenerator('Event ID', 'equals', entity.event_id);
+    ret.push(`Event: <a ${anchorOpts}>${eventNames[entity.event_id]}</a>`);
   }
 
   if (entity.tags && entity.type != 'tags') {
     for (var tag_id of entity.tags) {
-      var search = `Tag ID,equals,${tag_id}`;
-      ret.push(`Tag: <a href='${appendToExistingSearchUrl(search)}'>${tagNames[tag_id]}</a>`);
+      var anchorOpts = searchLinkGenerator('Tag ID', 'equals', tag_id);
+      ret.push(`Tag: <a ${anchorOpts}>${tagNames[tag_id]}</a>`);
     }
   }
 
   if ("lat" in entity) {
-    var search = `GPS Coordinate,is within,${entity["lat"]},${entity["lon"]},0.1`;
-    ret.push(`<a href='${appendToExistingSearchUrl(search)}'>` +
-             `GPS ${entity["lat"]},${entity["lon"]}` +
-             '</a>');
+    var anchorOpts = searchLinkGenerator('GPS Coordinate', 'is within',
+                                         `${entity["lat"]},${entity["lon"]},0.1`);
+    ret.push(`<a ${anchorOpts}>GPS ${entity["lat"]},${entity["lon"]}</a>`);
   }
 
   if ("exif" in entity)
     ret = ret.concat(entity["exif"]);
 
   if ("camera" in entity) {
-    var search = `Camera,equals,${entity["camera"]}`;
-    ret.push(`<a href='${appendToExistingSearchUrl(search)}'>${entity["camera"]}</a>`);
+    var anchorOpts = searchLinkGenerator('Camera', 'equals', entity["camera"]);
+    ret.push(`<a ${anchorOpts}>${entity["camera"]}</a>`);
   }
 
   if ("rating" in entity)
@@ -106,9 +106,9 @@ function createMediaStatsHtml(entity, eventNames, tagNames, openInNewWindow) {
   return ret.join(" &nbsp; ");
 }
 
-function appendToExistingSearchUrl(additionalCriteria) {
-  var ret = `search.html?search=${encodeURI(additionalCriteria)}`;
-  if (window.location.search != null && window.location.search !== "")
+function appendToExistingSearchUrl(criteria, appendOntoExisting) {
+  var ret = `search.html?search=${encodeURI(criteria)}`;
+  if (appendOntoExisting && window.location.search != null && window.location.search !== "")
     ret += `&${window.location.search.replace('?', '')}`;
 
   return ret;
