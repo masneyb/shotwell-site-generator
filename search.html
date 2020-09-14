@@ -414,7 +414,7 @@
       }
 
       function populateSearchValuesFromUrl() {
-        document.querySelector("#search_criterias").innerHTML = "";
+        removeAllChildren(document.querySelector("#search_criterias"));
 
         for (const searchCriteria of getSearchQueryParams()) {
           var curIdx = nextSearchInput;
@@ -486,7 +486,7 @@
       }
 
       function hideResultsInfo() {
-        document.querySelector(".summary_stats").innerHTML = "";
+        removeAllChildren(document.querySelector(".summary_stats"));
         document.querySelector("#screensaver_link").style.display = "none";
         document.querySelector("#shuffle_link").style.display = "none";
         for (ele of document.querySelectorAll(".breadcrumbs"))
