@@ -70,6 +70,7 @@
         <option value="none">Match None</option>
       </select>
       <input type="button" onClick="updateSearchCriteria();" value="Search"></input>
+      <input type="button" onClick="clearSearchCriteria();" value="Clear"></input>
     </span>
 
     <div id="all_media"><div class='loading'>Loading</div></div>
@@ -405,6 +406,11 @@
                                    `search.html?${searchArgs.join("&")}&match_policy=${matchPolicy}&page=1`);
           processJson(getAllMediaViaJsFile(), populateMedia);
         }, 0);
+      }
+
+      function clearSearchCriteria() {
+        window.history.pushState({}, "", "search.html");
+        processJson(getAllMediaViaJsFile(), populateMedia);
       }
 
       function populateSearchValuesFromUrl() {
