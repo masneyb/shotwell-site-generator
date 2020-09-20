@@ -167,6 +167,8 @@ class Html(CommonWriter):
 
         ret += self.__get_tag_event_links(tag)
 
+        ret += self.__get_search_element("tag", "Tag ID", tag["id"])
+
         return ret
 
     def __write_tag_index_html_files(self):
@@ -400,6 +402,14 @@ class Html(CommonWriter):
                "<span class='header_link'>Other media near this %s</span>" % (description) + \
                "</a>"
 
+    def __get_search_element(self, descr, search_field, search_val):
+        search = html.escape("%s,equals,%s" % (search_field, search_val))
+        return "<span class='header_links'>" + \
+               "<a href='../search.html?search=%s'>" % (search) + \
+               "<span class='header_link'>Search within this %s</span>" % (descr) + \
+               "</a>" + \
+               "</span>"
+
     def __write_event_index_file(self):
         shown_media = []
         for event in self.all_media["events_by_id"].values():
@@ -439,10 +449,8 @@ class Html(CommonWriter):
 
     def __get_event_extra_links(self, event, all_media_index, all_year_index, years):
         ret = "<span class='header_links'>"
-
         if event["id"] in all_media_index["event"]:
             ret += self.__get_all_media_link(all_media_index["event"][event["id"]], "event")
-
         ret += "</span>"
 
         year_links = []
@@ -459,6 +467,8 @@ class Html(CommonWriter):
         ret += self.__get_expandable_header_links("Years with this event", year_links)
 
         ret += self.__get_popular_tag_header_links(event["tags"])
+
+        ret += self.__get_search_element("event", "Event ID", event["id"])
 
         return ret
 
