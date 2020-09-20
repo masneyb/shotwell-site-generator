@@ -39,6 +39,11 @@
         <span class="header_link">Shuffle media in search results</span>
       </a>
     </span>
+    <span class="header_links">
+      <a href="#" id="csv_link" style="display: none">
+        <span class="header_link">Download results as CSV</span>
+      </a>
+    </span>
 
     <span class="main_views">
       <span><a href="media/index.html"><span class="main_view">Date</span></a></span>
@@ -195,6 +200,7 @@
         removeAllChildren(document.querySelector('.summary_stats'));
         document.querySelector('#screensaver_link').style.display = 'none';
         document.querySelector('#shuffle_link').style.display = 'none';
+        document.querySelector('#csv_link').style.display = 'none';
         for (const ele of document.querySelectorAll('.breadcrumbs')) {
           ele.style.display = 'none';
         }
@@ -419,6 +425,61 @@
         processJson(getAllMediaViaJsFile(), populateMedia);
       }
 
+      function writeCsvRow(cols) {
+        let ret = '';
+        for (let i = 0; i < cols.length; i += 1) {
+          if (i > 0) {
+            ret += ',';
+          }
+          ret += `"${encodeURIComponent(cols[i])}"`;
+        }
+        ret += encodeURIComponent('\n');
+
+        return ret;
+      }
+
+      function getCsvUriData() {
+        let ret = 'data:text/csv;charset=utf-8,';
+
+        ret += writeCsvRow(['ID', 'Type', 'Path', 'Size', 'Rating', 'Width', 'Height',
+                            'Exposure Time', 'Event ID', 'Latitude', 'Longitude', 'Title',
+                            'Camera', 'Camera Settings']);
+
+        for (const media of allMedia) {
+          const cols = [];
+          cols.push(media.id);
+          cols.push(media.type);
+          cols.push(media.link);
+          cols.push('filesize' in media ? media.filesize.toString() : '');
+          cols.push('rating' in media ? media.rating.toString() : '');
+          cols.push('width' in media ? media.width.toString() : '');
+          cols.push('height' in media ? media.height.toString() : '');
+          cols.push('exposure_time' in media ? media.exposure_time : '');
+          cols.push('event_id' in media ? media.event_id.toString() : '');
+          cols.push('lat' in media ? media.lat.toString() : '');
+          cols.push('lon' in media ? media.lon.toString() : '');
+          cols.push('title' in media ? media.title : '');
+          cols.push('camera' in media ? media.camera : '');
+          cols.push('exif' in media ? media.exif.join(' ') : '');
+          ret += writeCsvRow(cols);
+        }
+
+        return ret;
+      }
+
+      function downloadCsv(event) {
+        if (event.detail !== 1) {
+          return;
+        }
+
+        const link = document.createElement('a');
+        link.href = getCsvUriData();
+        link.download = 'media.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
       function showMedia(pageNumber, addToHistory) {
         const allMediaEle = document.querySelector('#all_media');
 
@@ -476,6 +537,10 @@
         screensaverLink.href = `screensaver.html${params}&photo_update_secs=10&kiosk=0`;
         screensaverLink.style.display = 'block';
         document.querySelector('#shuffle_link').style.display = 'block';
+
+        const csvLink = document.querySelector('#csv_link');
+        csvLink.addEventListener('click', (event) => { downloadCsv(event); });
+        csvLink.style.display = 'block';
 
         document.querySelector('.summary_stats').innerHTML = createAllStatsHtml();
 
