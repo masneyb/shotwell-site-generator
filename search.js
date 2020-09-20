@@ -415,7 +415,7 @@ function createNumberSearch(placeholderText, showGtLt) {
     descr: 'equals',
     matches(field, op, values, media) {
       return performGenericOp(field, media, values[0],
-        (input, value) => input != null && input === value);
+        (input, value) => input != null && input == value);
     },
     placeholder: [placeholderText],
     numValues: 1,
@@ -426,7 +426,7 @@ function createNumberSearch(placeholderText, showGtLt) {
     descr: 'not equals',
     matches(field, op, values, media) {
       return performGenericOp(field, media, values[0],
-        (input, value) => input == null || input !== value);
+        (input, value) => input == null || input != value);
     },
     placeholder: [placeholderText],
     numValues: 1,
