@@ -229,6 +229,7 @@ const textSearch = {
         return performGenericOp(field, media, values[0],
           (input, value) => input != null && input.toLowerCase().startsWith(value.toLowerCase()));
       },
+      numValues: 1,
     },
     {
       descr: 'ends with',
