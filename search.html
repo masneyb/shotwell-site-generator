@@ -263,8 +263,11 @@
         const op = field.search.ops[searchEles.querySelector('.search_op').selectedIndex];
 
         const values = searchEles.querySelector('.search_values');
+        const existingValues = [];
         if (op.numValues === values.children.length) {
-          return;
+          for (const child of values.children) {
+            existingValues.push([child.type, child.placeholder, child.value]);
+          }
         }
 
         removeAllChildren(values);
@@ -286,11 +289,16 @@
               input.step = op.inputStep[i];
             }
             input.size = 10;
-            if ('placeholder' in op && op.placeholder[i] != null) {
-              input.placeholder = op.placeholder[i];
-            }
+            input.placeholder = 'placeholder' in op && op.placeholder[i] != null ?
+                                op.placeholder[i] : "";
 
             input.addEventListener('change', () => { window.blur(); updateCritieraIfValuesPopulated(idx); });
+
+            if (i < existingValues.length &&
+                existingValues[i][0] === input.type &&
+                existingValues[i][1] === input.placeholder) {
+              input.value = existingValues[i][2];
+            }
 
             values.appendChild(input);
           }
@@ -309,8 +317,6 @@
           option.textContent = option.value = op.descr;
           select.appendChild(option);
         }
-
-        removeAllChildren(searchEles.querySelector('.search_values'));
 
         searchOpChanged(idx);
       }
