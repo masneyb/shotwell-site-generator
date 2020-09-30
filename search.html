@@ -34,12 +34,6 @@
       </a>
     </span>
     <span class="header_links">
-      <a href="#" id="shuffle_link" style="display: none"
-       onclick="shuffleArray(allMedia); showMedia(1, true);">
-        <span class="header_link">Shuffle media in search results</span>
-      </a>
-    </span>
-    <span class="header_links">
       <a href="#" id="csv_link" style="display: none">
         <span class="header_link">Download results as CSV</span>
       </a>
@@ -199,7 +193,6 @@
       function hideResultsInfo() {
         removeAllChildren(document.querySelector('.summary_stats'));
         document.querySelector('#screensaver_link').style.display = 'none';
-        document.querySelector('#shuffle_link').style.display = 'none';
         document.querySelector('#csv_link').style.display = 'none';
         for (const ele of document.querySelectorAll('.breadcrumbs')) {
           ele.style.display = 'none';
@@ -536,7 +529,6 @@
         const screensaverLink = document.querySelector('#screensaver_link');
         screensaverLink.href = `screensaver.html${params}&photo_update_secs=10&kiosk=0`;
         screensaverLink.style.display = 'block';
-        document.querySelector('#shuffle_link').style.display = 'block';
 
         const csvLink = document.querySelector('#csv_link');
         csvLink.addEventListener('click', (event) => { downloadCsv(event); });
