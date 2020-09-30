@@ -261,7 +261,7 @@ const textSearch = {
 const dateSearch = {
   ops: [
     {
-      descr: 'starts with',
+      descr: 'was taken on day',
       matches(field, op, values, media) {
         return performGenericOp(field, media, values[0],
           (input, value) => input != null && input.startsWith(value));
@@ -270,50 +270,7 @@ const dateSearch = {
       numValues: 1,
     },
     {
-      descr: 'is before',
-      matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0],
-          (input, value) => input != null && input < value);
-      },
-      placeholder: ['yyyy-MM-dd'],
-      numValues: 1,
-    },
-    {
-      descr: 'is after',
-      matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0],
-          (input, value) => input != null && input > value);
-      },
-      placeholder: ['yyyy-MM-dd'],
-      numValues: 1,
-    },
-    {
-      descr: 'is between',
-      matches(field, op, values, media) {
-        return performGenericOp(field, media, values,
-          (input, value) => input != null && input >= value[0] && input <= value[1]);
-      },
-      placeholder: ['yyyy-MM-dd', 'yyyy-MM-dd'],
-      numValues: 2,
-    },
-    {
-      descr: 'is set',
-      matches(field, op, values, media) {
-        return performGenericOp(field, media, null,
-          (input, value) => input != null && input !== '');
-      },
-      numValues: 0,
-    },
-    {
-      descr: 'is not set',
-      matches(field, op, values, media) {
-        return performGenericOp(field, media, null,
-          (input, value) => input == null || input === '');
-      },
-      numValues: 0,
-    },
-    {
-      descr: 'was taken on day',
+      descr: 'was taken on month/day',
       matches(field, op, values, media) {
         return performGenericOp(field, media, null, (input, value) => {
           if (input == null) {
@@ -358,6 +315,49 @@ const dateSearch = {
 
           return input.split('T')[0].split('-')[1] === month;
         });
+      },
+      numValues: 0,
+    },
+    {
+      descr: 'is before',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0],
+          (input, value) => input != null && input < value);
+      },
+      placeholder: ['yyyy-MM-dd'],
+      numValues: 1,
+    },
+    {
+      descr: 'is after',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0],
+          (input, value) => input != null && input > value);
+      },
+      placeholder: ['yyyy-MM-dd'],
+      numValues: 1,
+    },
+    {
+      descr: 'is between',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values,
+          (input, value) => input != null && input >= value[0] && input <= value[1]);
+      },
+      placeholder: ['yyyy-MM-dd', 'yyyy-MM-dd'],
+      numValues: 2,
+    },
+    {
+      descr: 'is set',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, null,
+          (input, value) => input != null && input !== '');
+      },
+      numValues: 0,
+    },
+    {
+      descr: 'is not set',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, null,
+          (input, value) => input == null || input === '');
       },
       numValues: 0,
     },
