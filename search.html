@@ -28,15 +28,10 @@
   <body>
     <span id="title" class="page_title">Search</span>
     <span class="summary_stats"></span>
-    <span class="header_links">
-      <a id="screensaver_link" style="display: none">
-        <span class="header_link">Screensaver with only these photos</span>
-      </a>
-    </span>
-    <span class="header_links">
-      <a href="#" id="csv_link" style="display: none">
-        <span class="header_link">Download results as CSV</span>
-      </a>
+    <span class="header_links" style="display: none">
+      <a href="#" id="csv_link"><span class="header_link">CSV Download</span></a>
+      &nbsp;
+      <a id="screensaver_link"><span class="header_link">Screensaver</span></a>
     </span>
 
     <span class="main_views">
@@ -192,8 +187,7 @@
 
       function hideResultsInfo() {
         removeAllChildren(document.querySelector('.summary_stats'));
-        document.querySelector('#screensaver_link').style.display = 'none';
-        document.querySelector('#csv_link').style.display = 'none';
+        document.querySelector('.header_links').style.display = 'none';
         for (const ele of document.querySelectorAll('.breadcrumbs')) {
           ele.style.display = 'none';
         }
@@ -532,13 +526,13 @@
 
         const params = window.location.search.startsWith('?') ? window.location.search : '?';
 
-        const screensaverLink = document.querySelector('#screensaver_link');
-        screensaverLink.href = `screensaver.html${params}&photo_update_secs=10&kiosk=0`;
-        screensaverLink.style.display = 'block';
+        document.querySelector('#screensaver_link').href =
+            `screensaver.html${params}&photo_update_secs=10&kiosk=0`;
 
-        const csvLink = document.querySelector('#csv_link');
-        csvLink.addEventListener('click', (event) => { downloadCsv(event); });
-        csvLink.style.display = 'block';
+        document.querySelector('.header_links').style.display = 'block';
+
+        document.querySelector('#csv_link').addEventListener('click',
+                                                             (event) => { downloadCsv(event); });
 
         document.querySelector('.summary_stats').innerHTML = createAllStatsHtml();
 
