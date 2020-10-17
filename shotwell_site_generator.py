@@ -99,7 +99,7 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--dest-directory", required=True)
     ARGPARSER.add_argument("--src-assets-directory", required=True)
     ARGPARSER.add_argument("--title", required=True)
-    ARGPARSER.add_argument("--thumbnail-size", default="360x360")
+    ARGPARSER.add_argument("--thumbnail-size", default="390x390")
     ARGPARSER.add_argument("--years-prior-are-approximate", default="2000")
     ARGPARSER.add_argument("--max-media-per-page", type=int, default=24)
     ARGPARSER.add_argument("--default-view", default="media")

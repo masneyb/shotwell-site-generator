@@ -40,20 +40,20 @@ a {
 
 .media {
 	display: inline-block;
-	width: 360px;
-	padding: 20px;
+	width: 390px;
+	padding: 5px;
 	vertical-align: text-top;
 }
 
 .media_thumb {
 	display: block;
-	width: 360px;
+	width: 390px;
 }
 
 .media_title, .media_comment, .media_metadata {
 	display: block;
 	padding-left: 13px;
-	width: 334px;
+	width: 364px;
 }
 
 .media_title {
