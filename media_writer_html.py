@@ -167,7 +167,9 @@ class Html(CommonWriter):
 
         ret += self.__get_tag_event_links(tag)
 
-        ret += self.__get_search_element("tag", "Tag ID", tag["id"])
+        ret += "<span class='header_links'>"
+        ret += self.__get_search_element("Tag ID", tag["id"])
+        ret += "</span>"
 
         return ret
 
@@ -388,27 +390,24 @@ class Html(CommonWriter):
 
         if year in all_media_index["year"]:
             ret += "<span class='header_links'>"
-            ret += self.__get_all_media_link(all_media_index["year"][year], "year")
+            ret += self.__get_all_media_link(all_media_index["year"][year])
             ret += "</span>"
 
         ret += self.__get_popular_tag_header_links(self.all_media["events_by_year"][year]["tags"])
 
-
         return ret
 
-    def __get_all_media_link(self, link, description):
+    def __get_all_media_link(self, link):
         return "<a href='%s'>" % (self.__get_page_url_with_anchor(["media", "index"],
                                                                   link["page"])) + \
-               "<span class='header_link'>Other media near this %s</span>" % (description) + \
+               "<span class='header_link'>Nearby Media</span>" + \
                "</a>"
 
-    def __get_search_element(self, descr, search_field, search_val):
+    def __get_search_element(self, search_field, search_val):
         search = html.escape("%s,equals,%s" % (search_field, search_val))
-        return "<span class='header_links'>" + \
-               "<a href='../search.html?search=%s'>" % (search) + \
-               "<span class='header_link'>Search within this %s</span>" % (descr) + \
-               "</a>" + \
-               "</span>"
+        return "<a href='../search.html?search=%s'>" % (search) + \
+               "<span class='header_link'>Search</span>" + \
+               "</a>"
 
     def __write_event_index_file(self):
         shown_media = []
@@ -449,9 +448,12 @@ class Html(CommonWriter):
 
     def __get_event_extra_links(self, event, all_media_index, all_year_index, years):
         ret = "<span class='header_links'>"
+
+        ret += self.__get_search_element("Event ID", event["id"])
+
         if event["id"] in all_media_index["event"]:
-            ret += self.__get_all_media_link(all_media_index["event"][event["id"]], "event")
-        ret += "</span>"
+            ret += " &nbsp; "
+            ret += self.__get_all_media_link(all_media_index["event"][event["id"]])
 
         year_links = []
         for year in years:
@@ -460,15 +462,19 @@ class Html(CommonWriter):
 
             idx = all_year_index[year][event["id"]]
             link = self.__get_page_url_with_anchor(["year", year], idx["page"])
+
             year_links.append("<a href='%s'>" % (link) + \
                               "<span class='header_link'>%s</span>" % (year) + \
                               "</a>")
 
-        ret += self.__get_expandable_header_links("Years with this event", year_links)
+        if len(year_links) < 10:
+            ret += "&nbsp;" + " &nbsp; ".join(year_links)
+            ret += "</span>"
+        else:
+            ret += "</span>"
+            ret += self.__get_expandable_header_links("Years", year_links)
 
         ret += self.__get_popular_tag_header_links(event["tags"])
-
-        ret += self.__get_search_element("event", "Event ID", event["id"])
 
         return ret
 
@@ -722,10 +728,8 @@ class Html(CommonWriter):
             if not page_date_range or page_date_range == date_range:
                 output.write("<span class='date_range'>%s</span>" % (html.escape(date_range)))
             else:
-                output.write("<span class='date_range'>%s (on this page)</span>" % \
-                             (html.escape(page_date_range)))
-                output.write("<span class='date_range'>%s (overall)</span>" % \
-                             (html.escape(date_range)))
+                output.write("<span class='date_range'>%s (page) &nbsp; %s (overall)</span>" % \
+                             (html.escape(page_date_range), html.escape(date_range)))
 
         return output
 
