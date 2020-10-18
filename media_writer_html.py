@@ -152,8 +152,6 @@ class Html(CommonWriter):
         self.__write_tag_index_html_files()
 
     def __get_tag_page_header_links(self, tag):
-        ret = ""
-
         links = []
         parent = tag["parent_tag"]
         while parent:
@@ -163,13 +161,20 @@ class Html(CommonWriter):
 
         links.reverse()
 
-        ret += self.__get_expandable_header_links("Tag Parents", links)
+        ret = "<span class='header_links'>"
+
+        ret += self.__get_search_element("Tag ID", tag["id"])
+
+        if not links:
+            ret += "</span>"
+        elif len(links) <= 11:
+            ret += " &nbsp; Parents: " + " &nbsp; ".join(links)
+            ret += "</span>"
+        else:
+            ret += "</span>"
+            ret += self.__get_expandable_header_links("Tag Parents", links)
 
         ret += self.__get_tag_event_links(tag)
-
-        ret += "<span class='header_links'>"
-        ret += self.__get_search_element("Tag ID", tag["id"])
-        ret += "</span>"
 
         return ret
 
@@ -467,7 +472,7 @@ class Html(CommonWriter):
                               "<span class='header_link'>%s</span>" % (year) + \
                               "</a>")
 
-        if len(year_links) < 10:
+        if len(year_links) <= 11:
             ret += "&nbsp;" + " &nbsp; ".join(year_links)
             ret += "</span>"
         else:
