@@ -232,13 +232,13 @@ class Html(CommonWriter):
                                                       media["title"], "media_title"))
 
         if stats:
-            descr = self.__get_stats_description(stats)
             if show_daterange:
                 date_range = self._get_date_range(stats["min_date"], stats["max_date"])
-                if date_range:
-                    descr += " &nbsp; " + date_range
+            else:
+                date_range = None
 
-            output.write("<span class='media_metadata'>%s</span>" % (descr))
+            output.write("<span class='media_metadata'>%s</span>" %
+                         (self.__get_stats_description(stats, date_range, None)))
 
         if media["comment"]:
             output.write(self.__get_expandable_string("comment%s" % (media["id"]),
@@ -720,16 +720,9 @@ class Html(CommonWriter):
         if title:
             output.write("<span class='page_title'>%s</span>" % (html.escape(title)))
 
-        output.write("<span class='summary_stats'>%s</span>" % \
-                     (self.__get_stats_description(stats)))
-
         date_range = self._get_date_range(stats["min_date"], stats["max_date"])
-        if date_range:
-            if not page_date_range or page_date_range == date_range:
-                output.write("<span class='date_range'>%s</span>" % (html.escape(date_range)))
-            else:
-                output.write("<span class='date_range'>%s (page) &nbsp; %s (overall)</span>" % \
-                             (html.escape(page_date_range), html.escape(date_range)))
+        output.write("<span class='summary_stats'>%s</span>" % \
+                     (self.__get_stats_description(stats, date_range, page_date_range)))
 
         return output
 
@@ -744,7 +737,7 @@ class Html(CommonWriter):
         output.write("</html>")
         output.close()
 
-    def __get_stats_description(self, stats):
+    def __get_stats_description(self, stats, date_range, page_date_range):
         ret = []
         if stats["num_photos"] > 0:
             if stats["num_photos"] == 1:
@@ -766,6 +759,17 @@ class Html(CommonWriter):
         if stats["total_filesize"] > 0:
             ret.append("<span class='stat'>%s</span>" % \
                        (humanize.naturalsize(stats["total_filesize"], binary=True)))
+
+        ret2 = []
+        if date_range:
+            if not page_date_range or page_date_range == date_range:
+                ret.append(date_range)
+            else:
+                ret2.append("%s (page)" % (page_date_range))
+                ret2.append("%s (overall)" % (date_range))
+
+        if ret2:
+            return "%s<br/>%s" % (" &nbsp; ".join(ret), " &nbsp; ".join(ret2))
 
         return " &nbsp; ".join(ret)
 
