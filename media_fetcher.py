@@ -370,7 +370,8 @@ class Database:
 
         if download_source:
             if media_id.startswith("video"):
-                media["filename"] = self.__transform_video(download_source)
+                transformed_video = self.__transform_video(download_source)
+                media["filename"] = self.__get_html_basepath(transformed_video)
             else:
                 media["filename"] = self.__get_html_basepath(download_source)
         else:
