@@ -33,11 +33,14 @@ def process_photos(options):
 
     thumbnailer = media_thumbnailer.Imagemagick(options.thumbnail_size,
                                                 options.dest_directory,
-                                                options.remove_stale_thumbnails)
+                                                options.remove_stale_thumbnails,
+                                                options.imagemagick_command,
+                                                options.video_convert_command)
 
     fetcher = media_fetcher.Database(conn, options.input_media_path,
                                      options.input_thumbs_directory, options.dest_directory,
                                      thumbnailer, set(options.tags_to_skip),
+                                     options.video_convert_ext,
                                      __get_image_path(options, "panorama-icon.png"),
                                      __get_image_path(options, "play-icon.png"),
                                      __get_image_path(options, "raw-icon.png"))
@@ -107,5 +110,10 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--expand-all-elements", action="store_true", default=False)
     ARGPARSER.add_argument("--remove-stale-thumbnails", action="store_true", default=False)
     ARGPARSER.add_argument("--skip-original-symlink", action="store_true", default=False)
+    ARGPARSER.add_argument("--imagemagick-command", default="convert")
+    ARGPARSER.add_argument("--video-convert-command",
+                           help="Standardize all videos to a common format. Example: ffmpeg -y " + \
+                                "-hide_banner -loglevel warning -i {infile} {outfile}")
+    ARGPARSER.add_argument("--video-convert-ext", help="example: mp4")
     ARGPARSER.add_argument("--version-label")
     process_photos(ARGPARSER.parse_args(sys.argv[1:]))

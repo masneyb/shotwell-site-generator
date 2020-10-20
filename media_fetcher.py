@@ -26,7 +26,7 @@ from common import add_date_to_stats, cleanup_event_title
 class Database:
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
     def __init__(self, conn, input_media_path, input_thumbs_directory, dest_directory,
-                 thumbnailer, tags_to_skip, panorama_icon, play_icon, raw_icon):
+                 thumbnailer, tags_to_skip, video_convert_ext, panorama_icon, play_icon, raw_icon):
         # pylint: disable=too-many-arguments
         self.conn = conn
         self.input_media_path = input_media_path
@@ -35,6 +35,7 @@ class Database:
         self.transformed_origs_directory = os.path.join(dest_directory, "transformed")
         self.tags_to_skip = tags_to_skip
         self.thumbnailer = thumbnailer
+        self.video_convert_ext = video_convert_ext
         self.panorama_icon = panorama_icon
         self.play_icon = play_icon
         self.raw_icon = raw_icon
@@ -338,10 +339,18 @@ class Database:
         transformed_path = os.path.join(self.transformed_origs_directory,
                                         self.__strip_path_prefix(source_image,
                                                                  self.input_media_path))
-        image = self.thumbnailer.transform_original_image(source_image, transformed_path,
-                                                          parsed_transformations, thumbnail)
+        return self.thumbnailer.transform_original_image(source_image, transformed_path,
+                                                         parsed_transformations, thumbnail)
 
-        return image
+    def __transform_video(self, source_video):
+        if not self.video_convert_ext or source_video.lower().endswith(self.video_convert_ext):
+            return source_video
+
+        part = self.__strip_path_prefix(source_video, self.input_media_path) + \
+               "." + self.video_convert_ext
+
+        transformed_path = os.path.join(self.transformed_origs_directory, part)
+        return self.thumbnailer.transform_video(source_video, transformed_path)
 
     def __add_media(self, all_media, row, media_id, download_source, thumbnail_source,
                     transformations, rotate, overlay_icon):
@@ -360,7 +369,10 @@ class Database:
             thumbnail_source = media["shotwell_thumbnail_path"]
 
         if download_source:
-            media["filename"] = self.__get_html_basepath(download_source)
+            if media_id.startswith("video"):
+                media["filename"] = self.__transform_video(download_source)
+            else:
+                media["filename"] = self.__get_html_basepath(download_source)
         else:
             # Overwrite the passed in thumbnail_source so that the transformed image is used
             # as the input image to generate the thumbnail.

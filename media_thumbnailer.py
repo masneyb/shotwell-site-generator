@@ -24,11 +24,15 @@ import subprocess
 COMPOSITE_FRAME_SIZE = 4
 
 class Imagemagick:
-    def __init__(self, thumbnail_size, dest_directory, remove_stale_thumbnails):
+    def __init__(self, thumbnail_size, dest_directory, remove_stale_thumbnails,
+                 imagemagick_command, video_convert_command):
+        # pylint: disable=too-many-arguments
         self.thumbnail_size = thumbnail_size
         self.dest_thumbs_directory = os.path.join(dest_directory, "thumbnails")
         self.transformed_origs_directory = os.path.join(dest_directory, "transformed")
         self.remove_stale_thumbnails = remove_stale_thumbnails
+        self.imagemagick_command = imagemagick_command
+        self.video_convert_command = video_convert_command
         self.generated_thumbnails = set([])
 
     def create_composite_media_thumbnail(self, title, source_media, dest_filename):
@@ -53,7 +57,8 @@ class Imagemagick:
         if not source_media:
             logging.warning("Creating empty thumbnail %s due to no media in %s",
                             dest_filename, title)
-            cmd = ["convert", "-size", self.thumbnail_size, "xc:lightgray", dest_filename]
+            cmd = [self.imagemagick_command, "-size", self.thumbnail_size, "xc:lightgray",
+                   dest_filename]
             subprocess.run(cmd, check=False)
             pathlib.Path(tn_idx_file).write_text(tn_idx_contents)
             return
@@ -141,15 +146,30 @@ class Imagemagick:
 
         return num_photos, tile_size, geometry
 
+    def transform_video(self, original_video, transformed_video):
+        if not self.video_convert_command:
+            return original_video
+
+        cmd = []
+        for part in self.video_convert_command.split(' '):
+            part = part.replace('{infile}', original_video).replace('{outfile}', transformed_video)
+            cmd.append(part)
+
+        return self.__run_cmd(cmd, transformed_video, None)
+
     def transform_original_image(self, original_image, transformed_image, transformations,
                                  thumbnail):
         # Use imagemagick to perform transformations on the original image that are defined in
         # Shotwell.
 
-        args = self.__get_imagemagick_transformation_args(transformations)
-        if not args:
+        cmd = self.__get_imagemagick_transformation_cmd(original_image, transformed_image,
+                                                        transformations)
+        if not cmd:
             return original_image
 
+        return self.__run_cmd(cmd, transformed_image, thumbnail)
+
+    def __run_cmd(self, cmd, transformed_image, thumbnail):
         self.generated_thumbnails.add(transformed_image)
 
         base_dir = os.path.dirname(transformed_image)
@@ -158,16 +178,15 @@ class Imagemagick:
 
         idx_file = transformed_image + ".idx"
         self.generated_thumbnails.add(idx_file)
-        idx_contents = " ".join(args)
+        idx_contents = " ".join(cmd)
 
         if self.__is_thumbnail_up_to_date(transformed_image, idx_file, idx_contents):
             return transformed_image
 
-        if os.path.exists(thumbnail):
+        if thumbnail and os.path.exists(thumbnail):
             # This will be recreated later based on the transformed image
             os.unlink(thumbnail)
 
-        cmd = ["convert", original_image, *args, transformed_image]
         logging.info("Transforming original image: %s", " ".join(cmd))
         subprocess.run(cmd, check=False)
 
@@ -175,7 +194,8 @@ class Imagemagick:
 
         return transformed_image
 
-    def __get_imagemagick_transformation_args(self, transformations):
+    def __get_imagemagick_transformation_cmd(self, original_image, transformed_image,
+                                             transformations):
         if not transformations:
             return None
 
@@ -200,7 +220,7 @@ class Imagemagick:
         # adjustments.shadows, adjustments.exposure, and adjustments.saturation. There are others
         # that are supported by shotwell that are not referenced here.
 
-        return args
+        return [self.imagemagick_command, original_image, *args, transformed_image]
 
     def create_rounded_and_square_thumbnail(self, source_image, rotate, resized_image,
                                             overlay_icon):
@@ -219,7 +239,7 @@ class Imagemagick:
         logging.info("Generating thumbnail for %s", source_image)
 
         # Crop the thumbnail and add rounded corners to it using Imagemagick
-        resize_cmd = ["convert", source_image, "-rotate", str(rotate), "-strip",
+        resize_cmd = [self.imagemagick_command, source_image, "-rotate", str(rotate), "-strip",
                       "-thumbnail", "%s^" % (self.thumbnail_size),
                       "-gravity", "center", "-extent", self.thumbnail_size]
 
