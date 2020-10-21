@@ -1,0 +1,14 @@
+- made the generated thumbnails larger and the text more compact across
+  the whole generated site. Note that this requires removing your entire
+  thumbnails/ directory in the generated HTML directory so that they can
+  be regenerated.
+- search page now acts as a single page application and is much faster
+- photo/video metadata on the search page now matches what's on the
+  staticly-generated pages
+- add optional support for converting videos to a common format via the
+  new command line arguments --video-convert-command and
+  --video-convert-ext
+- add search links to the statically-generated event and tag pages
+- fix for searching for text fields that have multiple values
+- hide the keyboard on mobile on the search page after enter has been pressed
+- add 'CSV Download' link to the search page
