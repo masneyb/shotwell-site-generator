@@ -619,8 +619,8 @@ const searchFields = [
     title: 'Type',
     search: mediaTypeSearch,
     searchFields: ['type'],
-    validValues: [['photo', 'photo'], ['raw photo', 'raw_photo'], ['video', 'video'],
-      ['event', 'events'], ['tag', 'tags']],
+    validValues: [['event', 'events'], ['photo', 'photo'], ['raw photo', 'raw_photo'],
+                  ['tag', 'tags'], ['video', 'video'], ['year', 'years']],
   },
   {
     title: 'Video Duration',
@@ -688,7 +688,8 @@ function performSearch(allItems) {
   const fileExtensions = new Set([]);
 
   const ret = [];
-  for (const mediaType of [['events', 'Event: '], ['tags', 'Tag: '], ['media', '']]) {
+  for (const mediaType of [['media', ''], ['events', 'Event: '], ['tags', 'Tag: '],
+                           ['years', 'Year: ']]) {
     for (const media of allItems[mediaType[0]]) {
       if (!('type' in media)) {
         media.type = mediaType[0];

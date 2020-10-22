@@ -76,8 +76,19 @@ class Json(CommonWriter):
 
                 shown_media.append(item)
 
-        shown_tags = []
+        shown_events.sort(key=lambda event: event["date"], reverse=True)
+        shown_media.sort(key=lambda media: media["exposure_time"], reverse=True)
 
+        tags = self.__get_tags()
+        years = self.__get_years()
+        ret = {"title": self.main_title, "version_label": self.version_label,
+               "generated_at": self.generated_at, "media": shown_media,
+               "events": shown_events, "tags": tags, "years": years}
+
+        self.__write_json_files(ret)
+
+    def __get_tags(self):
+        shown_tags = []
         for tag in self.all_media["tags_by_id"].values():
             if not tag["stats"]["min_date"]:
                 continue
@@ -94,15 +105,28 @@ class Json(CommonWriter):
 
             shown_tags.append(item)
 
-        shown_events.sort(key=lambda event: event["date"], reverse=True)
-        shown_media.sort(key=lambda media: media["exposure_time"], reverse=True)
         shown_tags.sort(key=lambda tag: tag["full_title"])
 
-        ret = {"title": self.main_title, "version_label": self.version_label,
-               "generated_at": self.generated_at, "media": shown_media,
-               "events": shown_events, "tags": shown_tags}
+        return shown_tags
 
-        self.__write_json_files(ret)
+    def __get_years(self):
+        shown_years = []
+        all_years = list(self.all_media["events_by_year"].keys())
+        all_years.sort(reverse=True)
+        for year in all_years:
+            year_block = self.all_media["events_by_year"][year]
+
+            item = {}
+            item["id"] = year
+            item["title"] = year
+            item["link"] = "year/%s.html" % (year)
+            item["thumbnail_path"] = "thumbnails/%s" % (year_block["thumbnail_path"])
+            item.update(self.__get_stats(year_block["stats"]))
+            shown_years.append(item)
+
+        shown_years.sort(key=lambda year: year["title"], reverse=True)
+
+        return shown_years
 
     def __write_json_files(self, ret):
         # No part of the generated site reads this generated media.json file. Including here
