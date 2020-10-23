@@ -175,19 +175,15 @@
 
         let ele = document.createElement('span');
         ele.id = shortId;
-        ele.class = 'clickable';
         ele.style.display = 'block';
-        ele.addEventListener('click', () => { jsHideShow(shortId, longId); });
-        ele.innerHTML = `${trimmedValue.substring(0, 50).trim()}... &nbsp; <span class='more_less'>More</span>`;
+        ele.innerHTML = `${trimmedValue.substring(0, 50).trim()}... &nbsp; <span class='more_less' onClick='jsHideShow("${shortId}", "${longId}");'>More</span>`;
         parentEle.appendChild(ele);
 
         ele = document.createElement('span');
         ele.id = longId;
-        ele.class = 'clickable';
         ele.style.display = 'none';
-        ele.addEventListener('click', () => { jsHideShow(longId, shortId); });
         const longValEscaped = trimmedValue.replace(/</g, '&lt;').replace(/>/g, '&gt').replace(/\n/g, '<br/>');
-        ele.innerHTML = `${longValEscaped} &nbsp; <span class='more_less'>Less</span>`;
+        ele.innerHTML = `${longValEscaped} &nbsp; <span class='more_less' onClick='jsHideShow("${longId}", "${shortId}");'>Less</span>`;
         parentEle.appendChild(ele);
 
         return parentEle;
