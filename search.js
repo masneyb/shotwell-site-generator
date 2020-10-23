@@ -138,7 +138,7 @@ function shuffleArray(arr) {
   }
 }
 
-function textSearchContains(fieldInfo, op, value, media) {
+function doTextSearch(fieldInfo, op, value, media, searchOp) {
   const allParts = value.toLowerCase().split(' ');
   let numPartsMatched = 0;
 
@@ -151,7 +151,7 @@ function textSearchContains(fieldInfo, op, value, media) {
         // NOOP
       } else if (Array.isArray(input)) {
         for (const inputpart of input) {
-          if (inputpart.toLowerCase().includes(part)) {
+          if (searchOp(inputpart, part)) {
             partFound = true;
             break;
           }
@@ -160,7 +160,7 @@ function textSearchContains(fieldInfo, op, value, media) {
         if (partFound) {
           break;
         }
-      } else if (input.toLowerCase().includes(part)) {
+      } else if (searchOp(input, part)) {
         partFound = true;
         break;
       }
@@ -172,6 +172,24 @@ function textSearchContains(fieldInfo, op, value, media) {
   }
 
   return numPartsMatched === allParts.length;
+}
+
+function textSearchContains(fieldInfo, op, value, media) {
+  return doTextSearch(fieldInfo, op, value, media, function (input, searchterm) {
+    return input.toLowerCase().includes(searchterm);
+  });
+}
+
+function textSearchContainsWord(fieldInfo, op, value, media) {
+  return doTextSearch(fieldInfo, op, value, media, function (input, searchterm) {
+    for (const part of input.toLowerCase().split(' ')) {
+       if (part === searchterm) {
+         return true;
+       }
+    }
+
+    return false;
+  });
 }
 
 function performGenericOp(fieldInfo, media, value, opFunc) {
@@ -201,9 +219,23 @@ const textSearch = {
       numValues: 1,
     },
     {
-      descr: 'does not contain',
+      descr: 'missing',
       matches(field, op, values, media) {
         return !textSearchContains(field, op, values[0], media);
+      },
+      numValues: 1,
+    },
+    {
+      descr: 'contains word',
+      matches(field, op, values, media) {
+        return textSearchContainsWord(field, op, values[0], media);
+      },
+      numValues: 1,
+    },
+    {
+      descr: 'missing word',
+      matches(field, op, values, media) {
+        return !textSearchContainsWord(field, op, values[0], media);
       },
       numValues: 1,
     },
