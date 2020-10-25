@@ -112,8 +112,9 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--skip-original-symlink", action="store_true", default=False)
     ARGPARSER.add_argument("--imagemagick-command", default="convert")
     ARGPARSER.add_argument("--video-convert-command",
-                           help="Standardize all videos to a common format. Example: ffmpeg -y " + \
-                                "-hide_banner -loglevel warning -i {infile} {outfile}")
+                           help="Standardize all videos to a common format. Example: ffmpeg " + \
+                                "-y -hide_banner -loglevel warning -i {infile} -c:v libx264 " + \
+                                "-preset slow -pix_fmt yuv420p -c:a aac -b:a 128k {outfile}")
     ARGPARSER.add_argument("--video-convert-ext", help="example: mp4")
     ARGPARSER.add_argument("--version-label")
     process_photos(ARGPARSER.parse_args(sys.argv[1:]))
