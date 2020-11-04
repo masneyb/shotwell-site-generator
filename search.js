@@ -742,6 +742,11 @@ function performSearch(allItems) {
         media.event_name = eventNames[media.event_id];
       }
 
+      if (mediaType[0] !== 'media') {
+        media.time_created = media.min_date;
+        media.exposure_time = media.max_date;
+      }
+
       if (mediaType[0] === 'events') {
         media.event_id = media.id;
         media.event_name = media.title;
@@ -790,6 +795,26 @@ function performSearch(allItems) {
       }
     }
   }
+
+  const sorted_types = {photo: 0, raw_photo: 0, video: 0, events: 1, tags: 2, years: 3};
+  const sortby = getQueryParameter('sortby', 'taken'); // taken,created
+  const sort_field = sortby === 'created' ? 'time_created' : 'exposure_time';
+
+  ret.sort((a, b) => {
+    if (sorted_types[a.type] < sorted_types[b.type]) {
+      return -1;
+    } else if (sorted_types[a.type] > sorted_types[b.type]) {
+      return 1;
+    } else {
+      if (a[sort_field] < b[sort_field]) {
+        return 1;
+      } else if (a[sort_field] > b[sort_field]) {
+        return -1;
+      } else {
+        return 0;
+      }
+    }
+  });
 
   for (const field of searchFields) {
     if (field.title === 'File Extension') {

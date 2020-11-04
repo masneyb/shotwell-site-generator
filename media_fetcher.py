@@ -119,8 +119,9 @@ class Database:
     def __fetch_media(self, all_media):
         # Download regular photos...
         qry = "SELECT event_id, id, filename, title, comment, filesize, exposure_time, " + \
-              "rating, width, height, orientation, transformations FROM PhotoTable " + \
-              "WHERE develop_embedded_id = -1 AND event_id != -1 ORDER BY PhotoTable.exposure_time"
+              "time_created, rating, width, height, orientation, transformations " + \
+              "FROM PhotoTable WHERE develop_embedded_id = -1 AND event_id != -1 " + \
+              "ORDER BY PhotoTable.exposure_time"
         cursor = self.conn.cursor()
         for row in cursor.execute(qry):
             self.__process_photo_row(all_media, row, None, False)
@@ -131,8 +132,8 @@ class Database:
                   "PhotoTable.filename as download_filename, " + \
                   "BackingPhotoTable.filepath AS filename, PhotoTable.title, " + \
                   "PhotoTable.comment, PhotoTable.filesize, PhotoTable.exposure_time, " + \
-                  "PhotoTable.rating, PhotoTable.width, PhotoTable.height, " + \
-                  "PhotoTable.orientation, PhotoTable.transformations " + \
+                  "PhotoTable.time_created, PhotoTable.rating, PhotoTable.width, " + \
+                  "PhotoTable.height, PhotoTable.orientation, PhotoTable.transformations " + \
                   "FROM PhotoTable, BackingPhotoTable " + \
                   "WHERE PhotoTable.develop_embedded_id != -1 AND " + \
                   "BackingPhotoTable.id=PhotoTable.develop_embedded_id AND " + \
@@ -144,7 +145,7 @@ class Database:
 
         if self.__does_table_exist("VideoTable"):
             qry = "SELECT event_id, id, filename, title, comment, filesize, exposure_time, " + \
-                  "rating, clip_duration FROM VideoTable WHERE event_id != -1 " + \
+                  "time_created, rating, clip_duration FROM VideoTable WHERE event_id != -1 " + \
                   "ORDER BY exposure_time"
             cursor = self.conn.cursor()
             for row in cursor.execute(qry):
@@ -387,6 +388,7 @@ class Database:
         media["filesize"] = row["filesize"]
 
         media["exposure_time"] = row["exposure_time"]
+        media["time_created"] = row["time_created"]
         date = datetime.datetime.fromtimestamp(row["exposure_time"])
         media["year"] = date.strftime("%Y")
 
