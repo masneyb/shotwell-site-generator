@@ -37,6 +37,7 @@
       &nbsp;
       <a href="#" onClick="toggleMetadata();"><span class="header_link">Toggle Metadata</span></a>
     </span>
+    <span id="saved_searches" class="header_links" style="display: none"></span>
 
     <span class="main_views">
       <span><a href="media/index.html"><span class="main_view">Date</span></a></span>
@@ -201,9 +202,10 @@
 
       function hideResultsInfo() {
         removeAllChildren(document.querySelector('.summary_stats'));
-        document.querySelector('.header_links').style.display = 'none';
-        for (const ele of document.querySelectorAll('.breadcrumbs')) {
-          ele.style.display = 'none';
+        for (const search of ['.header_links', '.breadcrumbs']) {
+          for (const ele of document.querySelectorAll(search)) {
+            ele.style.display = 'none';
+          }
         }
       }
 
@@ -553,7 +555,9 @@
         document.querySelector('#screensaver_link').href =
             `screensaver.html${params}&photo_update_secs=10&kiosk=0`;
 
-        document.querySelector('.header_links').style.display = 'block';
+        for (const ele of document.querySelectorAll('.header_links')) {
+          ele.style.display = 'block';
+        }
 
         document.querySelector('#csv_link').addEventListener('click',
                                                              (event) => { downloadCsv(event); });
@@ -591,6 +595,40 @@
         window.history.pushState({}, '', 'search.html');
         processJson(getAllMediaViaJsFile(), populateMedia);
       }
+
+      function loadSavedSearches() {
+        /*
+         * Read the saved searches from a javascript file rather than as a JSON file using
+         * XMLHttpRequest to work around browser mitigations that are in place for
+         * CVE-2019-11730. This change allows the search page to function correctly when
+         * accessed over a file URI.
+         */
+
+        const scr = document.createElement('script');
+        scr.setAttribute('src', 'saved_searches.js');
+        scr.onload = function () {
+           const ele = document.querySelector('#saved_searches');
+           const savedSearches = getSavedSearches();
+           if (savedSearches.length == 0) {
+             return;
+           }
+
+           ele.appendChild(document.createTextNode('Saved Searches:'));
+           for (const search of savedSearches) {
+             let space = document.createElement('span');
+             space.innerHTML = ' &nbsp; ';
+             ele.appendChild(space);
+
+             let anchor = document.createElement('a');
+             anchor.href = search.url;
+             anchor.innerText = search.label;
+             ele.appendChild(anchor);
+           }
+        };
+        document.body.appendChild(scr);
+      }
+
+      loadSavedSearches();
 
       loadJson(populateMedia, () => {
         const allMediaEle = document.querySelector('#all_media');
