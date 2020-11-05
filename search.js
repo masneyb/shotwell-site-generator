@@ -796,19 +796,19 @@ function performSearch(allItems) {
     }
   }
 
-  const sorted_types = {photo: 0, raw_photo: 0, video: 0, events: 1, tags: 2, years: 3};
+  const sortedTypes = {photo: 0, raw_photo: 0, video: 0, events: 1, tags: 2, years: 3};
   const sortby = getQueryParameter('sortby', 'taken'); // taken,created
-  const sort_field = sortby === 'created' ? 'time_created' : 'exposure_time';
+  const sortField = sortby === 'created' ? 'time_created' : 'exposure_time';
 
   ret.sort((a, b) => {
-    if (sorted_types[a.type] < sorted_types[b.type]) {
+    if (sortedTypes[a.type] < sortedTypes[b.type]) {
       return -1;
-    } else if (sorted_types[a.type] > sorted_types[b.type]) {
+    } else if (sortedTypes[a.type] > sortedTypes[b.type]) {
       return 1;
     } else {
-      if (a[sort_field] < b[sort_field]) {
+      if (a[sortField] < b[sortField]) {
         return 1;
-      } else if (a[sort_field] > b[sort_field]) {
+      } else if (a[sortField] > b[sortField]) {
         return -1;
       } else {
         return 0;
