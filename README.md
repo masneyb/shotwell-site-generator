@@ -103,6 +103,9 @@ on your home server for the long term.
 Above: Raspberry Pi photo frame that's described on the [PHOTOFRAME.md](PHOTOFRAME.md) page that
 runs the [screensaver.html](screensaver.html) file.
 
+Instructions about how to create a photo book are described in the
+[photobook-helper/README.md](photobook-helper) directory.
+
 ## Contact
 
 Brian Masney [masneyb@onstation.org](mailto:masneyb@onstation.org)
