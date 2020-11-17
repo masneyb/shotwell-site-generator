@@ -104,7 +104,7 @@ Above: Raspberry Pi photo frame that's described on the [PHOTOFRAME.md](PHOTOFRA
 runs the [screensaver.html](screensaver.html) file.
 
 Instructions about how to create a photo book are described in the
-[photobook-helper/README.md](photobook-helper) directory.
+[photobook-helper](photobook-helper/README.md) directory.
 
 ## Contact
 
