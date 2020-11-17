@@ -1,9 +1,11 @@
 # Photo Book Creation Instructions
 
-This page details instructions about how to [photobook_helper.py](photobook_helper.py) that takes
-a large list of images from a file, and sends them in batches to the
-[PhotoCollage](https://github.com/adrienverge/PhotoCollage.git) project to make photo books. The
-user can easily control how many images are shown on each page and go back if desired.
+This page details instructions about how to run the
+[photobook_helper.py](photobook_helper.py script) that reads a large list of images from a file,
+and sends them in batches to the
+[PhotoCollage](https://github.com/adrienverge/PhotoCollage.git) project to make photo books one
+page at a time. The user can easily control how many images are shown on each page and go back
+to update previous batches if desired.
 
 - Clone the PhotoCollage project from <https://github.com/adrienverge/PhotoCollage.git>. Merge
   a separate branch that adds support for choosing the image export quality.
@@ -12,34 +14,42 @@ user can easily control how many images are shown on each page and go back if de
       git fetch ojob
       git merge ojob/choose-export-quality
 
-  I ordered a 13"x11" landscape book from <https://www.blurb.com>. Add preset for this size by
-  adding the following around line 669 in `photocollage/gtkgui.py`:
+  I ordered a 13"x11" landscape book from <https://www.blurb.com> so add a preset around line 669
+  in `photocollage/gtkgui.py`:
 
       ("12.625in x 10.875in  landscape (300ppi)", (3788, 3262)),
 
   I have a branch at <https://github.com/masneyb/PhotoCollage> with these changes.
 
-- Create a PhotoCollage run.sh script:
+- Create a run.sh script in the PhotoCollage directory:
 
       #!/usr/bin/env bash
-      PYTHONPATH=/home/masneyb/PhotoCollage /home/masneyb/PhotoCollage/bin/photocollage $@
+      export PYTHONPATH=~/src/PhotoCollage
+      "${PYTHONPATH}/bin/photocollage" $@
 
-- Start on the event or tag page for the generated HTML site for your photo library, and click
-  on the Search link. Once on the search page, limit the results further if desired, and
-  click the `CSV Download` link at the top of the page.
+- Open the generated HTML site for your photo library in your browser. From one of the event
+  or tag pages, click on the Search link, and limit the results further if desired. Click the
+  `CSV Download` link at the top of the search page and save the generated `media.csv` file.
 
-- Process the CSV file with the [csv-to-filelist.sh](csv-to-filelist.sh) script from this
-  directory:
+- Process the downloaded `media.csv` file with the [csv-to-filelist.sh](csv-to-filelist.sh) script:
 
       csv-to-filelist.sh < media.csv > files.txt
 
-- Now call the photobook helper script with the command:
+  If you want to add text to a page, then use ImageMagick to create that text on a separate image
+  and add it to the top of `files.txt`:
 
-      photobook_helper.py --infile files.txt --photocollage-bin ~/path/to/run.sh
+      convert -background black -gravity center -fill white -font FreeSans-Bold -size 1000x1000 \
+          -pointsize 96 caption:'This is the title' caption.jpg
 
-  By default only 10 images are passed to PhotoCollage. If you want more or less, simply close
-  the program and the [photobook_helper.py](photobook_helper.py) will prompt you for the next
-  action:
+  The caption image can be moved around in PhotoCollage like any other image.
+
+- Call the photobook helper script with the command:
+
+      photobook_helper.py --infile files.txt --photocollage-bin ~/src/PhotoCollage/run.sh
+
+  By default only 10 images are passed to PhotoCollage. If you want more or less photos, then
+  simply close the PhotoCollage program and [photobook_helper.py](photobook_helper.py) will
+  prompt you for the next action:
 
       Enter new number of photos for batch (10 / 86);
           (c)ontinue to next batch, (l)ast batch, or (q)uit: 
