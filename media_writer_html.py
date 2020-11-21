@@ -168,7 +168,7 @@ class Html(CommonWriter):
         if not links:
             ret += "</span>"
         elif len(links) <= 11:
-            ret += " &nbsp; Parents: " + " &nbsp; ".join(links)
+            ret += " · Parents: " + " · ".join(links)
             ret += "</span>"
         else:
             ret += "</span>"
@@ -299,7 +299,7 @@ class Html(CommonWriter):
         if not summary:
             return
 
-        sep = " &nbsp; "
+        sep = " · "
         output.write(self.__get_expandable_element("meta%s" % (media["media_id"]),
                                                    sep.join(summary), sep.join(summary + detailed),
                                                    "media_metadata", "More"))
@@ -353,12 +353,12 @@ class Html(CommonWriter):
 
         ret = "<span id='%s' class='%s' style='display: %s;'%s>%s" % \
               (short_id, span_class, short_display, short_outer_onclick, short_value) + \
-              " &nbsp; <span class='more_less'%s>%s</span>" % (short_inner_onclick, more_label) + \
+              " · <span class='more_less'%s>%s</span>" % (short_inner_onclick, more_label) + \
               "</span>"
 
         ret += "<span id='%s' class='%s' style='display: %s;'%s>%s" % \
                (long_id, span_class, long_display, long_outer_onclick, long_value) + \
-               " &nbsp; <span class='more_less'%s>Less</span>" % (long_inner_onclick) + \
+               " · <span class='more_less'%s>Less</span>" % (long_inner_onclick) + \
                "</span>"
 
         return ret
@@ -457,7 +457,7 @@ class Html(CommonWriter):
         ret += self.__get_search_element("Event ID", event["id"])
 
         if event["id"] in all_media_index["event"]:
-            ret += " &nbsp; "
+            ret += " · "
             ret += self.__get_all_media_link(all_media_index["event"][event["id"]])
 
         year_links = []
@@ -473,7 +473,7 @@ class Html(CommonWriter):
                               "</a>")
 
         if len(year_links) <= 11:
-            ret += "&nbsp;" + " &nbsp; ".join(year_links)
+            ret += " · " + " · ".join(year_links)
             ret += "</span>"
         else:
             ret += "</span>"
@@ -778,9 +778,9 @@ class Html(CommonWriter):
                 ret2.append("%s (overall)" % (date_range))
 
         if ret2:
-            return "%s<br/>%s" % (" &nbsp; ".join(ret), " &nbsp; ".join(ret2))
+            return "%s<br/>%s" % (" · ".join(ret), " · ".join(ret2))
 
-        return " &nbsp; ".join(ret)
+        return " · ".join(ret)
 
     def __has_shown_media(self, stats):
         return stats["num_photos"] > 0 or stats["num_videos"] > 0

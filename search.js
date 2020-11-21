@@ -117,7 +117,7 @@ function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator,
     ret.push(`<a href="media/index${link}.html">Browse Nearby Media</a>`);
   }
 
-  return ret.join(' &nbsp; ');
+  return ret.join(' · ');
 }
 
 function appendToExistingSearchUrl(criteria, appendOntoExisting) {

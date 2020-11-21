@@ -30,11 +30,11 @@
     <span class="summary_stats"></span>
     <span class="header_links" style="display: none">
       <a href="#" id="csv_link"><span class="header_link">CSV Download</span></a>
-      &nbsp;
+      ·
       <a id="screensaver_link"><span class="header_link">Screensaver</span></a>
-      &nbsp;
+      ·
       <a href="#" onClick="shuffleArray(allMedia); showMedia(1, true);"><span class="header_link">Shuffle</span></a>
-      &nbsp;
+      ·
       <a href="#" onClick="toggleMetadata();"><span class="header_link">Toggle Metadata</span></a>
     </span>
     <span id="saved_searches" class="header_links" style="display: none"></span>
@@ -181,14 +181,14 @@
         let ele = document.createElement('span');
         ele.id = shortId;
         ele.style.display = 'block';
-        ele.innerHTML = `${trimmedValue.substring(0, 50).trim()}... &nbsp; <span class='more_less' onClick='jsHideShow("${shortId}", "${longId}");'>More</span>`;
+        ele.innerHTML = `${trimmedValue.substring(0, 50).trim()}... · <span class='more_less' onClick='jsHideShow("${shortId}", "${longId}");'>More</span>`;
         parentEle.appendChild(ele);
 
         ele = document.createElement('span');
         ele.id = longId;
         ele.style.display = 'none';
         const longValEscaped = trimmedValue.replace(/</g, '&lt;').replace(/>/g, '&gt').replace(/\n/g, '<br/>');
-        ele.innerHTML = `${longValEscaped} &nbsp; <span class='more_less' onClick='jsHideShow("${longId}", "${shortId}");'>Less</span>`;
+        ele.innerHTML = `${longValEscaped} · <span class='more_less' onClick='jsHideShow("${longId}", "${shortId}");'>Less</span>`;
         parentEle.appendChild(ele);
 
         return parentEle;
@@ -616,7 +616,7 @@
            ele.appendChild(document.createTextNode('Saved Searches:'));
            for (const search of savedSearches) {
              let space = document.createElement('span');
-             space.innerHTML = ' &nbsp; ';
+             space.innerHTML = ' · ';
              ele.appendChild(space);
 
              let anchor = document.createElement('a');
