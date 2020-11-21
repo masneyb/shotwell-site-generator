@@ -57,6 +57,10 @@ function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator,
     ret.push(`${entity.num_videos.toLocaleString()} videos`);
   }
 
+  if ('num_events' in entity && entity.num_events > 1) {
+    ret.push(`${entity.num_events.toLocaleString()} events`);
+  }
+
   if ('exposure_time_pretty' in entity) {
     ret.push(entity.exposure_time_pretty);
   }

@@ -758,6 +758,10 @@ class Html(CommonWriter):
                 ret.append("<span class='stat'>%s videos</span>" % \
                            (humanize.intcomma(stats["num_videos"])))
 
+        if stats["num_events"] > 1:
+            ret.append("<span class='stat'>%s events</span>" % \
+                       (humanize.intcomma(stats["num_events"])))
+
         if stats["num_videos"] == 0 and stats["num_photos"] == 0:
             ret.append("<span class='stat'>No media fits the search criteria.</span>")
 

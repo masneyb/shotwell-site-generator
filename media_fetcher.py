@@ -66,6 +66,7 @@ class Database:
                     all_media["events_by_year"][year]["tags"] = []
 
                 all_media["events_by_year"][year]["events"].append(event)
+                all_media["events_by_year"][year]["stats"]["num_events"] += 1
 
                 for media in event["media"]:
                     if media["year"] == year:
@@ -432,6 +433,7 @@ class Database:
 
     def __create_new_stats(self):
         stats = {}
+        stats["num_events"] = 0
         stats["num_photos"] = 0
         stats["num_videos"] = 0
         stats["total_filesize"] = 0

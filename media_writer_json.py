@@ -123,6 +123,7 @@ class Json(CommonWriter):
             item["title"] = year
             item["link"] = "year/%s.html" % (year)
             item["thumbnail_path"] = "thumbnails/%s" % (year_block["thumbnail_path"])
+            item["num_events"] = len(year_block["events"])
             item.update(self.__get_stats(year_block["stats"]))
             shown_years.append(item)
 
