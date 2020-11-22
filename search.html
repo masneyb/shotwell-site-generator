@@ -619,15 +619,16 @@
              return;
            }
 
-           ele.appendChild(document.createTextNode('Saved Searches:'));
-           for (const search of savedSearches) {
-             let space = document.createElement('span');
-             space.innerHTML = ' · ';
-             ele.appendChild(space);
+           for (let i = 0; i < savedSearches.length; i += 1) {
+             if (i > 0) {
+               let space = document.createElement('span');
+               space.innerHTML = ' · ';
+               ele.appendChild(space);
+             }
 
              let anchor = document.createElement('a');
-             anchor.href = search.url;
-             anchor.innerText = search.label;
+             anchor.href = savedSearches[i].url;
+             anchor.innerText = savedSearches[i].label;
              ele.appendChild(anchor);
            }
         };
