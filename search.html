@@ -151,11 +151,17 @@
         const ret = [];
         if ('photo' in totalsByTypes) {
           ret.push(`<span class="stat">${totalsByTypes.photo.toLocaleString()} photos</span>`);
-        } if ('video' in totalsByTypes) {
+        }
+        if ('video' in totalsByTypes) {
           ret.push(`<span class="stat">${totalsByTypes.video.toLocaleString()} videos</span>`);
-        } if ('events' in totalsByTypes) {
+        }
+        if ('events' in totalsByTypes) {
           ret.push(`<span class="stat">${totalsByTypes.events.toLocaleString()} events</span>`);
-        } if ('tags' in totalsByTypes) {
+        }
+        if ('years' in totalsByTypes) {
+          ret.push(`<span class="stat">${totalsByTypes.years.toLocaleString()} years</span>`);
+        }
+        if ('tags' in totalsByTypes) {
           ret.push(`<span class="stat">${totalsByTypes.tags.toLocaleString()} tags</span>`);
         }
 
