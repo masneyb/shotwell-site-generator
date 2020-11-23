@@ -17,8 +17,9 @@ to update previous batches if desired.
   I ordered a 13"x11" landscape book from <https://www.blurb.com> so add a preset around line 669
   in `photocollage/gtkgui.py`:
 
-      ("12.625in x 10.875in  landscape (300ppi)", (3788, 3262)),
+      ("12.625in x 10.875in  landscape (300ppi)", (3718, 3192)),
 
+  Note that this gives room for an extra 35px border that's added below when the PDF is created.
   I have a branch at <https://github.com/masneyb/PhotoCollage> with these changes.
 
 - Create a run.sh script in the PhotoCollage directory:
@@ -60,4 +61,4 @@ to update previous batches if desired.
 
 - Once all of the individual pages are created, a single PDF can be generated with the command:
 
-      convert page* -background black -units PixelsPerInch -density 300x300 book.pdf
+      convert page* -background black -bordercolor black -border 35 -units PixelsPerInch -density 300x300 book.pdf
