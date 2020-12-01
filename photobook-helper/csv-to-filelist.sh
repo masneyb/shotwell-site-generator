@@ -24,7 +24,7 @@ if [ "${EXTRA_HEADER_IMAGE}" != "" ] ; then
 	echo "${EXTRA_HEADER_IMAGE}"
 fi
 
-awk -F, '{print $3}' | sed s/\"//g | grep -v \.mp4$ | grep -v \.MP4$ | grep -v \.html$ | \
+awk -F\" '{print $6}' | sed s/\"//g | grep -v \.mp4$ | grep -v \.MP4$ | grep -v \.html$ | \
 		grep -v ^Path$ | tac | while IFS= read -r LINE ; do
 	echo "${FILE_PREFIX}/${LINE}"
 done
