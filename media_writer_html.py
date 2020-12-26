@@ -222,10 +222,10 @@ class Html(CommonWriter):
         output.write("<span class='media'>")
 
         if "media_id" in media:
-            output.write("<a target='_new' name='%s' href='%s'>" % \
+            output.write("<a name='%s' href='%s'>" % \
                          (html.escape(media["media_id"]), html.escape(link)))
         else:
-            output.write("<a target='_new' href='%s'>" % (html.escape(link)))
+            output.write("<a href='%s'>" % (html.escape(link)))
 
         output.write("<span class='media_thumb'><img src='../thumbnails/%s'/></span>" % \
                      (html.escape(thumbnail_path)))
