@@ -41,6 +41,10 @@ to update previous batches / pages if desired.
 
   `files.txt` will only contain the input images to use for the collage.
 
+- Paste the contents of the generated `files.txt` file into the
+  [photo-sorter.html](photo-sorter.html) page via a web browser to help filter the list of photos
+  even further.
+
 - If you want to add text to a page, then use ImageMagick to create that text on a separate image
   and add it to the top of `files.txt`:
 

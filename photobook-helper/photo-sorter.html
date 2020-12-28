@@ -1,0 +1,99 @@
+<html lang="en">
+  <!--
+      Helper to sort photos for the photo books.
+
+      Copyright (C) 2020 Brian Masney <masneyb@onstation.org>
+
+      Licensed under the Apache License, Version 2.0 (the "License");
+      you may not use this file except in compliance with the License.
+      You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+      Unless required by applicable law or agreed to in writing, software
+      distributed under the License is distributed on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+      See the License for the specific language governing permissions and
+      limitations under the License.
+  -->
+
+  <head>
+    <meta name="viewport" content="width=device-width"/>
+    <meta charset="UTF-8"/>
+    <title>Photo Sorter</title>
+    <style>
+      .image {
+        padding-top: 15px;
+      }
+
+      .title {
+        font-weight: bold;
+      }
+
+      img {
+        max-height: 500px;
+        max-width: 500px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div>
+      <div>Paste image file paths below without the file:// component. One image per line.</div>
+      <textarea id="filenames" rows="30" cols="80" onChange="updatePhotos();"></textarea>
+    </div>
+
+    <div id="images"></div>
+
+    <script type="text/javascript">
+      function updatePhotos() {
+        const imagesEle = document.querySelector('#images');
+        imagesEle.innerHTML = '';
+
+        const filenamesEle = document.querySelector('#filenames');
+
+        let index = 0;
+        for (filename of filenamesEle.value.split('\n')) {
+          filename = filename.trim();
+          if (filename == '')
+            continue;
+
+          let ele = document.createElement('div');
+          ele.className = 'image';
+
+          let button = document.createElement('button');
+          button.addEventListener('click', () => {
+            imagesEle.removeChild(ele);
+            updateFilenames();
+          });
+          button.textContent = 'Delete';
+          ele.appendChild(button);
+
+          let title = document.createElement('div');
+          title.className = 'filename';
+          title.innerHTML = filename;
+          ele.appendChild(title);
+
+          let img = document.createElement('img');
+          img.src = `file://${filename}`;
+          ele.appendChild(img);
+
+          imagesEle.appendChild(ele);
+          index += 1;
+        }
+      }
+
+      function updateFilenames() {
+        const imagesEle = document.querySelector('#images');
+        let filenames = '';
+        for (let child of imagesEle.children) {
+          const filenameEle = child.querySelector('.filename');
+          filenames += `${filenameEle.innerHTML}\n`;
+        }
+
+        const filenamesEle = document.querySelector('#filenames');
+        filenamesEle.value = filenames;
+      }
+    </script>
+  </body>
+</html>
