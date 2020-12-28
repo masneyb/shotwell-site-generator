@@ -67,3 +67,12 @@ to update previous batches / pages if desired.
 - Once all of the individual pages are created, a single PDF can be generated with the command:
 
       convert page* -gravity center -background black -extent 3788x3262 -units PixelsPerInch -density 300x300 book.pdf
+
+- If the convert command fails, check to ensure that your /tmp directory has enough space. The
+  command will also fail if the system runs out of memory. Additional swap space can be temporarily
+  added by running:
+
+      sudo dd if=/dev/zero of=~/swapfile bs=1M count=10240
+      sudo mkswap ~/swapfile
+      sudo chmod 0600 ~/swapfile
+      sudo swapon ~/swapfile
