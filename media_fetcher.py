@@ -121,8 +121,8 @@ class Database:
         # Download regular photos...
         qry = "SELECT event_id, id, filename, title, comment, filesize, exposure_time, " + \
               "time_created, rating, width, height, orientation, transformations " + \
-              "FROM PhotoTable WHERE develop_embedded_id = -1 AND event_id != -1 " + \
-              "ORDER BY PhotoTable.exposure_time"
+              "FROM PhotoTable WHERE develop_embedded_id = -1 AND event_id != -1 AND " + \
+              "rating >= 0 ORDER BY PhotoTable.exposure_time"
         cursor = self.conn.cursor()
         for row in cursor.execute(qry):
             self.__process_photo_row(all_media, row, None, False)
@@ -138,7 +138,7 @@ class Database:
                   "FROM PhotoTable, BackingPhotoTable " + \
                   "WHERE PhotoTable.develop_embedded_id != -1 AND " + \
                   "BackingPhotoTable.id=PhotoTable.develop_embedded_id AND " + \
-                  "PhotoTable.event_id != -1 " + \
+                  "PhotoTable.event_id != -1 AND PhotoTable.rating >= 0 " + \
                   "ORDER BY PhotoTable.exposure_time"
             cursor = self.conn.cursor()
             for row in cursor.execute(qry):
@@ -146,7 +146,8 @@ class Database:
 
         if self.__does_table_exist("VideoTable"):
             qry = "SELECT event_id, id, filename, title, comment, filesize, exposure_time, " + \
-                  "time_created, rating, clip_duration FROM VideoTable WHERE event_id != -1 " + \
+                  "time_created, rating, clip_duration FROM VideoTable " + \
+                  "WHERE event_id != -1 AND rating >= 0 " + \
                   "ORDER BY exposure_time"
             cursor = self.conn.cursor()
             for row in cursor.execute(qry):
