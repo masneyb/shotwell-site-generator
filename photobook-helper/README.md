@@ -17,10 +17,10 @@ to update previous batches / pages if desired.
   I ordered a 13"x11" landscape book from <https://www.blurb.com> so add a preset around line 669
   in `photocollage/gtkgui.py`:
 
-      ("12.625in x 10.875in  landscape (300ppi)", (3728, 3262)),
+      ("12.625in x 10.875in  landscape (300ppi)", (3756, 3262)),
 
-  Note that this gives room for an extra 35px border that's added below when the PDF is created.
-  Create a run.sh script in the PhotoCollage directory:
+  Note that this gives room for an extra 16px border on the left and right that's added below when
+  the PDF is created. Create a run.sh script in the PhotoCollage directory:
 
       #!/usr/bin/env bash
       export PYTHONPATH=$(dirname $0)
