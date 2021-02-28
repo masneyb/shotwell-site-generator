@@ -23,13 +23,14 @@ class CommonWriter:
     # pylint: disable=too-few-public-methods
 
     def __init__(self, all_media, main_title, max_media_per_page, years_prior_are_approximate,
-                 version_label):
+                 extra_header, version_label):
         # pylint: disable=too-many-arguments
 
         self.all_media = all_media
         self.main_title = main_title
         self.max_media_per_page = max_media_per_page
         self.years_prior_are_approximate = years_prior_are_approximate
+        self.extra_header = extra_header
         self.version_label = version_label
         self.generated_at = datetime.datetime.now(dateutil.tz.tzlocal()) \
             .strftime("%B %-d, %Y %H:%M:%S %Z")

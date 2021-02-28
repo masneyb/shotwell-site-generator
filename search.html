@@ -39,15 +39,7 @@
     </span>
     <span id="saved_searches" class="header_links" style="display: none"></span>
 
-    <span class="main_views">
-      <span><a href="media/index.html"><span class="main_view">Date</span></a></span>
-      <span><a href="event/index.html"><span class="main_view">Event</span></a></span>
-      <span><a href="year/index.html"><span class="main_view">Year</span></a></span>
-      <span><a href="tag/index.html"><span class="main_view">Tag</span></a></span>
-      <span>
-        <a href="search.html"><span class="main_view main_view_selected">Search</span></a>
-      </span>
-    </span>
+    <span class="main_views"><span><a href="media/index.html"><span class="main_view">Date</span></a></span><span><a href="event/index.html"><span class="main_view">Event</span></a></span><span><a href="year/index.html"><span class="main_view">Year</span></a></span><span><a href="tag/index.html"><span class="main_view">Tag</span></a></span><span id="extra_header"></span><span><a href="search.html"><span class="main_view main_view_selected">Search</span></a></span></span>
 
     <span class="breadcrumbs" style="display: none">
       <a class="firstpage"><span class="breadcrumb">|&lt;</span></a>
@@ -429,10 +421,25 @@
         }
       }
 
-      function populateMedia(newAllMedia, newEventNames, newTagNames) {
+      function populateMedia(newAllMedia, newEventNames, newTagNames, extraHeader) {
         allMedia = newAllMedia;
         eventNames = newEventNames;
         tagNames = newTagNames;
+
+        if (extraHeader) {
+          const extraHeaderEle = document.querySelector('#extra_header');
+
+          const outerSpan = document.createElement('span');
+          const anchor = document.createElement('a');
+          anchor.href = extraHeader.link;
+          const innerSpan = document.createElement('span');
+          innerSpan.className = 'main_view';
+          innerSpan.innerText = extraHeader.description;
+
+          anchor.appendChild(innerSpan);
+          outerSpan.appendChild(anchor);
+          extraHeaderEle.appendChild(outerSpan);
+        }
 
         showMedia(parseInt(getQueryParameter('page', '1'), 10), false);
         populateSearchValuesFromUrl();

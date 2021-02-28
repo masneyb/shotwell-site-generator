@@ -25,10 +25,10 @@ from media_writer_common import CommonWriter
 class Json(CommonWriter):
     # pylint: disable=too-few-public-methods
     def __init__(self, all_media, main_title, max_media_per_page, dest_directory,
-                 years_prior_are_approximate, version_label):
+                 years_prior_are_approximate, extra_header, version_label):
         # pylint: disable=too-many-arguments
         CommonWriter.__init__(self, all_media, main_title, max_media_per_page,
-                              years_prior_are_approximate, version_label)
+                              years_prior_are_approximate, extra_header, version_label)
         self.dest_directory = dest_directory
 
     def write(self):
@@ -86,6 +86,10 @@ class Json(CommonWriter):
         ret = {"title": self.main_title, "version_label": self.version_label,
                "generated_at": self.generated_at, "media": shown_media,
                "events": shown_events, "tags": tags, "years": years}
+
+        if self.extra_header:
+            ret['extra_header'] = {'description': self.extra_header[0],
+                                   'link': self.extra_header[1]}
 
         self.__write_json_files(ret)
 

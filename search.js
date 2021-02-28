@@ -865,7 +865,7 @@ function processJson(resp, readyFunc) {
   }
 
   const allMedia = performSearch(resp);
-  readyFunc(allMedia, eventNames, tagNames);
+  readyFunc(allMedia, eventNames, tagNames, resp.extra_header);
 }
 
 function loadJson(readyFunc, errorFunc) {

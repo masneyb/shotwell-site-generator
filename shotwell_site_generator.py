@@ -46,10 +46,15 @@ def process_photos(options):
                                      __get_image_path(options, "raw-icon.png"))
     all_media = fetcher.get_all_media()
 
+    if options.extra_header_link and options.extra_header_link_descr:
+        extra_header = (options.extra_header_link_descr, options.extra_header_link)
+    else:
+        extra_header = None
+
     photos = media_writer_html.Html(all_media, options.dest_directory, options.title,
                                     options.years_prior_are_approximate,
                                     options.max_media_per_page, options.expand_all_elements,
-                                    options.version_label)
+                                    extra_header, options.version_label)
 
     all_media_year_index = photos.write_all_media_index_file()
     photos.write_year_and_event_html_files(all_media_year_index)
@@ -58,7 +63,7 @@ def process_photos(options):
     json_writer = media_writer_json.Json(all_media, options.title,
                                          options.max_media_per_page, options.dest_directory,
                                          options.years_prior_are_approximate,
-                                         options.version_label)
+                                         extra_header, options.version_label)
     json_writer.write()
 
     write_redirect(os.path.join(options.dest_directory, "index.html"),
@@ -123,4 +128,8 @@ if __name__ == "__main__":
                                 "-preset slow -pix_fmt yuv420p -c:a aac -b:a 128k {outfile}")
     ARGPARSER.add_argument("--video-convert-ext", help="example: mp4")
     ARGPARSER.add_argument("--version-label")
+    ARGPARSER.add_argument("--extra-header-link",
+                           help="Optional extra URL to append to the header")
+    ARGPARSER.add_argument("--extra-header-link-descr",
+                           help="Label for the URL in --extra-header-link")
     process_photos(ARGPARSER.parse_args(sys.argv[1:]))

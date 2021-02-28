@@ -27,10 +27,10 @@ from media_writer_common import CommonWriter
 class Html(CommonWriter):
     # pylint: disable=too-many-instance-attributes
     def __init__(self, all_media, dest_directory, main_title, years_prior_are_approximate,
-                 max_media_per_page, expand_all_elements, version_label):
+                 max_media_per_page, expand_all_elements, extra_header, version_label):
         # pylint: disable=too-many-arguments
         CommonWriter.__init__(self, all_media, main_title, max_media_per_page,
-                              years_prior_are_approximate, version_label)
+                              years_prior_are_approximate, extra_header, version_label)
         self.html_basedir = dest_directory
         self.expand_all_elements = expand_all_elements
 
@@ -209,6 +209,10 @@ class Html(CommonWriter):
                 output.write("<span><a href='../%s/index.html'>" % (view[0]) + \
                              "<span class='main_view%s'>%s</span>" % (extra_css, view[1]) + \
                              "</a></span>")
+
+        if self.extra_header:
+            output.write("<span><a href='../%s'><span class='main_view'>%s</span></a></span>" % \
+                         (self.extra_header[1], self.extra_header[0]))
 
         output.write("<span><a href='../search.html#'>" + \
                      "<span class='main_view'>Search</span>" + \
