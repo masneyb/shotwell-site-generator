@@ -428,6 +428,7 @@
 
         if (extraHeader) {
           const extraHeaderEle = document.querySelector('#extra_header');
+          removeAllChildren(extraHeaderEle)
 
           const outerSpan = document.createElement('span');
           const anchor = document.createElement('a');
