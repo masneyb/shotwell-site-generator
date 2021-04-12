@@ -262,10 +262,10 @@ class Imagemagick:
                     continue
 
                 if self.remove_stale_thumbnails:
-                    logging.info("Removing stale thumbnail %s", path)
+                    logging.info("Removing stale file %s", path)
                     os.unlink(path)
                 else:
-                    logging.warning("Thumbnail %s is no longer used.", path)
+                    logging.warning("File %s is no longer used.", path)
 
     def remove_thumbnails(self):
         self.remove_thumbnails_in_path(self.dest_thumbs_directory)
