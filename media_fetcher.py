@@ -152,8 +152,8 @@ class Database:
             cursor = self.conn.cursor()
             for row in cursor.execute(qry):
                 media_id = "video-%016x" % (row["id"])
-                media = self.__add_media(all_media, row, media_id, row["filename"], None, None, 0,
-                                         self.play_icon)
+                media = self.__add_media(all_media, row, media_id, row["filename"], row["filename"],
+                                         None, 0, self.play_icon)
                 media["clip_duration"] = row["clip_duration"]
 
     def __process_photo_row(self, all_media, row, download_source, is_raw):
@@ -373,7 +373,7 @@ class Database:
 
         if download_source:
             if media_id.startswith("video"):
-                transformed_video = self.__transform_video(download_source)
+                transformed_video = thumbnail_source = self.__transform_video(download_source)
                 media["filename"] = self.__get_html_basepath(transformed_video)
             else:
                 media["filename"] = self.__get_html_basepath(download_source)
@@ -402,8 +402,9 @@ class Database:
         media["tags"] = set([])
 
         fspath = self.__get_thumbnail_fs_path(media["thumbnail_path"])
-        self.thumbnailer.create_rounded_and_square_thumbnail(thumbnail_source, rotate, fspath,
-                                                             overlay_icon)
+        self.thumbnailer.create_rounded_and_square_thumbnail(thumbnail_source,
+                                                             media_id.startswith("video"), rotate,
+                                                             fspath, overlay_icon)
 
         all_media["media_by_id"][media_id] = media
 

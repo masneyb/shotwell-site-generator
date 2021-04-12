@@ -222,8 +222,9 @@ class Imagemagick:
 
         return [self.imagemagick_command, original_image, *args, transformed_image]
 
-    def create_rounded_and_square_thumbnail(self, source_image, rotate, resized_image,
-                                            overlay_icon):
+    def create_rounded_and_square_thumbnail(self, source_image, is_video, rotate,
+                                            resized_image, overlay_icon):
+        # pylint: disable=too-many-arguments
         if not os.path.isfile(source_image):
             logging.warning("Cannot find filename %s", source_image)
             return
@@ -237,6 +238,9 @@ class Imagemagick:
             os.makedirs(base_dir)
 
         logging.info("Generating thumbnail for %s", source_image)
+
+        if is_video:
+            source_image += "[1]"
 
         # Crop the thumbnail and add rounded corners to it using Imagemagick
         resize_cmd = [self.imagemagick_command, source_image, "-rotate", str(rotate), "-strip",
