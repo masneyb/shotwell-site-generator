@@ -256,6 +256,7 @@ class Imagemagick:
                        "-compose", "Multiply", "-composite", "(", "+clone", "-flop", ")",
                        "-compose", "Multiply", "-composite", ")", "-alpha", "off",
                        "-compose", "CopyOpacity", "-composite", resized_image]
+        logging.info("Executing %s", " ".join(resize_cmd))
         subprocess.run(resize_cmd, check=False)
 
     def remove_thumbnails_in_path(self, path):
