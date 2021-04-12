@@ -747,6 +747,8 @@ class Html(CommonWriter):
         output.close()
 
     def __get_stats_description(self, stats, date_range, page_date_range):
+        # pylint: disable=too-many-branches
+
         ret = []
         if stats["num_photos"] > 0:
             if stats["num_photos"] == 1:
