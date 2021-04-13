@@ -35,6 +35,10 @@ class Imagemagick:
         self.video_convert_command = video_convert_command
         self.generated_thumbnails = set([])
 
+    def _do_run_command(self, cmd):
+        logging.info("Executing %s", " ".join(cmd))
+        subprocess.run(cmd, check=False)
+
     def create_composite_media_thumbnail(self, title, source_media, dest_filename):
         base_dir = os.path.dirname(dest_filename)
         if not os.path.isdir(base_dir):
@@ -59,7 +63,7 @@ class Imagemagick:
                             dest_filename, title)
             cmd = [self.imagemagick_command, "-size", self.thumbnail_size, "xc:lightgray",
                    dest_filename]
-            subprocess.run(cmd, check=False)
+            self._do_run_command(cmd)
             pathlib.Path(tn_idx_file).write_text(tn_idx_contents)
             return
 
@@ -74,7 +78,7 @@ class Imagemagick:
         cmd = ["montage", *file_ops, "-geometry", "%s+0+0" % (geometry),
                "-background", "white", "-tile", tile_size, "-frame", str(COMPOSITE_FRAME_SIZE),
                dest_filename]
-        subprocess.run(cmd, check=False)
+        self._do_run_command(cmd)
 
         pathlib.Path(tn_idx_file).write_text(tn_idx_contents)
 
@@ -188,7 +192,7 @@ class Imagemagick:
             os.unlink(thumbnail)
 
         logging.info("Transforming original image: %s", " ".join(cmd))
-        subprocess.run(cmd, check=False)
+        self._do_run_command(cmd)
 
         pathlib.Path(idx_file).write_text(idx_contents)
 
@@ -256,8 +260,7 @@ class Imagemagick:
                        "-compose", "Multiply", "-composite", "(", "+clone", "-flop", ")",
                        "-compose", "Multiply", "-composite", ")", "-alpha", "off",
                        "-compose", "CopyOpacity", "-composite", resized_image]
-        logging.info("Executing %s", " ".join(resize_cmd))
-        subprocess.run(resize_cmd, check=False)
+        self._do_run_command(resize_cmd)
 
     def remove_thumbnails_in_path(self, path):
         for root, _, filenames in os.walk(path):
