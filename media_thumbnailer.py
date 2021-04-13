@@ -36,7 +36,7 @@ class Imagemagick:
         self.generated_thumbnails = set([])
 
     def _do_run_command(self, cmd):
-        logging.info("Executing %s", " ".join(cmd))
+        logging.debug("Executing %s", " ".join(cmd))
         subprocess.run(cmd, check=False)
 
     def create_composite_media_thumbnail(self, title, source_media, dest_filename):
