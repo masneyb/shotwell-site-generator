@@ -405,6 +405,12 @@ class Database:
         self.thumbnailer.create_rounded_and_square_thumbnail(thumbnail_source,
                                                              media_id.startswith("video"), rotate,
                                                              fspath, overlay_icon)
+        if not os.path.exists(fspath) and thumbnail_source != media["shotwell_thumbnail_path"]:
+            # If generating a thumbnail fails for some reason, then fall back to the Shotwell
+            # thumbnail. This can happen for some videos.
+            self.thumbnailer.create_rounded_and_square_thumbnail(media["shotwell_thumbnail_path"],
+                                                                 False, rotate, fspath,
+                                                                 overlay_icon)
 
         all_media["media_by_id"][media_id] = media
 
