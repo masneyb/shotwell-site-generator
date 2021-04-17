@@ -129,7 +129,7 @@ if __name__ == "__main__":
                                 "-y -hide_banner -loglevel warning -i {infile} -c:v libx264 " + \
                                 "-preset slow -pix_fmt yuv420p -c:a aac -b:a 128k {outfile}")
     ARGPARSER.add_argument("--video-convert-ext", help="example: mp4")
-    ARGPARSER.add_argument("--exif-text-command", help="exiv2 -pa {outfile}")
+    ARGPARSER.add_argument("--exif-text-command", help="exiv2 -pa {infile}")
     ARGPARSER.add_argument("--skip-exif-text-if-exists", action="store_true", default=False)
     ARGPARSER.add_argument("--version-label")
     ARGPARSER.add_argument("--extra-header-link",

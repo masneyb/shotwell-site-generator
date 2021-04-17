@@ -523,7 +523,7 @@ class Database:
 
         return ret
 
-    def __write_exif_txt(self, filename, media_id):
+    def __write_exif_txt(self, img_filename, media_id):
         if not self.exif_text_command:
             return None
 
@@ -532,23 +532,23 @@ class Database:
         if not os.path.isdir(basedir):
             os.makedirs(basedir)
 
-        filename = os.path.join(basedir, f'{media_id}.txt')
+        exif_filename = os.path.join(basedir, f'{media_id}.txt')
         destfile = f"exif/{dirhash}/{media_id}.txt"
 
-        if self.skip_exif_text_if_exists and os.path.exists(filename):
+        if self.skip_exif_text_if_exists and os.path.exists(exif_filename):
             return destfile
 
         cmd = []
         for part in self.exif_text_command.split(' '):
-            part = part.replace('{outfile}', filename)
+            part = part.replace('{outfile}', img_filename)
             cmd.append(part)
 
-        logging.info("Executing %s", cmd)
+        logging.debug("Executing %s", cmd)
         ret = subprocess.run(cmd, check=False, capture_output=True)
         if ret.returncode != 0:
             return None
 
-        with open(filename, "wb") as file:
+        with open(exif_filename, "wb") as file:
             file.write(ret.stdout)
 
         return destfile
