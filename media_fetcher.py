@@ -543,6 +543,7 @@ class Database:
             part = part.replace('{outfile}', filename)
             cmd.append(part)
 
+        logging.info("Executing %s", cmd)
         ret = subprocess.run(cmd, check=False, capture_output=True)
         if ret.returncode != 0:
             return None
