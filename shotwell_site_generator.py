@@ -41,6 +41,8 @@ def process_photos(options):
                                      options.input_thumbs_directory, options.dest_directory,
                                      thumbnailer, set(options.tags_to_skip),
                                      options.video_convert_ext,
+                                     options.exif_text_command,
+                                     options.skip_exif_text_if_exists,
                                      __get_image_path(options, "panorama-icon.png"),
                                      __get_image_path(options, "play-icon.png"),
                                      __get_image_path(options, "raw-icon.png"))
@@ -127,6 +129,8 @@ if __name__ == "__main__":
                                 "-y -hide_banner -loglevel warning -i {infile} -c:v libx264 " + \
                                 "-preset slow -pix_fmt yuv420p -c:a aac -b:a 128k {outfile}")
     ARGPARSER.add_argument("--video-convert-ext", help="example: mp4")
+    ARGPARSER.add_argument("--exif-text-command", help="exiv2 -pa {outfile}")
+    ARGPARSER.add_argument("--skip-exif-text-if-exists", action="store_true", default=False)
     ARGPARSER.add_argument("--version-label")
     ARGPARSER.add_argument("--extra-header-link",
                            help="Optional extra URL to append to the header")

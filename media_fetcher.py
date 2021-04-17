@@ -20,13 +20,15 @@ import datetime
 import hashlib
 import logging
 import os
+import subprocess
 import pyexiv2
 from common import add_date_to_stats, cleanup_event_title
 
 class Database:
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
     def __init__(self, conn, input_media_path, input_thumbs_directory, dest_directory,
-                 thumbnailer, tags_to_skip, video_convert_ext, panorama_icon, play_icon, raw_icon):
+                 thumbnailer, tags_to_skip, video_convert_ext, exif_text_command,
+                 skip_exif_text_if_exists, panorama_icon, play_icon, raw_icon):
         # pylint: disable=too-many-arguments
         self.conn = conn
         self.input_media_path = input_media_path
@@ -36,6 +38,9 @@ class Database:
         self.tags_to_skip = tags_to_skip
         self.thumbnailer = thumbnailer
         self.video_convert_ext = video_convert_ext
+        self.exif_directory = os.path.join(dest_directory, "exif")
+        self.exif_text_command = exif_text_command
+        self.skip_exif_text_if_exists = skip_exif_text_if_exists
         self.panorama_icon = panorama_icon
         self.play_icon = play_icon
         self.raw_icon = raw_icon
@@ -180,6 +185,7 @@ class Database:
         media["height"] = row["height"]
         media["is_raw"] = is_raw
         media.update(self.__get_photo_metadata(row["filename"]))
+        media["exif_text"] = self.__write_exif_txt(row["filename"], media_id)
 
     def __parse_transformations(self, transformations):
         if not transformations:
@@ -516,6 +522,35 @@ class Database:
                     ret["camera"] = "%s %s" % (camera_make, camera_model)
 
         return ret
+
+    def __write_exif_txt(self, filename, media_id):
+        if not self.exif_text_command:
+            return None
+
+        dirhash = self.__get_dir_hash(media_id)
+        basedir = os.path.join(self.exif_directory, dirhash)
+        if not os.path.isdir(basedir):
+            os.makedirs(basedir)
+
+        filename = os.path.join(basedir, f'{media_id}.txt')
+        destfile = f"exif/{dirhash}/{media_id}.txt"
+
+        if self.skip_exif_text_if_exists and os.path.exists(filename):
+            return destfile
+
+        cmd = []
+        for part in self.exif_text_command.split(' '):
+            part = part.replace('{outfile}', filename)
+            cmd.append(part)
+
+        ret = subprocess.run(cmd, check=False, capture_output=True)
+        if ret.returncode != 0:
+            return None
+
+        with open(filename, "wb") as file:
+            file.write(ret.stdout)
+
+        return destfile
 
     def __convert_ddmmss(self, ddmmss, direction):
         if not ddmmss:

@@ -72,6 +72,9 @@ class Json(CommonWriter):
 
                 item["all_media_page"] = all_media_index["media"][media["media_id"]]["page"]
 
+                if "exif_text" in media and media["exif_text"]:
+                    item["exif_text"] = media["exif_text"]
+
                 if "lat" in media:
                     item["lat"] = float("%.5f" % (media["lat"]))
                     item["lon"] = float("%.5f" % (media["lon"]))

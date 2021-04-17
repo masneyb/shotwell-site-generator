@@ -258,6 +258,7 @@ class Html(CommonWriter):
         output.write("</span>")
 
     def __write_media_metadata(self, output, media):
+        # pylint: disable=too-many-branches
         summary = []
         detailed = []
 
@@ -299,6 +300,9 @@ class Html(CommonWriter):
 
         if "rating" in media:
             detailed.append(("&starf;" * media["rating"]) + ("&star;" * (5 - media["rating"])))
+
+        if "exif_text" in media and media["exif_text"]:
+            detailed.append("<a target='_new' href='../%s'>EXIF</a>" % (media["exif_text"]))
 
         if not summary:
             return
