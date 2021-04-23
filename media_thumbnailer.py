@@ -20,20 +20,28 @@ import logging
 import os
 import pathlib
 import subprocess
+import common
 
 COMPOSITE_FRAME_SIZE = 4
 
 class Imagemagick:
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(self, thumbnail_size, dest_directory, remove_stale_thumbnails,
-                 imagemagick_command, video_convert_command):
+                 imagemagick_command, video_convert_command, exif_text_command,
+                 skip_exif_text_if_exists):
         # pylint: disable=too-many-arguments
         self.thumbnail_size = thumbnail_size
         self.dest_thumbs_directory = os.path.join(dest_directory, "thumbnails")
         self.transformed_origs_directory = os.path.join(dest_directory, "transformed")
+        self.motion_photo_directory = os.path.join(dest_directory, "motion_photo")
+        self.exif_directory = os.path.join(dest_directory, "exif")
         self.remove_stale_thumbnails = remove_stale_thumbnails
         self.imagemagick_command = imagemagick_command
         self.video_convert_command = video_convert_command
-        self.generated_thumbnails = set([])
+        self.exif_text_command = exif_text_command
+        self.skip_exif_text_if_exists = skip_exif_text_if_exists
+        self.generated_artifacts = set([])
 
     def _do_run_command(self, cmd):
         logging.debug("Executing %s", " ".join(cmd))
@@ -52,8 +60,8 @@ class Imagemagick:
         tn_idx_file = "%s.idx" % (dest_filename)
         tn_idx_contents = ','.join([media["media_id"] for media in source_media])
 
-        self.generated_thumbnails.add(dest_filename)
-        self.generated_thumbnails.add(tn_idx_file)
+        self.generated_artifacts.add(dest_filename)
+        self.generated_artifacts.add(tn_idx_file)
 
         if self.__is_thumbnail_up_to_date(dest_filename, tn_idx_file, tn_idx_contents):
             return
@@ -174,14 +182,14 @@ class Imagemagick:
         return self.__run_cmd(cmd, transformed_image, thumbnail)
 
     def __run_cmd(self, cmd, transformed_image, thumbnail):
-        self.generated_thumbnails.add(transformed_image)
+        self.generated_artifacts.add(transformed_image)
 
         base_dir = os.path.dirname(transformed_image)
         if not os.path.isdir(base_dir):
             os.makedirs(base_dir)
 
         idx_file = transformed_image + ".idx"
-        self.generated_thumbnails.add(idx_file)
+        self.generated_artifacts.add(idx_file)
         idx_contents = " ".join(cmd)
 
         if self.__is_thumbnail_up_to_date(transformed_image, idx_file, idx_contents):
@@ -233,7 +241,7 @@ class Imagemagick:
             logging.warning("Cannot find filename %s", source_image)
             return
 
-        self.generated_thumbnails.add(resized_image)
+        self.generated_artifacts.add(resized_image)
         if os.path.isfile(resized_image):
             return
 
@@ -262,11 +270,76 @@ class Imagemagick:
                        "-compose", "CopyOpacity", "-composite", resized_image]
         self._do_run_command(resize_cmd)
 
+    def extract_motion_photo(self, exiv2_metadata, src_filename, media_id):
+        # Support the two types of Motion Photos from the Pixel phones:
+        # v1 (MVIMG_*) and v2 (PXL_*.MP.jpg)
+        mp_tags = [("Xmp.GCamera.MicroVideo", "1", "Xmp.GCamera.MicroVideoOffset"),
+                   ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto",
+                    "Xmp.Container.Directory[2]/Container:Item/Item:Length")]
+        offset = None
+        for mp_tag in mp_tags:
+            if mp_tag[0] not in exiv2_metadata or exiv2_metadata[mp_tag[0]].value != mp_tag[1]:
+                continue
+
+            offset = int(exiv2_metadata[mp_tag[2]].value)
+            break
+
+        if not offset:
+            return None
+
+        (dest_filename, short_path) = self.__get_hashed_file_path(self.motion_photo_directory,
+                                                                  media_id, "mp4")
+        self.generated_artifacts.add(dest_filename)
+
+        if not os.path.exists(dest_filename):
+            with open(src_filename, 'rb') as src, open(dest_filename, 'wb') as dest:
+                src.seek(-1 * offset, os.SEEK_END)
+                for content in src:
+                    dest.write(content)
+
+        return f"motion_photo/{short_path}"
+
+    def write_exif_txt(self, img_filename, media_id):
+        if not self.exif_text_command:
+            return None
+
+        (exif_filename, short_path) = self.__get_hashed_file_path(self.exif_directory, media_id,
+                                                                  "txt")
+        short_path = f"exif/{short_path}"
+        self.generated_artifacts.add(exif_filename)
+
+        if self.skip_exif_text_if_exists and os.path.exists(exif_filename):
+            return short_path
+
+        cmd = []
+        for part in self.exif_text_command.split(' '):
+            part = part.replace('{outfile}', img_filename)
+            cmd.append(part)
+
+        logging.debug("Executing %s", cmd)
+        ret = subprocess.run(cmd, check=False, capture_output=True)
+        if ret.returncode != 0:
+            return None
+
+        with open(exif_filename, "wb") as file:
+            file.write(ret.stdout)
+
+        return short_path
+
+    def __get_hashed_file_path(self, dest_directory, media_id, file_ext):
+        dirhash = common.get_dir_hash(media_id)
+        basedir = os.path.join(dest_directory, dirhash)
+        if not os.path.isdir(basedir):
+            os.makedirs(basedir)
+
+        return (os.path.join(basedir, f'{media_id}.{file_ext}'),
+                f"{dirhash}/{media_id}.{file_ext}")
+
     def remove_thumbnails_in_path(self, path):
         for root, _, filenames in os.walk(path):
             for filename in filenames:
                 path = os.path.join(root, filename)
-                if path in self.generated_thumbnails:
+                if path in self.generated_artifacts:
                     continue
 
                 if self.remove_stale_thumbnails:
@@ -278,3 +351,5 @@ class Imagemagick:
     def remove_thumbnails(self):
         self.remove_thumbnails_in_path(self.dest_thumbs_directory)
         self.remove_thumbnails_in_path(self.transformed_origs_directory)
+        self.remove_thumbnails_in_path(self.exif_directory)
+        self.remove_thumbnails_in_path(self.motion_photo_directory)

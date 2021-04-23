@@ -17,33 +17,33 @@
 # limitations under the License.
 
 import datetime
-import hashlib
 import logging
 import os
-import subprocess
 import pyexiv2
-from common import add_date_to_stats, cleanup_event_title
+from common import add_date_to_stats, cleanup_event_title, get_dir_hash
 
 class Database:
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
     def __init__(self, conn, input_media_path, input_thumbs_directory, dest_directory,
-                 thumbnailer, tags_to_skip, video_convert_ext, exif_text_command,
-                 skip_exif_text_if_exists, panorama_icon, play_icon, raw_icon):
+                 thumbnailer, tags_to_skip, video_convert_ext, panorama_icon, play_icon,
+                 raw_icon, motion_photo_icon):
         # pylint: disable=too-many-arguments
         self.conn = conn
         self.input_media_path = input_media_path
         self.input_thumbs_directory = input_thumbs_directory
+        self.dest_directory = dest_directory
         self.dest_thumbs_directory = os.path.join(dest_directory, "thumbnails")
         self.transformed_origs_directory = os.path.join(dest_directory, "transformed")
         self.tags_to_skip = tags_to_skip
         self.thumbnailer = thumbnailer
         self.video_convert_ext = video_convert_ext
-        self.exif_directory = os.path.join(dest_directory, "exif")
-        self.exif_text_command = exif_text_command
-        self.skip_exif_text_if_exists = skip_exif_text_if_exists
         self.panorama_icon = panorama_icon
         self.play_icon = play_icon
         self.raw_icon = raw_icon
+        self.motion_photo_icon = motion_photo_icon
+
+        # Register the Pixel Motion Photo namespace. Make up a fake URL.
+        pyexiv2.xmp.register_namespace('MotionPhotoItem/', 'Item')
 
     def get_all_media(self):
         all_media = {"events_by_year": {}, "all_stats": self.__create_new_stats(),
@@ -171,21 +171,31 @@ class Database:
         else:
             rotate = 0
 
+        exiv2_metadata = pyexiv2.ImageMetadata(row["filename"])
+        exiv2_metadata.read()
+
+        media_id = "thumb%016x" % (row["id"])
+        short_mp_path = self.thumbnailer.extract_motion_photo(exiv2_metadata, row["filename"],
+                                                              media_id)
+
         if is_raw:
             overlay_icon = self.raw_icon
+        elif short_mp_path:
+            overlay_icon = self.motion_photo_icon
         elif row["width"] / row["height"] >= 2.0:
             overlay_icon = self.panorama_icon
         else:
             overlay_icon = None
 
-        media_id = "thumb%016x" % (row["id"])
         media = self.__add_media(all_media, row, media_id, download_source, row["filename"],
                                  row["transformations"], rotate, overlay_icon)
         media["width"] = row["width"]
         media["height"] = row["height"]
         media["is_raw"] = is_raw
-        media.update(self.__get_photo_metadata(row["filename"]))
-        media["exif_text"] = self.__write_exif_txt(row["filename"], media_id)
+
+        media.update(self.__parse_photo_exiv2_metadata(exiv2_metadata))
+        media["motion_photo"] = short_mp_path
+        media["exif_text"] = self.thumbnailer.write_exif_txt(row["filename"], media_id)
 
     def __parse_transformations(self, transformations):
         if not transformations:
@@ -223,7 +233,7 @@ class Database:
                 all_media["media_by_id"][event["primary_source_id"]]["extra_rating"] += 1
 
             # Overall event thumbnail across all years
-            basedir = "event/%s" % (self.__get_dir_hash(str(row["id"])))
+            basedir = "event/%s" % (get_dir_hash(str(row["id"])))
             overall_thumbnail = self.__generate_event_thumbnail(basedir, event, None)
             event["thumbnail_path"] = overall_thumbnail["thumbnail_path"]
 
@@ -301,7 +311,7 @@ class Database:
                 self.__add_media_to_stats(tag["stats"], media)
 
             thumbnail_basename = "%d.png" % (tag["id"])
-            dir_shard = self.__get_dir_hash(thumbnail_basename)
+            dir_shard = get_dir_hash(thumbnail_basename)
             tag["thumbnail_path"] = "tag/%s/%s" % (dir_shard, thumbnail_basename)
             fspath = self.__get_thumbnail_fs_path(tag["thumbnail_path"])
             self.thumbnailer.create_composite_media_thumbnail("tag %s" % (tag["full_title"]),
@@ -371,7 +381,7 @@ class Database:
         media["media_id"] = media_id
 
         media["shotwell_thumbnail_path"] = self.__get_shotwell_thumbnail_path(media_id)
-        dir_shard = self.__get_dir_hash(media_id)
+        dir_shard = get_dir_hash(media_id)
         media["thumbnail_path"] = "media/%s/%s.png" % (dir_shard, media_id)
 
         if not thumbnail_source:
@@ -475,45 +485,42 @@ class Database:
         if media["exposure_time"] != 0:
             add_date_to_stats(stats, media["exposure_time"])
 
-    def __get_photo_metadata(self, filename):
-        metadata = pyexiv2.ImageMetadata(filename)
-        metadata.read()
-
+    def __parse_photo_exiv2_metadata(self, exiv2_metadata):
         ret = {}
         ret["exif"] = []
 
-        if "Exif.GPSInfo.GPSLatitude" in metadata and \
-           "Exif.GPSInfo.GPSLatitudeRef" in metadata:
-            lat = self.__convert_ddmmss(metadata["Exif.GPSInfo.GPSLatitude"].value,
-                                        metadata["Exif.GPSInfo.GPSLatitudeRef"].value)
-            lon = self.__convert_ddmmss(metadata["Exif.GPSInfo.GPSLongitude"].value,
-                                        metadata["Exif.GPSInfo.GPSLongitudeRef"].value)
+        if "Exif.GPSInfo.GPSLatitude" in exiv2_metadata and \
+           "Exif.GPSInfo.GPSLatitudeRef" in exiv2_metadata:
+            lat = self.__convert_ddmmss(exiv2_metadata["Exif.GPSInfo.GPSLatitude"].value,
+                                        exiv2_metadata["Exif.GPSInfo.GPSLatitudeRef"].value)
+            lon = self.__convert_ddmmss(exiv2_metadata["Exif.GPSInfo.GPSLongitude"].value,
+                                        exiv2_metadata["Exif.GPSInfo.GPSLongitudeRef"].value)
             if lat != 0.0 and lon != 0.0:
                 ret["lat"] = lat
                 ret["lon"] = lon
 
-        aperture = metadata.get_aperture()
+        aperture = exiv2_metadata.get_aperture()
         if aperture:
             ret["exif"].append("F%.1f" % (aperture))
 
-        shutter = metadata.get_shutter_speed()
+        shutter = exiv2_metadata.get_shutter_speed()
         if shutter:
             if shutter.denominator == 1:
                 ret["exif"].append("%ds" % (shutter.numerator))
             else:
                 ret["exif"].append("1/%ds" % (round(shutter.denominator / shutter.numerator)))
 
-        iso = metadata.get_iso()
+        iso = exiv2_metadata.get_iso()
         if iso:
             ret["exif"].append("ISO%s" % (iso))
 
-        focal_length = metadata.get_focal_length()
+        focal_length = exiv2_metadata.get_focal_length()
         if focal_length:
             ret["exif"].append("%smm" % (focal_length))
 
-        if "Exif.Image.Make" in metadata:
-            camera_make = metadata["Exif.Image.Make"].value.strip()
-            camera_model = metadata["Exif.Image.Model"].value.strip()
+        if "Exif.Image.Make" in exiv2_metadata:
+            camera_make = exiv2_metadata["Exif.Image.Make"].value.strip()
+            camera_model = exiv2_metadata["Exif.Image.Model"].value.strip()
 
             if camera_make:
                 if camera_model.startswith(camera_make):
@@ -522,36 +529,6 @@ class Database:
                     ret["camera"] = "%s %s" % (camera_make, camera_model)
 
         return ret
-
-    def __write_exif_txt(self, img_filename, media_id):
-        if not self.exif_text_command:
-            return None
-
-        dirhash = self.__get_dir_hash(media_id)
-        basedir = os.path.join(self.exif_directory, dirhash)
-        if not os.path.isdir(basedir):
-            os.makedirs(basedir)
-
-        exif_filename = os.path.join(basedir, f'{media_id}.txt')
-        destfile = f"exif/{dirhash}/{media_id}.txt"
-
-        if self.skip_exif_text_if_exists and os.path.exists(exif_filename):
-            return destfile
-
-        cmd = []
-        for part in self.exif_text_command.split(' '):
-            part = part.replace('{outfile}', img_filename)
-            cmd.append(part)
-
-        logging.debug("Executing %s", cmd)
-        ret = subprocess.run(cmd, check=False, capture_output=True)
-        if ret.returncode != 0:
-            return None
-
-        with open(exif_filename, "wb") as file:
-            file.write(ret.stdout)
-
-        return destfile
 
     def __convert_ddmmss(self, ddmmss, direction):
         if not ddmmss:
@@ -562,9 +539,6 @@ class Database:
             ret = ret * -1
 
         return ret
-
-    def __get_dir_hash(self, basename):
-        return hashlib.sha1(basename.encode('UTF-8')).hexdigest()[0:2]
 
     def __get_shotwell_thumbnail_path(self, source_image_basename):
         # The source_image_basename does not have a file extension so try some variants.

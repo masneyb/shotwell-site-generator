@@ -16,6 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import hashlib
+
 def add_date_to_stats(stats, date):
     if date is None:
         return
@@ -32,3 +34,6 @@ def add_date_to_stats(stats, date):
 
 def cleanup_event_title(event):
     return event["title"] if event["title"] else "Unnamed %s" % (event["id"])
+
+def get_dir_hash(basename):
+    return hashlib.sha1(basename.encode('UTF-8')).hexdigest()[0:2]

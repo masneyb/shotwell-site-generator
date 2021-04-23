@@ -35,17 +35,18 @@ def process_photos(options):
                                                 options.dest_directory,
                                                 options.remove_stale_thumbnails,
                                                 options.imagemagick_command,
-                                                options.video_convert_command)
+                                                options.video_convert_command,
+                                                options.exif_text_command,
+                                                options.skip_exif_text_if_exists)
 
     fetcher = media_fetcher.Database(conn, options.input_media_path,
                                      options.input_thumbs_directory, options.dest_directory,
                                      thumbnailer, set(options.tags_to_skip),
                                      options.video_convert_ext,
-                                     options.exif_text_command,
-                                     options.skip_exif_text_if_exists,
                                      __get_image_path(options, "panorama-icon.png"),
                                      __get_image_path(options, "play-icon.png"),
-                                     __get_image_path(options, "raw-icon.png"))
+                                     __get_image_path(options, "raw-icon.png"),
+                                     __get_image_path(options, "motion-photo.png"))
     all_media = fetcher.get_all_media()
 
     if options.extra_header_link and options.extra_header_link_descr:
