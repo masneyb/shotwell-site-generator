@@ -408,13 +408,25 @@ const dateSearch = {
   ],
 };
 
+function doMediaSearchEquals(input, value) {
+  if (input == null) {
+    return false;
+  }
+
+  // If the user searches for a photo, then include the other subtypes in that search.
+  if (value === 'photo') {
+    return ['photo', 'raw_photo', 'motion_photo'].indexOf(input) > -1;
+  }
+
+  return input === value;
+}
+
 const mediaTypeSearch = {
   ops: [
     {
       descr: 'is a',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0],
-          (input, value) => input != null && input.toLowerCase() === value.toLowerCase());
+        return performGenericOp(field, media, values[0], doMediaSearchEquals);
       },
       numValues: 1,
     },
@@ -422,7 +434,7 @@ const mediaTypeSearch = {
       descr: 'is not a',
       matches(field, op, values, media) {
         return performGenericOp(field, media, values[0],
-          (input, value) => input == null || input.toLowerCase() !== value.toLowerCase());
+          (input, value) => !doMediaSearchEquals(input, value));
       },
       numValues: 1,
     },
@@ -663,8 +675,9 @@ const searchFields = [
     title: 'Type',
     search: mediaTypeSearch,
     searchFields: ['type'],
-    validValues: [['event', 'events'], ['photo', 'photo'], ['raw photo', 'raw_photo'],
-                  ['tag', 'tags'], ['video', 'video'], ['year', 'years']],
+    validValues: [['event', 'events'], ['photo', 'photo'], ['motion photo', 'motion_photo'],
+                  ['raw photo', 'raw_photo'], ['tag', 'tags'], ['video', 'video'],
+                  ['year', 'years']],
   },
   {
     title: 'Video Duration',
@@ -808,7 +821,8 @@ function performSearch(allItems) {
     }
   }
 
-  const sortedTypes = {photo: 0, raw_photo: 0, video: 0, events: 1, tags: 2, years: 3};
+  const sortedTypes = {photo: 0, motion_photo: 0, raw_photo: 0, video: 0, events: 1, tags: 2,
+                       years: 3};
   const sortby = getQueryParameter('sortby', 'taken'); // taken,created
   const sortField = sortby === 'created' ? 'time_created' : 'exposure_time';
 

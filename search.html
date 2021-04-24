@@ -133,10 +133,17 @@
         const totalsByTypes = {};
 
         for (const media of allMedia) {
-          if (!(media.type in totalsByTypes)) {
-            totalsByTypes[media.type] = 1;
+          let type = null;
+          if (media.type == 'raw_photo' || media.type == 'motion_photo') {
+            type = 'photo';
           } else {
-            totalsByTypes[media.type] += 1;
+            type = media.type;
+          }
+
+          if (!(type in totalsByTypes)) {
+            totalsByTypes[type] = 1;
+          } else {
+            totalsByTypes[type] += 1;
           }
         }
 

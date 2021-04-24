@@ -66,7 +66,12 @@ class Json(CommonWriter):
                     item["tags"].append(tag_id)
 
                 if media["media_id"].startswith("thumb"):
-                    item["type"] = "raw_photo" if media["is_raw"] else "photo"
+                    if media["is_raw"]:
+                        item["type"] = "raw_photo"
+                    elif "motion_photo" in media and media["motion_photo"]:
+                        item["type"] = "motion_photo"
+                    else:
+                        item["type"] = "photo"
                 else:
                     item["type"] = "video"
 
