@@ -24,11 +24,11 @@ import common
 
 COMPOSITE_FRAME_SIZE = 4
 
-class Imagemagick:
+class Thumbnailer:
     # pylint: disable=too-many-instance-attributes
 
     def __init__(self, thumbnail_size, dest_directory, remove_stale_thumbnails,
-                 imagemagick_command, video_convert_command, exif_text_command,
+                 imagemagick_command, ffmpeg_command, video_convert_command, exif_text_command,
                  skip_exif_text_if_exists):
         # pylint: disable=too-many-arguments
         self.thumbnail_size = thumbnail_size
@@ -38,6 +38,7 @@ class Imagemagick:
         self.exif_directory = os.path.join(dest_directory, "exif")
         self.remove_stale_thumbnails = remove_stale_thumbnails
         self.imagemagick_command = imagemagick_command
+        self.ffmpeg_command = ffmpeg_command
         self.video_convert_command = video_convert_command
         self.exif_text_command = exif_text_command
         self.skip_exif_text_if_exists = skip_exif_text_if_exists
@@ -270,34 +271,57 @@ class Imagemagick:
                        "-compose", "CopyOpacity", "-composite", resized_image]
         self._do_run_command(resize_cmd)
 
-    def extract_motion_photo(self, exiv2_metadata, src_filename, media_id):
+    def _get_motion_photo_offset(self, exiv2_metadata):
         # Support the two types of Motion Photos from the Pixel phones:
         # v1 (MVIMG_*) and v2 (PXL_*.MP.jpg)
         mp_tags = [("Xmp.GCamera.MicroVideo", "1", "Xmp.GCamera.MicroVideoOffset"),
                    ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto",
                     "Xmp.Container.Directory[2]/Container:Item/Item:Length")]
-        offset = None
         for mp_tag in mp_tags:
             if mp_tag[0] not in exiv2_metadata or exiv2_metadata[mp_tag[0]].value != mp_tag[1]:
                 continue
 
-            offset = int(exiv2_metadata[mp_tag[2]].value)
-            break
+            return int(exiv2_metadata[mp_tag[2]].value)
 
+        return None
+
+    def extract_motion_photo(self, exiv2_metadata, src_filename, media_id):
+        offset = self._get_motion_photo_offset(exiv2_metadata)
         if not offset:
             return None
 
-        (dest_filename, short_path) = self.__get_hashed_file_path(self.motion_photo_directory,
-                                                                  media_id, "mp4")
-        self.generated_artifacts.add(dest_filename)
+        (mp4_dest_filename, mp4_short_path) = \
+            self.__get_hashed_file_path(self.motion_photo_directory, media_id, "mp4")
+        self.generated_artifacts.add(mp4_dest_filename)
 
-        if not os.path.exists(dest_filename):
-            with open(src_filename, 'rb') as src, open(dest_filename, 'wb') as dest:
+        if not os.path.exists(mp4_dest_filename):
+            with open(src_filename, 'rb') as src, open(mp4_dest_filename, 'wb') as dest:
                 src.seek(-1 * offset, os.SEEK_END)
                 for content in src:
                     dest.write(content)
 
-        return f"motion_photo/{short_path}"
+        (gif_dest_filename, gif_short_path) = \
+            self.__get_hashed_file_path(self.motion_photo_directory, media_id, "gif")
+        self.generated_artifacts.add(gif_dest_filename)
+
+        if not os.path.exists(gif_dest_filename):
+            (width, height) = self.thumbnail_size.split("x")
+            cmd = [self.ffmpeg_command, "-hide_banner", "-loglevel", "error",
+                   "-i", mp4_dest_filename,
+                   "-f", "lavfi", "-i", f"color=white:size={self.thumbnail_size},format=rgba",
+                   "-filter_complex",
+                   (f"[0]scale='if(gt(iw,ih),-1,{height})':'if(gt(iw,ih),{width},-1)'[scale];"
+                    f"[scale]crop={width}:{height}[crop];"
+                    "[crop]geq=lum='p(X,Y)':"
+                    "a='if(gt(abs(W/2-X),W/2-20)*gt(abs(H/2-Y),H/2-20),"
+                    "if(lte(hypot(20-(W/2-abs(W/2-X)),20-(H/2-abs(H/2-Y))),20),255,0),255)'"
+                    "[rounded];"
+                    f"color=white@0.0:size={self.thumbnail_size},format=rgba[bg];"
+                    "[bg][rounded]overlay=x=0:y=0:shortest=1"),
+                   gif_dest_filename]
+            self._do_run_command(cmd)
+
+        return (f"motion_photo/{mp4_short_path}", f"motion_photo/{gif_short_path}")
 
     def write_exif_txt(self, img_filename, media_id):
         if not self.exif_text_command:

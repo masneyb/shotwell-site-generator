@@ -231,8 +231,12 @@ class Html(CommonWriter):
         else:
             output.write("<a href='%s'>" % (html.escape(link)))
 
-        output.write("<span class='media_thumb'><img src='../thumbnails/%s'/></span>" % \
-                     (html.escape(thumbnail_path)))
+        if "motion_photo" in media and media["motion_photo"]:
+            output.write("<span class='media_thumb'><img src='../%s'/></span>" % \
+                         (html.escape(media["motion_photo"][1])))
+        else:
+            output.write("<span class='media_thumb'><img src='../thumbnails/%s'/></span>" % \
+                         (html.escape(thumbnail_path)))
 
         output.write("</a>")
 
@@ -273,7 +277,7 @@ class Html(CommonWriter):
 
         if "motion_photo" in media and media["motion_photo"]:
             summary.append("<a target='_new' href='../%s'>Motion Photo</a>" %
-                           (media["motion_photo"]))
+                           (media["motion_photo"][0]))
 
         if "width" in media and media["width"]:
             detailed.append("%sx%s" % (media["width"], media["height"]))

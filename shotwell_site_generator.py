@@ -31,10 +31,11 @@ def process_photos(options):
     conn = sqlite3.connect(options.input_database)
     conn.row_factory = sqlite3.Row
 
-    thumbnailer = media_thumbnailer.Imagemagick(options.thumbnail_size,
+    thumbnailer = media_thumbnailer.Thumbnailer(options.thumbnail_size,
                                                 options.dest_directory,
                                                 options.remove_stale_thumbnails,
                                                 options.imagemagick_command,
+                                                options.ffmpeg_command,
                                                 options.video_convert_command,
                                                 options.exif_text_command,
                                                 options.skip_exif_text_if_exists)
@@ -125,6 +126,7 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--remove-stale-thumbnails", action="store_true", default=False)
     ARGPARSER.add_argument("--skip-original-symlink", action="store_true", default=False)
     ARGPARSER.add_argument("--imagemagick-command", default="convert")
+    ARGPARSER.add_argument("--ffmpeg-command", default="ffmpeg")
     ARGPARSER.add_argument("--video-convert-command",
                            help="Standardize all videos to a common format. Example: ffmpeg " + \
                                 "-y -hide_banner -loglevel warning -i {infile} -c:v libx264 " + \

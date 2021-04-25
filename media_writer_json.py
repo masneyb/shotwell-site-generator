@@ -81,7 +81,8 @@ class Json(CommonWriter):
                     item["exif_text"] = media["exif_text"]
 
                 if "motion_photo" in media and media["motion_photo"]:
-                    item["motion_photo"] = media["motion_photo"]
+                    item["motion_photo_mp4"] = media["motion_photo"][0]
+                    item["motion_photo_gif"] = media["motion_photo"][1]
 
                 if "lat" in media:
                     item["lat"] = float("%.5f" % (media["lat"]))
