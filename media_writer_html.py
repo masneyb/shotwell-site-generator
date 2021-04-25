@@ -219,12 +219,15 @@ class Html(CommonWriter):
         else:
             output.write("<a href='%s'>" % (html.escape(link)))
 
+        thumbnail = '../thumbnails/%s' % (html.escape(thumbnail_path))
         if "motion_photo" in media and media["motion_photo"]:
-            output.write("<span class='media_thumb'><img src='../%s'/></span>" % \
-                         (html.escape(media["motion_photo"][1])))
+            motion_photo = '../%s' % (html.escape(media["motion_photo"][1]))
+            output.write(("<span class='media_thumb'>"
+                          f"<img onMouseOver='this.src=\"{motion_photo}\"'"
+                          f" onMouseLeave='this.src=\"{thumbnail}\"'"
+                          f" src='{thumbnail}'/></span>"))
         else:
-            output.write("<span class='media_thumb'><img src='../thumbnails/%s'/></span>" % \
-                         (html.escape(thumbnail_path)))
+            output.write("<span class='media_thumb'><img src='%s'/></span>" % (thumbnail))
 
         output.write("</a>")
 
