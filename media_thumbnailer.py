@@ -281,6 +281,7 @@ class Thumbnailer:
         self.generated_artifacts.add(mp4_dest_filename)
 
         if not os.path.exists(mp4_dest_filename):
+            logging.info("Extracting motion photo from %s", src_filename)
             with open(src_filename, 'rb') as src, open(mp4_dest_filename, 'wb') as dest:
                 src.seek(-1 * offset, os.SEEK_END)
                 for content in src:
@@ -291,6 +292,7 @@ class Thumbnailer:
         self.generated_artifacts.add(gif_dest_filename)
 
         if not os.path.exists(gif_dest_filename):
+            logging.info("Creating animated GIF for %s", src_filename)
             (width, height) = self.thumbnail_size.split("x")
             cmd = [self.ffmpeg_command, "-hide_banner", "-loglevel", "error",
                    "-i", mp4_dest_filename,
