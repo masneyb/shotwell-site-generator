@@ -301,8 +301,8 @@ class Thumbnailer:
                    (f"[0]scale='if(gt(iw,ih),-1,{height})':'if(gt(iw,ih),{width},-1)'[scale];"
                     f"[scale]crop={width}:{height}[crop];"
                     "[crop]geq=lum='p(X,Y)':"
-                    "a='if(gt(abs(W/2-X),W/2-20)*gt(abs(H/2-Y),H/2-20),"
-                    "if(lte(hypot(20-(W/2-abs(W/2-X)),20-(H/2-abs(H/2-Y))),20),255,0),255)'"
+                    "a='if(gt(abs(W/2-X),W/2-15)*gt(abs(H/2-Y),H/2-15),"
+                    "if(lte(hypot(15-(W/2-abs(W/2-X)),15-(H/2-abs(H/2-Y))),15),255,0),255)'"
                     "[rounded];"
                     f"color=white@0.0:size={self.thumbnail_size},format=rgba[bg];"
                     "[bg][rounded]overlay=x=0:y=0:shortest=1"),
