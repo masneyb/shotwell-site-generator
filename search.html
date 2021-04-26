@@ -543,6 +543,8 @@
           if (media.motion_photo_gif) {
             img.addEventListener('mouseover', () => { img.src = media.motion_photo_gif; });
             img.addEventListener('mouseleave', () => { img.src = media.thumbnail_path; });
+            img.addEventListener('touchstart', () => { img.src = media.motion_photo_gif; });
+            img.addEventListener('touchend', () => { img.src = media.thumbnail_path; });
           }
 
           if (media.title) {

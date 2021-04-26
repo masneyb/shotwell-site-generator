@@ -225,6 +225,8 @@ class Html(CommonWriter):
             output.write(("<span class='media_thumb'>"
                           f"<img onMouseOver='this.src=\"{motion_photo}\"'"
                           f" onMouseLeave='this.src=\"{thumbnail}\"'"
+                          f" onTouchStart='this.src=\"{motion_photo}\"'"
+                          f" onTouchEnd='this.src=\"{thumbnail}\"'"
                           f" src='{thumbnail}'/></span>"))
         else:
             output.write("<span class='media_thumb'><img src='%s'/></span>" % (thumbnail))
