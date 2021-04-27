@@ -325,7 +325,7 @@ class Thumbnailer:
 
         cmd = []
         for part in self.exif_text_command.split(' '):
-            part = part.replace('{outfile}', img_filename)
+            part = part.replace('{infile}', img_filename)
             cmd.append(part)
 
         logging.debug("Executing %s", cmd)
