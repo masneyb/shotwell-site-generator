@@ -53,16 +53,7 @@ class Json(CommonWriter):
                 for tag_id, _ in self._cleanup_tags(media["tags"]):
                     item["tags"].append(tag_id)
 
-                if media["media_id"].startswith("thumb"):
-                    if media["is_raw"]:
-                        item["type"] = "raw_photo"
-                    elif "motion_photo" in media and media["motion_photo"]:
-                        item["type"] = "motion_photo"
-                    else:
-                        item["type"] = "photo"
-                else:
-                    item["type"] = "video"
-
+                item["type"] = self.__get_media_type(media)
                 item["all_media_page"] = all_media_index["media"][media["media_id"]]["page"]
 
                 if "exif_text" in media and media["exif_text"]:
@@ -92,6 +83,17 @@ class Json(CommonWriter):
                                    'link': self.extra_header[1]}
 
         self.__write_json_files(ret)
+
+    def __get_media_type(self, media):
+        if media["media_id"].startswith("thumb"):
+            if media["is_raw"]:
+                return "raw_photo"
+            if "motion_photo" in media and media["motion_photo"]:
+                return "motion_photo"
+
+            return "photo"
+
+        return "video"
 
     def __get_tags(self):
         shown_tags = []
