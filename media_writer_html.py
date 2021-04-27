@@ -679,8 +679,7 @@ class Html(CommonWriter):
         self.__write_page_link(output, current_page_link, page_number > 1, "&lt;&lt;",
                                page_number - 1)
 
-        output.write("<span class='breadcrumb'>Page %s of %s</span>" % \
-                     (humanize.intcomma(page_number), humanize.intcomma(total_pages)))
+        output.write("<span class='breadcrumb'>Page %s</span>" % (humanize.intcomma(page_number)))
 
         self.__write_page_link(output, current_page_link, page_number < total_pages, "&gt;&gt;",
                                page_number + 1)
