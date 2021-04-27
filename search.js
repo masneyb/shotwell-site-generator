@@ -101,12 +101,12 @@ function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator,
     ret.push(`<a ${anchorOpts}>${entity.camera}</a>`);
   }
 
-  if ('rating' in entity) {
-    ret.push('&starf;'.repeat(entity.rating) + '&star;'.repeat(5 - entity.rating));
-  }
-
   if ('exif_text' in entity) {
     ret.push(`<a target="_new" href="${entity['exif_text']}">EXIF</a>`);
+  }
+
+  if ('rating' in entity) {
+    ret.push('&starf;'.repeat(entity.rating) + '&star;'.repeat(5 - entity.rating));
   }
 
   if (entity.all_media_page) {

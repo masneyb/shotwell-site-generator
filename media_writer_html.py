@@ -299,11 +299,11 @@ class Html(CommonWriter):
                             (urllib.parse.quote("Camera,equals,%s" % (media["camera"])),
                              media["camera"]))
 
-        if "rating" in media:
-            detailed.append(("&starf;" * media["rating"]) + ("&star;" * (5 - media["rating"])))
-
         if "exif_text" in media and media["exif_text"]:
             detailed.append("<a target='_new' href='../%s'>EXIF</a>" % (media["exif_text"]))
+
+        if "rating" in media:
+            detailed.append(("&starf;" * media["rating"]) + ("&star;" * (5 - media["rating"])))
 
         if not summary:
             return
