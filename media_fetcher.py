@@ -146,7 +146,7 @@ class Database:
             for row in cursor.execute(qry):
                 media_id = "video-%016x" % (row["id"])
                 media = self.__add_media(all_media, row, media_id, row["filename"], row["filename"],
-                                         None, 0, self.play_icon)
+                                         None, 0, self.play_icon, None, None)
                 media["clip_duration"] = row["clip_duration"]
 
     def __process_photo_row(self, all_media, row, download_source, is_raw):
@@ -175,15 +175,16 @@ class Database:
         else:
             overlay_icon = None
 
+        exif_text = self.thumbnailer.write_exif_txt(row["filename"], media_id)
         media = self.__add_media(all_media, row, media_id, download_source, row["filename"],
-                                 row["transformations"], rotate, overlay_icon)
+                                 row["transformations"], rotate, overlay_icon,
+                                 short_mp_path, exif_text)
+
+        media.update(self.__parse_photo_exiv2_metadata(exiv2_metadata))
+
         media["width"] = row["width"]
         media["height"] = row["height"]
         media["is_raw"] = is_raw
-
-        media.update(self.__parse_photo_exiv2_metadata(exiv2_metadata))
-        media["motion_photo"] = short_mp_path
-        media["exif_text"] = self.thumbnailer.write_exif_txt(row["filename"], media_id)
 
     def __parse_transformations(self, transformations):
         if not transformations:
@@ -360,7 +361,7 @@ class Database:
         return self.thumbnailer.transform_video(source_video, transformed_path)
 
     def __add_media(self, all_media, row, media_id, download_source, thumbnail_source,
-                    transformations, rotate, overlay_icon):
+                    transformations, rotate, overlay_icon, motion_photo, exif_text):
         # pylint: disable=too-many-arguments
 
         media = {}
@@ -375,18 +376,24 @@ class Database:
         if not thumbnail_source:
             thumbnail_source = media["shotwell_thumbnail_path"]
 
+        all_artifacts = set([])
+
         if download_source:
+            all_artifacts.add(download_source)
             if media_id.startswith("video"):
                 transformed_video = thumbnail_source = self.__transform_video(download_source)
+                all_artifacts.add(transformed_video)
                 media["filename"] = self.__get_html_basepath(transformed_video)
             else:
                 media["filename"] = self.__get_html_basepath(download_source)
         else:
             # Overwrite the passed in thumbnail_source so that the transformed image is used
             # as the input image to generate the thumbnail.
+            all_artifacts.add(thumbnail_source)
             thumbnail_source = self.__transform_img(thumbnail_source, transformations,
                                                     os.path.join(self.dest_thumbs_directory,
                                                                  media["thumbnail_path"]))
+            all_artifacts.add(thumbnail_source)
             media["filename"] = self.__get_html_basepath(thumbnail_source)
 
         media["title"] = row["title"]
@@ -415,14 +422,28 @@ class Database:
             self.thumbnailer.create_rounded_and_square_thumbnail(media["shotwell_thumbnail_path"],
                                                                  False, rotate, fspath,
                                                                  overlay_icon)
+        all_artifacts.add(fspath)
 
         all_media["media_by_id"][media_id] = media
+
+        media["motion_photo"] = motion_photo
+        if media["motion_photo"]:
+            all_artifacts.add(os.path.join(self.dest_directory, media["motion_photo"][0]))
+            all_artifacts.add(os.path.join(self.dest_directory, media["motion_photo"][1]))
+
+        media["exif_text"] = exif_text
+        if media["exif_text"]:
+            all_artifacts.add(os.path.join(self.dest_directory, media["exif_text"]))
 
         event = self.__get_event(row["event_id"], all_media)
         event["media"].append(media)
         if media["year"] not in event["years"]:
             # Points to thumbnail for that year. Will be filled in later.
             event["years"][media["year"]] = None
+
+        media["all_artifacts_size"] = 0
+        for artifact in all_artifacts:
+            media["all_artifacts_size"] += os.path.getsize(artifact)
 
         self.__add_media_to_stats(event["stats"], media)
 
@@ -464,11 +485,7 @@ class Database:
         num_media_stat = "num_videos" if media["media_id"].startswith("video") else "num_photos"
         stats[num_media_stat] += 1
 
-        stats["total_filesize"] += media["filesize"]
-
-        fspath = self.__get_thumbnail_fs_path(media["thumbnail_path"])
-        if os.path.exists(fspath):
-            stats["total_filesize"] += os.path.getsize(fspath)
+        stats["total_filesize"] += media["all_artifacts_size"]
 
         if media["exposure_time"] != 0:
             add_date_to_stats(stats, media["exposure_time"])
