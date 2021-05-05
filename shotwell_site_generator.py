@@ -21,7 +21,7 @@ def process_photos(options):
 
     thumbnailer = media_thumbnailer.Thumbnailer(options.thumbnail_size,
                                                 options.dest_directory,
-                                                options.remove_stale_thumbnails,
+                                                options.remove_stale_artifacts,
                                                 options.imagemagick_command,
                                                 options.ffmpeg_command,
                                                 options.video_convert_command,
@@ -47,11 +47,13 @@ def process_photos(options):
     photos = media_writer_html.Html(all_media, options.dest_directory, options.title,
                                     options.years_prior_are_approximate,
                                     options.max_media_per_page, options.expand_all_elements,
-                                    extra_header, options.version_label)
+                                    extra_header, options.version_label,
+                                    options.remove_stale_artifacts)
 
     all_media_year_index = photos.write_all_media_index_file()
     photos.write_year_and_event_html_files(all_media_year_index)
     photos.write_tag_html_files()
+    photos.remove_stale_files()
 
     json_writer = media_writer_json.Json(all_media, options.title,
                                          options.max_media_per_page, options.dest_directory,
@@ -112,7 +114,7 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--default-view", default="media")
     ARGPARSER.add_argument("--tags-to-skip", nargs="+", default=[])
     ARGPARSER.add_argument("--expand-all-elements", action="store_true", default=False)
-    ARGPARSER.add_argument("--remove-stale-thumbnails", action="store_true", default=False)
+    ARGPARSER.add_argument("--remove-stale-artifacts", action="store_true", default=False)
     ARGPARSER.add_argument("--skip-original-symlink", action="store_true", default=False)
     ARGPARSER.add_argument("--imagemagick-command", default="convert")
     ARGPARSER.add_argument("--ffmpeg-command", default="ffmpeg")

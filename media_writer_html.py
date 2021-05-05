@@ -9,18 +9,21 @@ import os
 from collections import Counter
 import urllib.parse
 import humanize
-from common import add_date_to_stats, cleanup_event_title
+import common
 from media_writer_common import CommonWriter
 
 class Html(CommonWriter):
     # pylint: disable=too-many-instance-attributes
     def __init__(self, all_media, dest_directory, main_title, years_prior_are_approximate,
-                 max_media_per_page, expand_all_elements, extra_header, version_label):
+                 max_media_per_page, expand_all_elements, extra_header, version_label,
+                 remove_stale_artifacts):
         # pylint: disable=too-many-arguments
         CommonWriter.__init__(self, all_media, main_title, max_media_per_page,
                               years_prior_are_approximate, extra_header, version_label)
         self.html_basedir = dest_directory
         self.expand_all_elements = expand_all_elements
+        self.remove_stale_artifacts = remove_stale_artifacts
+        self.generated_artifacts = set([])
 
     def write_year_and_event_html_files(self, all_media_index):
         if not os.path.isdir(self.html_basedir):
@@ -276,7 +279,7 @@ class Html(CommonWriter):
             detailed.append("%sx%s" % (media["width"], media["height"]))
 
         if "event_id" in media and media["event_id"]:
-            title = cleanup_event_title(self.all_media["events_by_id"][media["event_id"]])
+            title = common.cleanup_event_title(self.all_media["events_by_id"][media["event_id"]])
             detailed.append("<a href='../event/%d.html'>Event: %s</a>" % \
                             (media["event_id"], html.escape(title)))
 
@@ -548,7 +551,7 @@ class Html(CommonWriter):
         for event in events:
             event_links.append("<a href='../event/%d.html'>" % (event["id"]) + \
                                "<span class='header_link'>%s (%s)" % \
-                               (html.escape(cleanup_event_title(event)),
+                               (html.escape(common.cleanup_event_title(event)),
                                 self._get_date_range(event["stats"]["min_date"],
                                                      event["stats"]["max_date"])) + \
                                "</span>" + \
@@ -622,7 +625,7 @@ class Html(CommonWriter):
             page_dates = {"min_date": None, "max_date": None}
             for media in media_on_page:
                 if "exposure_time" in media["media"] and media["media"]["exposure_time"] != 0:
-                    add_date_to_stats(page_dates, media["media"]["exposure_time"])
+                    common.add_date_to_stats(page_dates, media["media"]["exposure_time"])
 
             page_date_range = self._get_date_range(page_dates["min_date"],
                                                    page_dates["max_date"])
@@ -712,6 +715,7 @@ class Html(CommonWriter):
         if not os.path.isdir(parent_path):
             os.makedirs(parent_path)
 
+        self.generated_artifacts.add(path)
         output = open(path, "w", encoding="UTF-8")
 
         output.write("<html lang='en'>")
@@ -791,3 +795,13 @@ class Html(CommonWriter):
 
     def __has_shown_media(self, stats):
         return stats["num_photos"] > 0 or stats["num_videos"] > 0
+
+    def remove_stale_files(self):
+        common.remove_stale_artifacts(os.path.join(self.html_basedir, "event"),
+                                      self.generated_artifacts, self.remove_stale_artifacts)
+        common.remove_stale_artifacts(os.path.join(self.html_basedir, "media"),
+                                      self.generated_artifacts, self.remove_stale_artifacts)
+        common.remove_stale_artifacts(os.path.join(self.html_basedir, "tag"),
+                                      self.generated_artifacts, self.remove_stale_artifacts)
+        common.remove_stale_artifacts(os.path.join(self.html_basedir, "year"),
+                                      self.generated_artifacts, self.remove_stale_artifacts)

@@ -98,7 +98,12 @@ class Database:
         paths.append(os.path.join(self.dest_thumbs_directory, "event"))
         paths.append(os.path.join(self.dest_thumbs_directory, "tag"))
         paths.append(os.path.join(self.dest_thumbs_directory, "year"))
-        # HTML files aren't generated yet
+
+        # HTML files aren't generated yet; use the previous copy and call it close enough
+        paths.append(os.path.join(self.dest_directory, "event"))
+        paths.append(os.path.join(self.dest_directory, "media"))
+        paths.append(os.path.join(self.dest_directory, "tag"))
+        paths.append(os.path.join(self.dest_directory, "year"))
 
         for path in paths:
             for root, _, filenames in os.walk(path):

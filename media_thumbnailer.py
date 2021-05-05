@@ -13,7 +13,7 @@ COMPOSITE_FRAME_SIZE = 4
 class Thumbnailer:
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, thumbnail_size, dest_directory, remove_stale_thumbnails,
+    def __init__(self, thumbnail_size, dest_directory, remove_stale_artifacts,
                  imagemagick_command, ffmpeg_command, video_convert_command, exif_text_command,
                  skip_exif_text_if_exists):
         # pylint: disable=too-many-arguments
@@ -22,7 +22,7 @@ class Thumbnailer:
         self.transformed_origs_directory = os.path.join(dest_directory, "transformed")
         self.motion_photo_directory = os.path.join(dest_directory, "motion_photo")
         self.exif_directory = os.path.join(dest_directory, "exif")
-        self.remove_stale_thumbnails = remove_stale_thumbnails
+        self.remove_stale_artifacts = remove_stale_artifacts
         self.imagemagick_command = imagemagick_command
         self.ffmpeg_command = ffmpeg_command
         self.video_convert_command = video_convert_command
@@ -347,21 +347,12 @@ class Thumbnailer:
         return (os.path.join(basedir, f'{media_id}.{file_ext}'),
                 f"{dirhash}/{media_id}.{file_ext}")
 
-    def remove_thumbnails_in_path(self, path):
-        for root, _, filenames in os.walk(path):
-            for filename in filenames:
-                path = os.path.join(root, filename)
-                if path in self.generated_artifacts:
-                    continue
-
-                if self.remove_stale_thumbnails:
-                    logging.info("Removing stale file %s", path)
-                    os.unlink(path)
-                else:
-                    logging.warning("File %s is no longer used.", path)
-
     def remove_thumbnails(self):
-        self.remove_thumbnails_in_path(self.dest_thumbs_directory)
-        self.remove_thumbnails_in_path(self.transformed_origs_directory)
-        self.remove_thumbnails_in_path(self.exif_directory)
-        self.remove_thumbnails_in_path(self.motion_photo_directory)
+        common.remove_stale_artifacts(self.dest_thumbs_directory, self.generated_artifacts,
+                                      self.remove_stale_artifacts)
+        common.remove_stale_artifacts(self.transformed_origs_directory, self.generated_artifacts,
+                                      self.remove_stale_artifacts)
+        common.remove_stale_artifacts(self.exif_directory, self.generated_artifacts,
+                                      self.remove_stale_artifacts)
+        common.remove_stale_artifacts(self.motion_photo_directory, self.generated_artifacts,
+                                      self.remove_stale_artifacts)

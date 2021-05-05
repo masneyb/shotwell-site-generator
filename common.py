@@ -5,6 +5,8 @@
 # Common functions that are used by the media fetcher and writer.
 
 import hashlib
+import logging
+import os
 
 def add_date_to_stats(stats, date):
     if date is None:
@@ -25,3 +27,16 @@ def cleanup_event_title(event):
 
 def get_dir_hash(basename):
     return hashlib.sha1(basename.encode('UTF-8')).hexdigest()[0:2]
+
+def remove_stale_artifacts(path, generated_artifacts, do_remove):
+    for root, _, filenames in os.walk(path):
+        for filename in filenames:
+            path = os.path.join(root, filename)
+            if path in generated_artifacts:
+                continue
+
+            if do_remove:
+                logging.info("Removing stale file %s", path)
+                os.unlink(path)
+            else:
+                logging.warning("File %s is no longer used.", path)
