@@ -13,8 +13,8 @@ from common import add_date_to_stats, cleanup_event_title, get_dir_hash
 class Database:
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
     def __init__(self, conn, input_media_path, input_thumbs_directory, dest_directory,
-                 thumbnailer, tags_to_skip, video_convert_ext, panorama_icon, play_icon,
-                 raw_icon, motion_photo_icon):
+                 thumbnailer, tags_to_skip, video_convert_ext, add_paths_to_overall_diskspace,
+                 panorama_icon, play_icon, raw_icon, motion_photo_icon):
         # pylint: disable=too-many-arguments
         self.conn = conn
         self.input_media_path = input_media_path
@@ -25,6 +25,7 @@ class Database:
         self.tags_to_skip = tags_to_skip
         self.thumbnailer = thumbnailer
         self.video_convert_ext = video_convert_ext
+        self.add_paths_to_overall_diskspace = add_paths_to_overall_diskspace
         self.panorama_icon = panorama_icon
         self.play_icon = play_icon
         self.raw_icon = raw_icon
@@ -84,7 +85,28 @@ class Database:
 
             year_block["events"].sort(key=lambda event: event["stats"]["min_date"], reverse=True)
 
+
+        all_media["all_stats"]["total_filesize"] += self.__get_extra_paths_space_utilization()
+
         return all_media
+
+    def __get_extra_paths_space_utilization(self):
+        size = 0
+
+        paths = []
+        paths += self.add_paths_to_overall_diskspace
+        paths.append(os.path.join(self.dest_thumbs_directory, "event"))
+        paths.append(os.path.join(self.dest_thumbs_directory, "tag"))
+        paths.append(os.path.join(self.dest_thumbs_directory, "year"))
+        # HTML files aren't generated yet
+
+        for path in paths:
+            for root, _, filenames in os.walk(path):
+                for filename in filenames:
+                    path = os.path.join(root, filename)
+                    size += os.path.getsize(path)
+
+        return size
 
     def __get_year_candidate_composite_photos(self, all_media, year, events):
         ret = []

@@ -32,6 +32,7 @@ def process_photos(options):
                                      options.input_thumbs_directory, options.dest_directory,
                                      thumbnailer, set(options.tags_to_skip),
                                      options.video_convert_ext,
+                                     options.add_path_to_overall_diskspace,
                                      __get_image_path(options, "panorama-icon.png"),
                                      __get_image_path(options, "play-icon.png"),
                                      __get_image_path(options, "raw-icon.png"),
@@ -127,4 +128,5 @@ if __name__ == "__main__":
                            help="Optional extra URL to append to the header")
     ARGPARSER.add_argument("--extra-header-link-descr",
                            help="Label for the URL in --extra-header-link")
+    ARGPARSER.add_argument("--add-path-to-overall-diskspace", nargs="+", default=[])
     process_photos(ARGPARSER.parse_args(sys.argv[1:]))
