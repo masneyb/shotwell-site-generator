@@ -59,7 +59,7 @@ function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator,
   }
 
   if ('motion_photo_mp4' in entity) {
-    ret.push(`<a target="_new" href="${entity['motion_photo_mp4']}">Motion Photo</a>`);
+    ret.push(`<a target="_new" href="${entity.motion_photo_mp4}">Motion Photo</a>`);
   }
 
   if (entity.width) {
@@ -102,7 +102,7 @@ function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator,
   }
 
   if ('exif_text' in entity) {
-    ret.push(`<a target="_new" href="${entity['exif_text']}">EXIF</a>`);
+    ret.push(`<a target="_new" href="${entity.exif_text}">EXIF</a>`);
   }
 
   if ('rating' in entity) {
@@ -176,17 +176,16 @@ function doTextSearch(fieldInfo, op, value, media, searchOp) {
 }
 
 function textSearchContains(fieldInfo, op, value, media) {
-  return doTextSearch(fieldInfo, op, value, media, function (input, searchterm) {
-    return input.toLowerCase().includes(searchterm);
-  });
+  const func = (input, searchterm) => input.toLowerCase().includes(searchterm);
+  return doTextSearch(fieldInfo, op, value, media, func);
 }
 
 function textSearchContainsWord(fieldInfo, op, value, media) {
-  return doTextSearch(fieldInfo, op, value, media, function (input, searchterm) {
+  return doTextSearch(fieldInfo, op, value, media, (input, searchterm) => {
     for (const part of input.toLowerCase().split(' ')) {
-       if (part === searchterm) {
-         return true;
-       }
+      if (part === searchterm) {
+        return true;
+      }
     }
 
     return false;
@@ -664,9 +663,11 @@ const searchFields = [
     title: 'Type',
     search: mediaTypeSearch,
     searchFields: ['type'],
-    validValues: [['event', 'events'], ['photo', 'photo'], ['motion photo', 'motion_photo'],
-                  ['raw photo', 'raw_photo'], ['tag', 'tags'], ['video', 'video'],
-                  ['year', 'years']],
+    validValues: [
+      ['event', 'events'], ['photo', 'photo'], ['motion photo', 'motion_photo'],
+      ['raw photo', 'raw_photo'], ['tag', 'tags'], ['video', 'video'],
+      ['year', 'years'],
+    ],
   },
   {
     title: 'Video Duration',
@@ -734,8 +735,8 @@ function performSearch(allItems) {
   const fileExtensions = new Set([]);
 
   const ret = [];
-  for (const mediaType of [['media', ''], ['events', 'Event: '], ['tags', 'Tag: '],
-                           ['years', 'Year: ']]) {
+  const types = [['media', ''], ['events', 'Event: '], ['tags', 'Tag: '], ['years', 'Year: ']];
+  for (const mediaType of types) {
     for (const media of allItems[mediaType[0]]) {
       if (!('type' in media)) {
         media.type = mediaType[0];
@@ -810,25 +811,33 @@ function performSearch(allItems) {
     }
   }
 
-  const sortedTypes = {photo: 0, motion_photo: 0, raw_photo: 0, video: 0, events: 1, tags: 2,
-                       years: 3};
+  const sortedTypes = {
+    photo: 0,
+    motion_photo: 0,
+    raw_photo: 0,
+    video: 0,
+    events: 1,
+    tags: 2,
+    years: 3,
+  };
   const sortby = getQueryParameter('sortby', 'taken'); // taken,created
   const sortField = sortby === 'created' ? 'time_created' : 'exposure_time';
 
   ret.sort((a, b) => {
     if (sortedTypes[a.type] < sortedTypes[b.type]) {
       return -1;
-    } else if (sortedTypes[a.type] > sortedTypes[b.type]) {
-      return 1;
-    } else {
-      if (a[sortField] < b[sortField]) {
-        return 1;
-      } else if (a[sortField] > b[sortField]) {
-        return -1;
-      } else {
-        return 0;
-      }
     }
+    if (sortedTypes[a.type] > sortedTypes[b.type]) {
+      return 1;
+    }
+
+    if (a[sortField] < b[sortField]) {
+      return 1;
+    }
+    if (a[sortField] > b[sortField]) {
+      return -1;
+    }
+    return 0;
   });
 
   for (const field of searchFields) {

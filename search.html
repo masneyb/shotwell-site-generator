@@ -113,7 +113,7 @@
 
         for (const media of allMedia) {
           let type = null;
-          if (media.type == 'raw_photo' || media.type == 'motion_photo') {
+          if (media.type === 'raw_photo' || media.type === 'motion_photo') {
             type = 'photo';
           } else {
             type = media.type;
@@ -284,13 +284,11 @@
               input.step = op.inputStep[i];
             }
             input.size = 10;
-            input.placeholder = 'placeholder' in op && op.placeholder[i] != null ?
-                                op.placeholder[i] : "";
+            input.placeholder = 'placeholder' in op && op.placeholder[i] != null ? op.placeholder[i] : '';
 
             input.addEventListener('change', () => { window.blur(); updateCritieraIfValuesPopulated(idx); });
 
-            if (i < existingValues.length &&
-                existingValues[i][0] === input.type &&
+            if (i < existingValues.length && existingValues[i][0] === input.type &&
                 existingValues[i][1] === input.placeholder) {
               input.value = existingValues[i][2];
             }
@@ -414,7 +412,7 @@
 
         if (extraHeader) {
           const extraHeaderEle = document.querySelector('#extra_header');
-          removeAllChildren(extraHeaderEle)
+          removeAllChildren(extraHeaderEle);
 
           const outerSpan = document.createElement('span');
           const anchor = document.createElement('a');
@@ -553,22 +551,21 @@
 
           const metadata = clone.querySelector('.media_metadata');
           metadata.style.display = metadataDisplay;
-          metadata.innerHTML = createMediaStatsHtml(media, eventNames, tagNames, searchLinkGenerator, false);
+          metadata.innerHTML = createMediaStatsHtml(media, eventNames, tagNames,
+                                                    searchLinkGenerator, false);
 
           allMediaEle.appendChild(clone);
         }
 
         const params = window.location.search.startsWith('?') ? window.location.search : '?';
 
-        document.querySelector('#screensaver_link').href =
-            `screensaver.html${params}&photo_update_secs=10&kiosk=0`;
+        document.querySelector('#screensaver_link').href = `screensaver.html${params}&photo_update_secs=10&kiosk=0`;
 
         for (const ele of document.querySelectorAll('.header_links')) {
           ele.style.display = 'block';
         }
 
-        document.querySelector('#csv_link').addEventListener('click',
-                                                             (event) => { downloadCsv(event); });
+        document.querySelector('#csv_link').addEventListener('click', (event) => { downloadCsv(event); });
 
         document.querySelector('.summary_stats').innerHTML = createAllStatsHtml();
 
@@ -615,24 +612,24 @@
         const scr = document.createElement('script');
         scr.setAttribute('src', 'saved_searches.js');
         scr.onload = function () {
-           const ele = document.querySelector('#saved_searches');
-           const savedSearches = getSavedSearches();
-           if (savedSearches.length == 0) {
-             return;
-           }
+          const ele = document.querySelector('#saved_searches');
+          const savedSearches = getSavedSearches();
+          if (savedSearches.length == 0) {
+            return;
+          }
 
-           for (let i = 0; i < savedSearches.length; i += 1) {
-             if (i > 0) {
-               let space = document.createElement('span');
-               space.innerHTML = ' · ';
-               ele.appendChild(space);
-             }
+          for (let i = 0; i < savedSearches.length; i += 1) {
+            if (i > 0) {
+              const space = document.createElement('span');
+              space.innerHTML = ' · ';
+              ele.appendChild(space);
+            }
 
-             let anchor = document.createElement('a');
-             anchor.href = savedSearches[i].url;
-             anchor.innerText = savedSearches[i].label;
-             ele.appendChild(anchor);
-           }
+            const anchor = document.createElement('a');
+            anchor.href = savedSearches[i].url;
+            anchor.innerText = savedSearches[i].label;
+            ele.appendChild(anchor);
+          }
         };
         document.body.appendChild(scr);
       }
