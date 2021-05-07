@@ -20,7 +20,7 @@ class Thumbnailer:
         self.thumbnail_size = thumbnail_size
         self.dest_thumbs_directory = os.path.join(dest_directory, "thumbnails")
         self.transformed_origs_directory = os.path.join(dest_directory, "transformed")
-        self.motion_photo_directory = os.path.join(dest_directory, "motion_photo")
+        self.motion_photo_directory = os.path.join(self.dest_thumbs_directory, "motion_photo")
         self.exif_directory = os.path.join(dest_directory, "exif")
         self.remove_stale_artifacts = remove_stale_artifacts
         self.imagemagick_command = imagemagick_command
@@ -371,7 +371,7 @@ class Thumbnailer:
             if not mp4_short_path:
                 return None
 
-            mp4_short_path = f"motion_photo/{mp4_short_path}"
+            mp4_short_path = f"thumbnails/motion_photo/{mp4_short_path}"
         else:
             mp4_short_path = None
 
@@ -389,7 +389,7 @@ class Thumbnailer:
             logging.info("Creating animated GIF for %s", src_filename)
             self._do_run_command(cmd, False)
 
-        return (mp4_short_path, f"motion_photo/{gif_short_path}")
+        return (mp4_short_path, f"thumbnails/motion_photo/{gif_short_path}")
 
     def write_exif_txt(self, img_filename, media_id):
         if not self.exif_text_command:
