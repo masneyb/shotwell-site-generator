@@ -179,8 +179,10 @@ class Database:
             cursor = self.conn.cursor()
             for row in cursor.execute(qry):
                 media_id = "video-%016x" % (row["id"])
+                short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
+                                                                     None)
                 media = self.__add_media(all_media, row, media_id, row["filename"], row["filename"],
-                                         None, 0, self.play_icon, None, None)
+                                         None, 0, self.play_icon, short_mp_path, None)
                 media["clip_duration"] = row["clip_duration"]
 
     def __process_photo_row(self, all_media, row, download_source, is_raw):
@@ -197,8 +199,8 @@ class Database:
         exiv2_metadata.read()
 
         media_id = "thumb%016x" % (row["id"])
-        short_mp_path = self.thumbnailer.extract_motion_photo(exiv2_metadata, row["filename"],
-                                                              media_id)
+        short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
+                                                             exiv2_metadata)
 
         if is_raw:
             overlay_icon = self.raw_icon
@@ -462,7 +464,8 @@ class Database:
 
         media["motion_photo"] = motion_photo
         if media["motion_photo"]:
-            all_artifacts.add(os.path.join(self.dest_directory, media["motion_photo"][0]))
+            if media["motion_photo"][0]:
+                all_artifacts.add(os.path.join(self.dest_directory, media["motion_photo"][0]))
             all_artifacts.add(os.path.join(self.dest_directory, media["motion_photo"][1]))
 
         media["exif_text"] = exif_text

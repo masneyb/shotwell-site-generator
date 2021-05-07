@@ -24,9 +24,11 @@ def process_photos(options):
                                                 options.remove_stale_artifacts,
                                                 options.imagemagick_command,
                                                 options.ffmpeg_command,
+                                                options.ffprobe_command,
                                                 options.video_convert_command,
                                                 options.exif_text_command,
-                                                options.skip_exif_text_if_exists)
+                                                options.skip_exif_text_if_exists,
+                                                __get_image_path(options, "play-icon.png"))
 
     fetcher = media_fetcher.Database(conn, options.input_media_path,
                                      options.input_thumbs_directory, options.dest_directory,
@@ -117,6 +119,7 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--skip-original-symlink", action="store_true", default=False)
     ARGPARSER.add_argument("--imagemagick-command", default="convert")
     ARGPARSER.add_argument("--ffmpeg-command", default="ffmpeg")
+    ARGPARSER.add_argument("--ffprobe-command", default="ffprobe")
     ARGPARSER.add_argument("--video-convert-command",
                            help="Standardize all videos to a common format. Example: ffmpeg " + \
                                 "-y -hide_banner -loglevel warning -i {infile} -c:v libx264 " + \

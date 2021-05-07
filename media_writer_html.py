@@ -271,7 +271,7 @@ class Html(CommonWriter):
         if "clip_duration" in media:
             summary.append(humanize.naturaldelta(int(media["clip_duration"])))
 
-        if "motion_photo" in media and media["motion_photo"]:
+        if "motion_photo" in media and media["motion_photo"] and media["motion_photo"][0]:
             summary.append("<a target='_new' href='../%s'>Motion Photo</a>" %
                            (media["motion_photo"][0]))
 

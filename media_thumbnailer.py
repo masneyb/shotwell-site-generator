@@ -14,8 +14,8 @@ class Thumbnailer:
     # pylint: disable=too-many-instance-attributes
 
     def __init__(self, thumbnail_size, dest_directory, remove_stale_artifacts,
-                 imagemagick_command, ffmpeg_command, video_convert_command, exif_text_command,
-                 skip_exif_text_if_exists):
+                 imagemagick_command, ffmpeg_command, ffprobe_command, video_convert_command,
+                 exif_text_command, skip_exif_text_if_exists, play_icon):
         # pylint: disable=too-many-arguments
         self.thumbnail_size = thumbnail_size
         self.dest_thumbs_directory = os.path.join(dest_directory, "thumbnails")
@@ -25,14 +25,16 @@ class Thumbnailer:
         self.remove_stale_artifacts = remove_stale_artifacts
         self.imagemagick_command = imagemagick_command
         self.ffmpeg_command = ffmpeg_command
+        self.ffprobe_command = ffprobe_command
         self.video_convert_command = video_convert_command
         self.exif_text_command = exif_text_command
         self.skip_exif_text_if_exists = skip_exif_text_if_exists
+        self.play_icon = play_icon
         self.generated_artifacts = set([])
 
-    def _do_run_command(self, cmd):
+    def _do_run_command(self, cmd, capture_output):
         logging.debug("Executing %s", " ".join(cmd))
-        subprocess.run(cmd, check=False)
+        return subprocess.run(cmd, check=False, capture_output=capture_output)
 
     def create_composite_media_thumbnail(self, title, source_media, dest_filename):
         base_dir = os.path.dirname(dest_filename)
@@ -58,7 +60,7 @@ class Thumbnailer:
                             dest_filename, title)
             cmd = [self.imagemagick_command, "-size", self.thumbnail_size, "xc:lightgray",
                    dest_filename]
-            self._do_run_command(cmd)
+            self._do_run_command(cmd, False)
             pathlib.Path(tn_idx_file).write_text(tn_idx_contents)
             return
 
@@ -73,7 +75,7 @@ class Thumbnailer:
         cmd = ["montage", *file_ops, "-geometry", "%s+0+0" % (geometry),
                "-background", "white", "-tile", tile_size, "-frame", str(COMPOSITE_FRAME_SIZE),
                dest_filename]
-        self._do_run_command(cmd)
+        self._do_run_command(cmd, False)
 
         pathlib.Path(tn_idx_file).write_text(tn_idx_contents)
 
@@ -187,7 +189,7 @@ class Thumbnailer:
             os.unlink(thumbnail)
 
         logging.info("Transforming original image: %s", " ".join(cmd))
-        self._do_run_command(cmd)
+        self._do_run_command(cmd, False)
 
         pathlib.Path(idx_file).write_text(idx_contents)
 
@@ -255,7 +257,7 @@ class Thumbnailer:
                        "-compose", "Multiply", "-composite", "(", "+clone", "-flop", ")",
                        "-compose", "Multiply", "-composite", ")", "-alpha", "off",
                        "-compose", "CopyOpacity", "-composite", resized_image]
-        self._do_run_command(resize_cmd)
+        self._do_run_command(resize_cmd, False)
 
     def _get_motion_photo_offset(self, exiv2_metadata):
         # Support the two types of Motion Photos from the Pixel phones:
@@ -271,10 +273,83 @@ class Thumbnailer:
 
         return None
 
-    def extract_motion_photo(self, exiv2_metadata, src_filename, media_id):
-        offset = self._get_motion_photo_offset(exiv2_metadata)
-        if not offset:
+    def _get_num_video_frames(self, filename):
+        cmd = [self.ffprobe_command, "-v", "error", "-select_streams", "v:0", "-count_packets",
+               "-show_entries", "stream=nb_read_packets", "-of", "csv=p=0", filename]
+        result = self._do_run_command(cmd, True)
+        if result.returncode != 0:
+            logging.error("Error running %s: %s", cmd, result.returncode)
             return None
+
+        return int(result.stdout) if result.stdout else None
+
+    def _get_ffmpeg_animated_gif_cmd(self, src_filename, is_video, gif_dest_filename):
+        max_frames = 100
+        if is_video:
+            num_frames = self._get_num_video_frames(src_filename)
+            if not num_frames:
+                return None
+
+            if num_frames <= max_frames:
+                num_frames = None
+        else:
+            num_frames = None
+
+        (width, height) = [int(x) for x in self.thumbnail_size.split("x")]
+        cmd = [self.ffmpeg_command, "-hide_banner", "-loglevel", "error",
+               "-i", src_filename]
+
+        if num_frames:
+            cmd += ["-i", self.play_icon]
+
+        complex_filter = "[0]"
+        if num_frames:
+            # Valid input range in frames. Videos longer than 900 frames will be trimmed by
+            # skipping frames via the select_frames variable below.
+            irng = (100, 900)
+
+            # Adjusted pts range based on the input range
+            prng = (10, 50)
+
+            select_frames = int(num_frames / max_frames)
+
+            # This controls the speed the speed of the animated GIF. PTS stands for
+            # Presentation TimeStamps.
+            if num_frames > irng[1]:
+                # If the video is longer that the maximum number of frames, then set the pts to a
+                # slower value.
+                pts = prng[0]
+            else:
+                # Scale the inverted input range to the pts range and generate the pts value so
+                # that shorter videos are sped up faster.
+                pts = int((prng[1] - (prng[1] - prng[0]) *
+                           ((num_frames - irng[0]) / (irng[1] - irng[0]))) + prng[0])
+
+            complex_filter += (f"select=not(mod(n-1\\,{select_frames}))[skip];"
+                               f"[skip]setpts=N/({pts}*TB)[fps];[fps]")
+
+        complex_filter += \
+            (f"scale='if(gt(iw,ih),-1,{height})':'if(gt(iw,ih),{width},-1)'[scale];"
+             f"[scale]crop={width}:{height}[crop];"
+             "[crop]geq=lum='p(X,Y)':"
+             "a='if(gt(abs(W/2-X),W/2-15)*gt(abs(H/2-Y),H/2-15),"
+             "if(lte(hypot(15-(W/2-abs(W/2-X)),15-(H/2-abs(H/2-Y))),15),255,0),255)'"
+             "[rounded];"
+             f"color=white@0.0:size={self.thumbnail_size},format=rgba[bg];"
+             "[bg][rounded]overlay=x=0:y=0:shortest=1")
+
+        if num_frames:
+            complex_filter += f"[combined];[combined][1]overlay=x={width - 60}:y={height - 60}"
+
+        cmd += ["-f", "lavfi", "-i", f"color=white:size={self.thumbnail_size},format=rgba",
+                "-filter_complex", complex_filter, gif_dest_filename]
+
+        return cmd
+
+    def _extract_motion_photo(self, src_filename, media_id, motion_photo_exiv2_metadata):
+        offset = self._get_motion_photo_offset(motion_photo_exiv2_metadata)
+        if not offset:
+            return (None, None)
 
         (mp4_dest_filename, mp4_short_path) = \
             self.__get_hashed_file_path(self.motion_photo_directory, media_id, "mp4")
@@ -287,29 +362,34 @@ class Thumbnailer:
                 for content in src:
                     dest.write(content)
 
+        return (mp4_dest_filename, mp4_short_path)
+
+    def create_animated_gif(self, src_filename, media_id, motion_photo_exiv2_metadata):
+        if motion_photo_exiv2_metadata:
+            (src_filename, mp4_short_path) = self._extract_motion_photo(src_filename, media_id,
+                                                                        motion_photo_exiv2_metadata)
+            if not mp4_short_path:
+                return None
+
+            mp4_short_path = f"motion_photo/{mp4_short_path}"
+        else:
+            mp4_short_path = None
+
         (gif_dest_filename, gif_short_path) = \
             self.__get_hashed_file_path(self.motion_photo_directory, media_id, "gif")
         self.generated_artifacts.add(gif_dest_filename)
 
         if not os.path.exists(gif_dest_filename):
-            logging.info("Creating animated GIF for %s", src_filename)
-            (width, height) = self.thumbnail_size.split("x")
-            cmd = [self.ffmpeg_command, "-hide_banner", "-loglevel", "error",
-                   "-i", mp4_dest_filename,
-                   "-f", "lavfi", "-i", f"color=white:size={self.thumbnail_size},format=rgba",
-                   "-filter_complex",
-                   (f"[0]scale='if(gt(iw,ih),-1,{height})':'if(gt(iw,ih),{width},-1)'[scale];"
-                    f"[scale]crop={width}:{height}[crop];"
-                    "[crop]geq=lum='p(X,Y)':"
-                    "a='if(gt(abs(W/2-X),W/2-15)*gt(abs(H/2-Y),H/2-15),"
-                    "if(lte(hypot(15-(W/2-abs(W/2-X)),15-(H/2-abs(H/2-Y))),15),255,0),255)'"
-                    "[rounded];"
-                    f"color=white@0.0:size={self.thumbnail_size},format=rgba[bg];"
-                    "[bg][rounded]overlay=x=0:y=0:shortest=1"),
-                   gif_dest_filename]
-            self._do_run_command(cmd)
+            cmd = self._get_ffmpeg_animated_gif_cmd(src_filename,
+                                                    motion_photo_exiv2_metadata is None,
+                                                    gif_dest_filename)
+            if not cmd:
+                return None
 
-        return (f"motion_photo/{mp4_short_path}", f"motion_photo/{gif_short_path}")
+            logging.info("Creating animated GIF for %s", src_filename)
+            self._do_run_command(cmd, False)
+
+        return (mp4_short_path, f"motion_photo/{gif_short_path}")
 
     def write_exif_txt(self, img_filename, media_id):
         if not self.exif_text_command:
