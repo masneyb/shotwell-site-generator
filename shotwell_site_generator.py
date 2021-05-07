@@ -100,7 +100,6 @@ def __get_assets_path(options, name):
     return os.path.join(options.src_assets_directory, name)
 
 if __name__ == "__main__":
-    logging.basicConfig(format="%(asctime)s %(message)s", level=logging.INFO)
     ARGPARSER = argparse.ArgumentParser()
     ARGPARSER.add_argument("--input-database", required=True)
     ARGPARSER.add_argument("--input-media-path", required=True)
@@ -131,4 +130,8 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--extra-header-link-descr",
                            help="Label for the URL in --extra-header-link")
     ARGPARSER.add_argument("--add-path-to-overall-diskspace", nargs="+", default=[])
-    process_photos(ARGPARSER.parse_args(sys.argv[1:]))
+    ARGPARSER.add_argument("--debug", action="store_true", default=False)
+    ARGS = ARGPARSER.parse_args(sys.argv[1:])
+    logging.basicConfig(format="%(asctime)s %(message)s",
+                        level=logging.DEBUG if ARGS.debug else logging.INFO)
+    process_photos(ARGS)
