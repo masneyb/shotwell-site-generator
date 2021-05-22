@@ -39,6 +39,8 @@ def process_photos(options):
                                      __get_image_path(options, "play-icon.png"),
                                      __get_image_path(options, "raw-icon.png"),
                                      __get_image_path(options, "motion-photo.png"))
+
+    logging.info("Fetching all media")
     all_media = fetcher.get_all_media()
 
     if options.extra_header_link and options.extra_header_link_descr:
@@ -46,12 +48,14 @@ def process_photos(options):
     else:
         extra_header = None
 
+    logging.info("Generating JSON file")
     json_writer = media_writer_json.Json(all_media, options.title,
                                          options.max_media_per_page, options.dest_directory,
                                          options.years_prior_are_approximate,
                                          extra_header, options.version_label)
     json_writer.write()
 
+    logging.info("Copying other support files")
     write_redirect(os.path.join(options.dest_directory, "index.html"),
                    "%s/index.html" % (options.default_view))
 
@@ -84,10 +88,18 @@ def process_photos(options):
                                     extra_header, options.version_label,
                                     options.remove_stale_artifacts)
 
+    logging.info("Generating all media HTML files")
     all_media_year_index = photos.write_all_media_index_file()
+
+    logging.info("Generating year and event HTML files")
     photos.write_year_and_event_html_files(all_media_year_index)
+
+    logging.info("Generating tag HTML files")
     photos.write_tag_html_files()
+
     photos.remove_stale_files()
+
+    logging.info("Finished")
 
 def write_redirect(filename, redirect_to):
     with open(filename, "w", encoding="UTF-8") as output:
