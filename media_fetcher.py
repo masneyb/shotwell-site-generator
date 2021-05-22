@@ -398,7 +398,7 @@ class Database:
 
     def __add_media(self, all_media, row, media_id, download_source, thumbnail_source,
                     transformations, rotate, overlay_icon, motion_photo, exif_text):
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-arguments,too-many-locals,too-many-statements
 
         media = {}
         media["id"] = row["id"]
