@@ -645,6 +645,9 @@ class Html(CommonWriter):
             self.__write_main_view_links(output, current_page_link[0],
                                          current_page_link[1] != "index" or page_number > 1)
 
+            if len(media_chunks) > 1:
+                self.__write_page_links(output, current_page_link, page_number, len(media_chunks))
+
             for media in media_on_page:
                 self.__write_media_block(output, media["media"], media["thumbnail_path"],
                                          media["stats"], media["link"], media["show_daterange"])
