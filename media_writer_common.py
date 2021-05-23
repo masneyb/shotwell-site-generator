@@ -26,13 +26,17 @@ class CommonWriter:
     def _get_date_parts(self, timestamp):
         date = datetime.datetime.fromtimestamp(timestamp)
         if self.years_prior_are_approximate and date.year < int(self.years_prior_are_approximate):
-            return {"year": str(date.year), "month": None, "day": None}
+            return {"year": str(date.year), "month": None, "day": None, "weekday": None}
 
-        return {"year": str(date.year), "month": date.strftime("%b"), "day": str(date.day)}
+        return {"year": str(date.year), "month": date.strftime("%b"), "day": str(date.day),
+                "weekday": str(date.weekday())}
+
+    WEEKDAYS = {"0": "Mon", "1": "Tue", "2": "Wed", "3": "Thu", "4": "Fri", "5": "Sat", "6": "Sun"}
 
     def _get_date_string(self, date_parts):
         if date_parts["month"]:
-            return "%s %s, %s" % (date_parts["month"], date_parts["day"], date_parts["year"])
+            return "%s %s %s, %s" % (self.WEEKDAYS[date_parts["weekday"]], date_parts["month"],
+                                     date_parts["day"], date_parts["year"])
 
         return date_parts["year"]
 
