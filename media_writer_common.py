@@ -33,10 +33,13 @@ class CommonWriter:
 
     WEEKDAYS = {"0": "Mon", "1": "Tue", "2": "Wed", "3": "Thu", "4": "Fri", "5": "Sat", "6": "Sun"}
 
-    def _get_date_string(self, date_parts):
+    def _get_date_string(self, date_parts, include_weekday):
         if date_parts["month"]:
-            return "%s %s %s, %s" % (self.WEEKDAYS[date_parts["weekday"]], date_parts["month"],
-                                     date_parts["day"], date_parts["year"])
+            if include_weekday:
+                return "%s %s %s, %s" % (self.WEEKDAYS[date_parts["weekday"]], date_parts["month"],
+                                         date_parts["day"], date_parts["year"])
+
+            return "%s %s, %s" % (date_parts["month"], date_parts["day"], date_parts["year"])
 
         return date_parts["year"]
 
@@ -57,8 +60,8 @@ class CommonWriter:
                        (min_parts["month"], min_parts["day"], max_parts["month"], max_parts["day"],
                         min_parts["year"])
 
-        min_str = self._get_date_string(min_parts)
-        max_str = self._get_date_string(max_parts)
+        min_str = self._get_date_string(min_parts, False)
+        max_str = self._get_date_string(max_parts, False)
         if min_str == max_str:
             return min_str
 

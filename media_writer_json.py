@@ -46,7 +46,7 @@ class Json(CommonWriter):
                 item["exposure_time"] = datetime.datetime.fromtimestamp(media["exposure_time"]) \
                                             .isoformat()
                 item["exposure_time_pretty"] = \
-                    self._get_date_string(self._get_date_parts(media["exposure_time"]))
+                    self._get_date_string(self._get_date_parts(media["exposure_time"]), True)
                 item["link"] = media["filename"]
                 item["thumbnail_path"] = "thumbnails/" + media["thumbnail_path"]
                 item["tags"] = []

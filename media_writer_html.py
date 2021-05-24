@@ -263,7 +263,8 @@ class Html(CommonWriter):
         detailed = []
 
         if "exposure_time" in media and media["exposure_time"] != 0:
-            summary.append(self._get_date_string(self._get_date_parts(media["exposure_time"])))
+            summary.append(self._get_date_string(self._get_date_parts(media["exposure_time"]),
+                                                 True))
 
         if "filesize" in media and media["filesize"] > 0:
             summary.append(humanize.naturalsize(media["filesize"], binary=True).replace(" ", ""))
