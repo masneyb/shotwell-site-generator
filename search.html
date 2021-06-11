@@ -18,13 +18,13 @@
     <span id="title" class="page_title">Search</span>
     <span class="summary_stats"></span>
     <span class="header_links" style="display: none">
-      <a href="#" id="csv_link"><span class="header_link">CSV Download</span></a>
+      <a href="#" id="csv_link"><span class="header_link">CSV</span></a>
       ·
       <a id="screensaver_link"><span class="header_link">Screensaver</span></a>
       ·
-      <a href="#" onClick="shuffleArray(allMedia); showMedia(1, true);"><span class="header_link">Shuffle</span></a>
+      <a href="#" onClick="toggleMetadata();"><span class="header_link" id="toggle_metadata">Hide Metadata</span></a>
       ·
-      <a href="#" onClick="toggleMetadata();"><span class="header_link">Toggle Metadata</span></a>
+      <a href="#" onClick="toggleAnimations();"><span class="header_link" id="toggle_animations">Show Animations</span></a>
     </span>
     <span id="saved_searches" class="header_links" style="display: none"></span>
 
@@ -108,14 +108,22 @@
       let eventNames = null;
       let tagNames = null;
       let metadataDisplay = 'block';
+      let alwaysShowAnimations = false;
 
       function toggleMetadata() {
         metadataDisplay = metadataDisplay === 'none' ? 'block' : 'none';
+        document.querySelector("#toggle_metadata").innerText = metadataDisplay === 'none' ? "Show Metadata" : "Hide Metadata";
         for (const name of ['.media_metadata', '.media_title', '.media_comment']) {
           for (const ele of document.querySelectorAll(name)) {
             ele.style.display = metadataDisplay;
           }
         }
+      }
+
+      function toggleAnimations() {
+        alwaysShowAnimations = !alwaysShowAnimations;
+        document.querySelector("#toggle_animations").innerText = alwaysShowAnimations ? "Hide Animations" : "Show Animations";
+        showMedia(currentPageNumber, false);
       }
 
       function createAllStatsHtml() {
@@ -536,13 +544,18 @@
 
           clone.querySelector('a').href = media.link;
 
-          const img = clone.querySelector('img');
-          img.src = media.thumbnail_path;
-          if (media.motion_photo_gif) {
-            img.addEventListener('mouseover', () => { img.src = media.motion_photo_gif; });
-            img.addEventListener('mouseleave', () => { img.src = media.thumbnail_path; });
-            img.addEventListener('touchstart', () => { img.src = media.motion_photo_gif; });
-            img.addEventListener('touchend', () => { img.src = media.thumbnail_path; });
+          if (alwaysShowAnimations && media.motion_photo_gif) {
+            const img = clone.querySelector('img');
+            img.src = media.motion_photo_gif;
+          } else {
+            const img = clone.querySelector('img');
+            img.src = media.thumbnail_path;
+            if (media.motion_photo_gif) {
+              img.addEventListener('mouseover', () => { img.src = media.motion_photo_gif; });
+              img.addEventListener('mouseleave', () => { img.src = media.thumbnail_path; });
+              img.addEventListener('touchstart', () => { img.src = media.motion_photo_gif; });
+              img.addEventListener('touchend', () => { img.src = media.thumbnail_path; });
+            }
           }
 
           if (media.title) {
