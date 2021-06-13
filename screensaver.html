@@ -89,11 +89,14 @@
 
     <script>
       let updateImageTimer = null;
+      let reinstateImageTimer = null;
       let shownPhotos = null;
       let eventNames = null;
       let tagNames = null;
       let curIdx = 0;
+
       const photoUpdateSecs = getIntQueryParameter('photo_update_secs', 10);
+      const reinstateScreensaverSecs = getIntQueryParameter('reinstate_screensaver_secs', 300);
 
       function showImage(idx) {
         if (shownPhotos == null || idx < 0 || idx >= shownPhotos.length) {
@@ -146,7 +149,7 @@
         });
       }
 
-      function toggleUpdateImageTimer(userInitiated) {
+      function toggleUpdateImageTimer(userInitiated=false) {
         let display;
 
         if (updateImageTimer == null) {
@@ -154,11 +157,18 @@
           if (userInitiated) {
             showImage(curIdx);
           }
+
+          clearInterval(reinstateImageTimer);
+          reinstateImageTimer = null;
+
           updateImageTimer = setInterval(showNextImage, photoUpdateSecs * 1000);
         } else {
           display = 'block';
+
           clearInterval(updateImageTimer);
           updateImageTimer = null;
+
+          reinstateImageTimer = setInterval(toggleUpdateImageTimer, reinstateScreensaverSecs * 1000);
         }
 
         document.querySelector('#left_control').style.display = display;

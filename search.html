@@ -584,7 +584,7 @@
 
         const params = window.location.search.startsWith('?') ? window.location.search : '?';
 
-        document.querySelector('#screensaver_link').href = `screensaver.html${params}&photo_update_secs=10&kiosk=0`;
+        document.querySelector('#screensaver_link').href = `screensaver.html${params}&photo_update_secs=30&reinstate_screensaver_secs=300&kiosk=0`;
 
         for (const ele of document.querySelectorAll('.header_links')) {
           ele.style.display = 'block';
