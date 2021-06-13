@@ -217,12 +217,14 @@
             ele.style.display = '';
             ele.href = '#';
             ele.onclick = function () { showMedia(pageNumber, true); };
+            ele.querySelector('span').className = 'breadcrumb';
           } else if (!shown) {
             ele.style.display = 'none';
           } else {
             ele.style.display = '';
             ele.removeAttribute('href');
             ele.onclick = '';
+            ele.querySelector('span').className = 'breadcrumb_inactive';
           }
         }
       }
