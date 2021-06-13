@@ -593,7 +593,11 @@
         document.querySelector('.summary_stats').innerHTML = createAllStatsHtml();
 
         for (const ele of document.querySelectorAll('#page_info')) {
-          ele.innerText = `Page ${pageNumber.toLocaleString()}`;
+          if (totalPages < 100) {
+            ele.innerText = `Page ${pageNumber.toLocaleString()} of ${totalPages.toLocaleString()}`;
+          } else {
+            ele.innerText = `Page ${pageNumber.toLocaleString()}`;
+          }
         }
 
         for (const ele of document.querySelectorAll('.breadcrumbs')) {
