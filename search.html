@@ -58,6 +58,7 @@
 
     <template id="media_template">
       <span class="media">
+        <span class="date_title">&nbsp;</span>
         <a target="_new">
           <span class="media_thumb">
             <img></img>
@@ -87,6 +88,7 @@
       let tagNames = null;
       let metadataDisplay = 'block';
       let alwaysShowAnimations = false;
+      let dateGroupTitle = null;
 
       function toggleMetadata() {
         metadataDisplay = metadataDisplay === 'none' ? 'block' : 'none';
@@ -523,6 +525,15 @@
           metadata.style.display = metadataDisplay;
           metadata.innerHTML = createMediaStatsHtml(media, eventNames, tagNames,
                                                     searchLinkGenerator, false);
+
+          if ('exposure_time_pretty' in media) {
+            if (dateGroupTitle == null || dateGroupTitle !== media.exposure_time_pretty) {
+              clone.querySelector('.date_title').innerText = media.exposure_time_pretty;
+              dateGroupTitle = media.exposure_time_pretty;
+            }
+          } else if (dateGroupTitle != null) {
+            dateGroupTitle = null;
+          }
 
           allMediaEle.appendChild(clone);
         }

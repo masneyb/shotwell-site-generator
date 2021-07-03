@@ -38,6 +38,13 @@ a {
 	padding: 5px;
 }
 
+.date_title {
+	font-weight: bold;
+	font-size: 110%;
+	padding-bottom: 5px;
+	display: inline-block;
+}
+
 .media {
 	display: inline-block;
 	width: 390px;
