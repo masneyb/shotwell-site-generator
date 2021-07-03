@@ -30,16 +30,6 @@
 
     <span class="main_views"><span><a href="media/index.html"><span class="main_view">Date</span></a></span><span><a href="event/index.html"><span class="main_view">Event</span></a></span><span><a href="year/index.html"><span class="main_view">Year</span></a></span><span><a href="tag/index.html"><span class="main_view">Tag</span></a></span><span id="extra_header"></span><span><a href="search.html"><span class="main_view main_view_selected">Search</span></a></span></span>
 
-    <span class="breadcrumbs" style="display: none">
-      <a class="firstpage"><span class="breadcrumb">|&lt;</span></a>
-      <a class="backten"><span class="breadcrumb">&lt;&lt;&lt;&lt;</span></a>
-      <a class="backone"><span class="breadcrumb">&lt;&lt;</span></a>
-      <span class="breadcrumb" id="page_info"></span>
-      <a class="forwardone"><span class="breadcrumb">&gt;&gt;</span></a>
-      <a class="forwardten"><span class="breadcrumb">&gt;&gt;&gt;&gt;</span></a>
-      <a class="lastpage"><span class="breadcrumb">&gt;|</span></a>
-    </span>
-
     <span id="search_criterias" style="display: none"></span>
 
     <span class="search_controls" style="display: none">
@@ -58,16 +48,6 @@
     </span>
 
     <div id="all_media"><div class='loading'>Loading</div></div>
-
-    <span class="breadcrumbs" style="display: none">
-      <a class="firstpage"><span class="breadcrumb">|&lt;</span></a>
-      <a class="backten"><span class="breadcrumb">&lt;&lt;&lt;&lt;</span></a>
-      <a class="backone"><span class="breadcrumb">&lt;&lt;</span></a>
-      <span class="breadcrumb" id="page_info"></span>
-      <a class="forwardone"><span class="breadcrumb">&gt;&gt;</span></a>
-      <a class="forwardten"><span class="breadcrumb">&gt;&gt;&gt;&gt;</span></a>
-      <a class="lastpage"><span class="breadcrumb">&gt;|</span></a>
-    </span>
 
     <span class="generated_at">Site generated from
       <a href="https://wiki.gnome.org/Apps/Shotwell">Shotwell</a> library
@@ -99,8 +79,6 @@
     </template>
 
     <script type="text/javascript">
-      const pageSize = getIntQueryParameter('page_size', 24);
-
       let currentPageNumber = 1;
       let nextSearchInput = 0;
 
@@ -123,7 +101,7 @@
       function toggleAnimations() {
         alwaysShowAnimations = !alwaysShowAnimations;
         document.querySelector("#toggle_animations").innerText = alwaysShowAnimations ? "Hide Animations" : "Show Animations";
-        showMedia(currentPageNumber, false);
+        showMedia();
       }
 
       function createAllStatsHtml() {
@@ -204,27 +182,9 @@
 
       function hideResultsInfo() {
         removeAllChildren(document.querySelector('.summary_stats'));
-        for (const search of ['.header_links', '.breadcrumbs']) {
+        for (const search of ['.header_links']) {
           for (const ele of document.querySelectorAll(search)) {
             ele.style.display = 'none';
-          }
-        }
-      }
-
-      function updateBreadcrumbs(selector, pageNumber, active, shown) {
-        for (const ele of document.querySelectorAll(selector)) {
-          if (active && shown) {
-            ele.style.display = '';
-            ele.href = '#';
-            ele.onclick = function () { showMedia(pageNumber, true); };
-            ele.querySelector('span').className = 'breadcrumb';
-          } else if (!shown) {
-            ele.style.display = 'none';
-          } else {
-            ele.style.display = '';
-            ele.removeAttribute('href');
-            ele.onclick = '';
-            ele.querySelector('span').className = 'breadcrumb_inactive';
           }
         }
       }
@@ -256,7 +216,7 @@
           const matchPolicy = document.querySelector('#match_policy').value;
           const sortby = document.querySelector('#sortby').value;
           window.history.pushState({}, '',
-            `search.html?${searchArgs.join('&')}&match_policy=${matchPolicy}&sortby=${sortby}&page=1`);
+            `search.html?${searchArgs.join('&')}&match_policy=${matchPolicy}&sortby=${sortby}`);
           processJson(getAllMediaViaJsFile(), populateMedia);
         }, 0);
       }
@@ -446,7 +406,7 @@
           extraHeaderEle.appendChild(outerSpan);
         }
 
-        showMedia(parseInt(getQueryParameter('page', '1'), 10), false);
+        showMedia();
         populateSearchValuesFromUrl();
       }
 
@@ -511,29 +471,14 @@
         document.body.removeChild(link);
       }
 
-      function showMedia(pageNumber, addToHistory) {
+      function doShowMedia(pageNumber) {
+        const pageSize = 24;
+        const lastPageNumber = Math.ceil(allMedia.length / pageSize);
+        if (pageNumber > lastPageNumber) {
+            return;
+        }
+
         const allMediaEle = document.querySelector('#all_media');
-
-        if (allMedia == null) {
-          removeAllChildren(allMediaEle);
-          return;
-        }
-
-        document.querySelector('.search_controls').style.display = 'block';
-        document.querySelector('#search_criterias').style.display = 'block';
-
-        if (allMedia.length === 0) {
-          allMediaEle.innerHTML = "<div class='notfound'>No results found</div>";
-          hideResultsInfo();
-          return;
-        }
-
-        const totalPages = Math.ceil(allMedia.length / pageSize);
-        if (pageNumber < 1 || pageNumber > totalPages) {
-          return;
-        }
-
-        removeAllChildren(allMediaEle);
 
         const template = document.querySelector('#media_template');
         const startIdx = (pageNumber - 1) * pageSize;
@@ -582,6 +527,30 @@
           allMediaEle.appendChild(clone);
         }
 
+        currentPageNumber = pageNumber;
+      }
+
+      function showMedia() {
+        const allMediaEle = document.querySelector('#all_media');
+
+        if (allMedia == null) {
+          removeAllChildren(allMediaEle);
+          return;
+        }
+
+        document.querySelector('.search_controls').style.display = 'block';
+        document.querySelector('#search_criterias').style.display = 'block';
+
+        if (allMedia.length === 0) {
+          allMediaEle.innerHTML = "<div class='notfound'>No results found</div>";
+          hideResultsInfo();
+          return;
+        }
+
+        removeAllChildren(allMediaEle);
+
+        doShowMedia(1);
+
         const params = window.location.search.startsWith('?') ? window.location.search : '?';
 
         document.querySelector('#screensaver_link').href = `screensaver.html${params}&photo_update_secs=30&reinstate_screensaver_secs=300&kiosk=0`;
@@ -594,35 +563,13 @@
 
         document.querySelector('.summary_stats').innerHTML = createAllStatsHtml();
 
-        for (const ele of document.querySelectorAll('#page_info')) {
-          if (totalPages < 100) {
-            ele.innerText = `Page ${pageNumber.toLocaleString()} of ${totalPages.toLocaleString()}`;
-          } else {
-            ele.innerText = `Page ${pageNumber.toLocaleString()}`;
-          }
-        }
-
-        for (const ele of document.querySelectorAll('.breadcrumbs')) {
-          ele.style.display = totalPages === 1 ? 'none' : 'block';
-        }
-
-        if (addToHistory) {
-          const urlParams = new URLSearchParams(window.location.search);
-          urlParams.set('page', pageNumber.toString());
-          window.history.pushState({}, '', `search.html?${urlParams.toString()}#`);
-        }
-
-        currentPageNumber = pageNumber;
-        const lastPageNumber = Math.ceil(allMedia.length / pageSize);
-
-        updateBreadcrumbs('.firstpage', 1, currentPageNumber > 1, totalPages > 2);
-        updateBreadcrumbs('.backten', currentPageNumber - 10, currentPageNumber > 10, totalPages > 25);
-        updateBreadcrumbs('.backone', currentPageNumber - 1, currentPageNumber > 1, true);
-        updateBreadcrumbs('.forwardone', currentPageNumber + 1, currentPageNumber < lastPageNumber, true);
-        updateBreadcrumbs('.forwardten', currentPageNumber + 10, currentPageNumber + 10 <= lastPageNumber, totalPages > 25);
-        updateBreadcrumbs('.lastpage', lastPageNumber, currentPageNumber < lastPageNumber, totalPages > 2);
-
         window.scrollTo(0, 0);
+      }
+
+      function windowScrolled() {
+        if (window.innerHeight + window.scrollY >= (document.body.offsetHeight * 0.90)) {
+           doShowMedia(currentPageNumber + 1);
+        }
       }
 
       function clearSearchCriteria() {
@@ -669,6 +616,8 @@
         const allMediaEle = document.querySelector('#all_media');
         allMediaEle.innerHTML = "<div class='error'>Error loading media</div>";
       });
+
+      window.addEventListener("scroll", windowScrolled, false);
 
       window.onpopstate = function () {
         processJson(getAllMediaViaJsFile(), populateMedia);
