@@ -151,7 +151,7 @@
 
       function getExpandableString(name, value) {
         const trimmedValue = value.trim();
-        if (trimmedValue.length < 60 && !trimmedValue.includes('\n')) {
+        if (trimmedValue.length < 150 && !trimmedValue.includes('\n')) {
           return document.createTextNode(trimmedValue);
         }
 
@@ -163,7 +163,7 @@
         let ele = document.createElement('span');
         ele.id = shortId;
         ele.style.display = 'block';
-        ele.innerHTML = `${trimmedValue.substring(0, 50).trim()}... · <span class='more_less' onClick='jsHideShow("${shortId}", "${longId}");'>More</span>`;
+        ele.innerHTML = `${trimmedValue.substring(0, 140).trim()}... · <span class='more_less' onClick='jsHideShow("${shortId}", "${longId}");'>More</span>`;
         parentEle.appendChild(ele);
 
         ele = document.createElement('span');

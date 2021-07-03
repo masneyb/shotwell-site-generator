@@ -323,11 +323,11 @@ class Html(CommonWriter):
 
     def __get_expandable_string(self, name, value, span_class):
         value = value.strip()
-        if len(value) < 60 and "\n" not in value:
+        if len(value) < 150 and "\n" not in value:
             short_value = html.escape(value)
             long_value = None
         else:
-            short_value = html.escape(value[0:50].strip() + "...")
+            short_value = html.escape(value[0:140].strip() + "...")
             long_value = html.escape(value).replace("\n", "<br/>")
 
         return self.__get_expandable_element(name, short_value, long_value, span_class, "More",
