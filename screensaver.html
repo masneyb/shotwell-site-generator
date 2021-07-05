@@ -109,8 +109,8 @@
         descrEle.innerHTML = "<div class='loading'>Loading</div>";
 
         const searchLinkGenerator = function (field, op, value) {
-          const search = `${field},${op},${value}`;
-          return `target="_new" href='${appendToExistingSearchUrl(search, false)}'`;
+          const search = [`${field},${op},${value}`];
+          return `target="_new" href='${generateSearchUrl(search)}'`;
         };
 
         imageEle.addEventListener('load', () => {

@@ -117,13 +117,15 @@ function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator,
   return ret.join(' · ');
 }
 
-function appendToExistingSearchUrl(criteria, appendOntoExisting) {
-  let ret = `search.html?search=${encodeURI(criteria)}`;
-  if (appendOntoExisting && window.location.search != null && window.location.search !== '') {
-    ret += `&${window.location.search.replace('?', '')}`;
+function generateSearchUrl(criterias) {
+  let qs = "";
+  for (const criteria of criterias) {
+    if (qs !== "") {
+      qs += "&";
+    }
+    qs += `search=${encodeURI(criteria)}`;
   }
-
-  return ret;
+  return `search.html?${qs}`;
 }
 
 function shuffleArray(arr) {
@@ -429,7 +431,7 @@ const mediaTypeSearch = {
   ],
 };
 
-function createNumberSearch(placeholderText, showGtLt) {
+function createNumberSearch(placeholderText, showGtLt, showIsSet) {
   const ops = [];
 
   if (showGtLt) {
@@ -477,6 +479,26 @@ function createNumberSearch(placeholderText, showGtLt) {
     numValues: 1,
     inputType: ['number'],
   });
+
+  if (showIsSet) {
+    ops.push({
+        descr: 'is set',
+        matches(field, op, values, media) {
+          return performGenericOp(field, media, null,
+            (input, value) => input != null && input !== '');
+        },
+        numValues: 0,
+    });
+
+    ops.push({
+        descr: 'is not set',
+        matches(field, op, values, media) {
+          return performGenericOp(field, media, null,
+            (input, value) => input == null || input === '');
+        },
+        numValues: 0,
+    });
+  }
 
   return { ops };
 }
@@ -583,7 +605,7 @@ const searchFields = [
   },
   {
     title: 'Event ID',
-    search: createNumberSearch(null, false),
+    search: createNumberSearch(null, false, false),
     searchFields: ['event_id'],
   },
   {
@@ -603,7 +625,7 @@ const searchFields = [
   },
   {
     title: 'File Size',
-    search: createNumberSearch('bytes', true),
+    search: createNumberSearch('bytes', true, false),
     searchFields: ['filesize'],
   },
   {
@@ -613,22 +635,22 @@ const searchFields = [
   },
   {
     title: 'Photo Height',
-    search: createNumberSearch('pixels', true),
+    search: createNumberSearch('pixels', true, false),
     searchFields: ['height'],
   },
   {
     title: 'Photo Width',
-    search: createNumberSearch('pixels', true),
+    search: createNumberSearch('pixels', true, false),
     searchFields: ['width'],
   },
   {
     title: 'Photo W/H Ratio',
-    search: createNumberSearch(null, true),
+    search: createNumberSearch(null, true, false),
     searchFields: ['photo_ratio'],
   },
   {
     title: 'Rating',
-    search: createNumberSearch(null, true),
+    search: createNumberSearch(null, true, false),
     searchFields: ['rating'],
     validValues: [['Unrated', '0'], ['&starf;', '1'], ['&starf;&starf;', '2'],
       ['&starf;&starf;&starf;', '3'], ['&starf;&starf;&starf;&starf;', '4'],
@@ -636,7 +658,7 @@ const searchFields = [
   },
   {
     title: 'Tag ID',
-    search: createNumberSearch(null, false),
+    search: createNumberSearch(null, false, false),
     searchFields: ['tag_id'],
   },
   {
@@ -645,18 +667,23 @@ const searchFields = [
     searchFields: ['tag_name'],
   },
   {
+    title: 'Tag Parent ID',
+    search: createNumberSearch(null, false, true),
+    searchFields: ['parent_tag_id'],
+  },
+  {
     title: 'Title',
     search: textSearch,
     searchFields: ['title'],
   },
   {
     title: 'Total Photos',
-    search: createNumberSearch(null, true),
+    search: createNumberSearch(null, true, false),
     searchFields: ['num_photos'],
   },
   {
     title: 'Total Videos',
-    search: createNumberSearch(null, true),
+    search: createNumberSearch(null, true, false),
     searchFields: ['num_videos'],
   },
   {
@@ -671,7 +698,7 @@ const searchFields = [
   },
   {
     title: 'Video Duration',
-    search: createNumberSearch('secs', true),
+    search: createNumberSearch('secs', true, false),
     searchFields: ['clip_duration_secs'],
   },
 ];

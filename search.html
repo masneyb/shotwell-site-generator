@@ -28,7 +28,34 @@
     </span>
     <span id="saved_searches" class="header_links" style="display: none"></span>
 
-    <span class="main_views"><span><a href="media/index.html"><span class="main_view">Date</span></a></span><span><a href="event/index.html"><span class="main_view">Event</span></a></span><span><a href="year/index.html"><span class="main_view">Year</span></a></span><span><a href="tag/index.html"><span class="main_view">Tag</span></a></span><span id="extra_header"></span><span><a href="search.html"><span class="main_view main_view_selected">Search</span></a></span></span>
+    <span class="main_views">
+      <span>
+        <a href="#" onclick="searchPageLinkGenerator([]);"`>
+          <span class="main_view">Date</span>
+        </a>
+      </span>
+      <span>
+        <a href="#" onclick="searchPageLinkGenerator([['Type', 'is a', 'events']]);"`>
+          <span class="main_view">Event</span>
+        </a>
+      </span>
+      <span>
+        <a href="#" onclick="searchPageLinkGenerator([['Type', 'is a', 'years']]);"`>
+          <span class="main_view">Year</span>
+        </a>
+      </span>
+      <span>
+        <a href="#" onclick="searchPageLinkGenerator([['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set', null]]);"`>
+          <span class="main_view">Tag</span>
+        </a>
+      </span>
+      <span id="extra_header"></span>
+      <span>
+        <a href="#" onclick="searchPageLinkGenerator([]);"`>
+          <span class="main_view main_view_selected">Search</span>
+        </a>
+      </span>
+    </span>
 
     <span id="search_criterias" style="display: none"></span>
 
@@ -404,8 +431,18 @@
         populateSearchValuesFromUrl();
       }
 
-      function searchPageLinkGenerator(field, op, val) {
-        const search = appendToExistingSearchUrl(`${field},${op},${val}`, true);
+      function searchPageLinkGenerator(criterias) {
+        let parts = [];
+        for (criteria of criterias) {
+            // field,op,value
+            if (criteria[2] !== null) {
+              parts.push(`${criteria[0]},${criteria[1]},${criteria[2]}`);
+            } else {
+              parts.push(`${criteria[0]},${criteria[1]}`);
+            }
+        }
+
+        const search = generateSearchUrl(parts);
         window.history.pushState({}, '', search);
         processJson(getAllMediaViaJsFile(), populateMedia);
       }
@@ -485,7 +522,7 @@
         const template = document.querySelector('#media_template');
         const startIdx = (pageNumber - 1) * pageSize;
         const searchLinkGenerator = function (field, op, val) {
-          return `href="#" onclick="searchPageLinkGenerator('${field}', '${op}', '${val}');"`;
+          return `href="#" onclick="searchPageLinkGenerator([['${field}', '${op}', '${val}']]);"`;
         };
 
         for (const media of allMedia.slice(startIdx, startIdx + pageSize)) {
