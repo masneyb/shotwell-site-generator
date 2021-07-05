@@ -58,8 +58,8 @@ function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator,
     ret.push(getPrettyFileSize(entity.filesize));
   }
 
-  if ('motion_photo_mp4' in entity) {
-    ret.push(`<a target="_new" href="${entity.motion_photo_mp4}">Motion Photo</a>`);
+  if ('motion_photo' in entity && "mp4" in entity["motion_photo"]) {
+    ret.push(`<a target="_new" href="${entity.motion_photo.mp4}">Motion Photo</a>`);
   }
 
   if (entity.width) {

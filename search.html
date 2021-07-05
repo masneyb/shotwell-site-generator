@@ -56,7 +56,7 @@
       <span id="app_version"></span>.
     </span>
 
-    <template id="media_template"><span class="media"><a target="_new"><span class="media_thumb"><img></img></span></a><span class="media_title"></span><span class="media_metadata"></span><span class="media_comment"></span></span></template>
+    <template id="media_template"><span class="media_dyn"><a target="_new"><span class="media_thumb"><img></img></span></a><span class="media_title"></span><span class="media_metadata"></span><span class="media_comment"></span></span></template>
 
     <template id="search_criteria_row">
       <span class="search_criteria">
@@ -68,6 +68,10 @@
     </template>
 
     <script type="text/javascript">
+      function showMobileView() {
+        return window.innerWidth < 600;
+      }
+
       let currentPageNumber = 1;
       let nextSearchInput = 0;
 
@@ -76,7 +80,7 @@
       let tagNames = null;
       let metadataDisplay = 'block';
       let alwaysShowAnimations = false;
-      let dateGroupTitle = null;
+      let isMobileView = showMobileView();
 
       function toggleMetadata() {
         metadataDisplay = metadataDisplay === 'none' ? 'block' : 'none';
@@ -461,6 +465,14 @@
         document.body.removeChild(link);
       }
 
+      function windowSizeChanged() {
+        let prevMobileView = isMobileView;
+        isMobileView = showMobileView();
+        if (prevMobileView != isMobileView) {
+          showMedia();
+        }
+      }
+
       function doShowMedia(pageNumber) {
         const pageSize = 24;
         const lastPageNumber = Math.ceil(allMedia.length / pageSize);
@@ -477,21 +489,40 @@
         };
 
         for (const media of allMedia.slice(startIdx, startIdx + pageSize)) {
-          const clone = template.content.cloneNode(true);
+          let clone = template.content.cloneNode(true);
+          let mediaEle = clone.querySelector(".media_dyn");
 
           clone.querySelector('a').href = media.link;
 
-          if (alwaysShowAnimations && media.motion_photo_gif) {
+          if (alwaysShowAnimations && media.motion_photo) {
             const img = clone.querySelector('img');
-            img.src = media.motion_photo_gif;
+            if (isMobileView) {
+              img.src = media.motion_photo.sq_gif;
+              mediaEle.className = 'media';
+            } else {
+              img.src = media.motion_photo.reg_gif;
+              mediaEle.style.width = `${media.thumbnail.reg_width}px`;
+            }
           } else {
             const img = clone.querySelector('img');
-            img.src = media.thumbnail_path;
-            if (media.motion_photo_gif) {
-              img.addEventListener('mouseover', () => { img.src = media.motion_photo_gif; });
-              img.addEventListener('mouseleave', () => { img.src = media.thumbnail_path; });
-              img.addEventListener('touchstart', () => { img.src = media.motion_photo_gif; });
-              img.addEventListener('touchend', () => { img.src = media.thumbnail_path; });
+            if (isMobileView || !('reg' in media['thumbnail'])) {
+              img.src = media.thumbnail.sq;
+              if (media.motion_photo) {
+                img.addEventListener('mouseover', () => { img.src = media.motion_photo.sq_gif; });
+                img.addEventListener('mouseleave', () => { img.src = media.thumbnail.sq; });
+                img.addEventListener('touchstart', () => { img.src = media.motion_photo.sq_gif; });
+                img.addEventListener('touchend', () => { img.src = media.thumbnail.sq; });
+              }
+              mediaEle.className = 'media';
+            } else {
+              img.src = media.thumbnail.reg;
+              if (media.motion_photo) {
+                img.addEventListener('mouseover', () => { img.src = media.motion_photo.reg_gif; });
+                img.addEventListener('mouseleave', () => { img.src = media.thumbnail.reg; });
+                img.addEventListener('touchstart', () => { img.src = media.motion_photo.reg_gif; });
+                img.addEventListener('touchend', () => { img.src = media.thumbnail.reg; });
+              }
+              mediaEle.style.width = `${media.thumbnail.reg_width}px`;
             }
           }
 
@@ -513,15 +544,6 @@
           metadata.style.display = metadataDisplay;
           metadata.innerHTML = createMediaStatsHtml(media, eventNames, tagNames,
                                                     searchLinkGenerator, false);
-
-          if ('exposure_time_pretty' in media) {
-            if (dateGroupTitle == null || dateGroupTitle !== media.exposure_time_pretty) {
-              clone.querySelector('.date_title').innerText = media.exposure_time_pretty;
-              dateGroupTitle = media.exposure_time_pretty;
-            }
-          } else if (dateGroupTitle != null) {
-            dateGroupTitle = null;
-          }
 
           allMediaEle.appendChild(clone);
         }
@@ -617,6 +639,7 @@
       });
 
       window.addEventListener("scroll", windowScrolled, false);
+      window.addEventListener("resize", windowSizeChanged, false);
 
       window.onpopstate = function () {
         processJson(getAllMediaViaJsFile(), populateMedia);

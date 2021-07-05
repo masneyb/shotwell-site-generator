@@ -38,29 +38,23 @@ a {
 	padding: 5px;
 }
 
-.date_title {
-	font-weight: bold;
-	font-size: 110%;
-	padding-bottom: 5px;
+.media, .media_dyn {
 	display: inline-block;
+	padding: 2px;
+	vertical-align: text-top;
 }
 
 .media {
-	display: inline-block;
 	width: 390px;
-	padding: 5px;
-	vertical-align: text-top;
 }
 
 .media_thumb {
 	display: block;
-	width: 390px;
 }
 
 .media_title, .media_comment, .media_metadata {
 	display: block;
 	padding-left: 13px;
-	width: 364px;
 }
 
 .media_title {

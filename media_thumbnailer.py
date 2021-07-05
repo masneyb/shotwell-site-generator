@@ -223,8 +223,8 @@ class Thumbnailer:
 
         return [self.imagemagick_command, original_image, *args, transformed_image]
 
-    def create_rounded_and_square_thumbnail(self, source_image, is_video, rotate,
-                                            resized_image, overlay_icon):
+    def create_thumbnail(self, source_image, is_video, rotate, resized_image, overlay_icon,
+                         is_rounded):
         # pylint: disable=too-many-arguments
         if not os.path.isfile(source_image):
             logging.warning("Cannot find filename %s", source_image)
@@ -243,20 +243,30 @@ class Thumbnailer:
         if is_video:
             source_image += "[1]"
 
-        # Crop the thumbnail and add rounded corners to it using Imagemagick
-        resize_cmd = [self.imagemagick_command, source_image, "-rotate", str(rotate), "-strip",
-                      "-thumbnail", "%s^" % (self.thumbnail_size),
-                      "-gravity", "center", "-extent", self.thumbnail_size]
+        if is_rounded:
+            tn_size = f'{self.thumbnail_size}^'
+        else:
+            tn_size = 'x' + (self.thumbnail_size.split('x')[1])
+
+        resize_cmd = [self.imagemagick_command, source_image, "-strip", "-rotate", str(rotate),
+                      "-thumbnail", tn_size]
+
+        if is_rounded:
+            resize_cmd += ["-gravity", "center", "-extent", self.thumbnail_size]
 
         if overlay_icon:
             resize_cmd += [overlay_icon, "-gravity", "southeast", "-composite"]
 
-        resize_cmd += ["(", "+clone", "-alpha", "extract",
-                       "-draw", "fill black polygon 0,0 0,15 15,0 fill white circle 15,15 15,0",
-                       "(", "+clone", "-flip", ")",
-                       "-compose", "Multiply", "-composite", "(", "+clone", "-flop", ")",
-                       "-compose", "Multiply", "-composite", ")", "-alpha", "off",
-                       "-compose", "CopyOpacity", "-composite", resized_image]
+        if is_rounded:
+            resize_cmd += ["(", "+clone", "-alpha", "extract",
+                           "-draw", "fill black polygon 0,0 0,15 15,0 fill white circle 15,15 15,0",
+                           "(", "+clone", "-flip", ")",
+                           "-compose", "Multiply", "-composite", "(", "+clone", "-flop", ")",
+                           "-compose", "Multiply", "-composite", ")", "-alpha", "off",
+                           "-compose", "CopyOpacity", "-composite"]
+
+        resize_cmd += [resized_image]
+
         self._do_run_command(resize_cmd, False)
 
     def _get_motion_photo_offset(self, exiv2_metadata):
@@ -283,7 +293,7 @@ class Thumbnailer:
 
         return int(result.stdout) if result.stdout else None
 
-    def _get_ffmpeg_animated_gif_cmd(self, src_filename, is_video, gif_dest_filename):
+    def _get_ffmpeg_animated_gif_cmd(self, src_filename, is_video, is_rounded, gif_dest_filename):
         max_frames = 100
         if is_video:
             num_frames = self._get_num_video_frames(src_filename)
@@ -328,18 +338,23 @@ class Thumbnailer:
             complex_filter += (f"select=not(mod(n-1\\,{select_frames}))[skip];"
                                f"[skip]setpts=N/({pts}*TB)[fps];[fps]")
 
-        complex_filter += \
-            (f"scale='if(gt(iw,ih),-1,{height})':'if(gt(iw,ih),{width},-1)'[scale];"
-             f"[scale]crop={width}:{height}[crop];"
-             "[crop]geq=lum='p(X,Y)':"
-             "a='if(gt(abs(W/2-X),W/2-15)*gt(abs(H/2-Y),H/2-15),"
-             "if(lte(hypot(15-(W/2-abs(W/2-X)),15-(H/2-abs(H/2-Y))),15),255,0),255)'"
-             "[rounded];"
-             f"color=white@0.0:size={self.thumbnail_size},format=rgba[bg];"
-             "[bg][rounded]overlay=x=0:y=0:shortest=1")
+        if is_rounded:
+            complex_filter += f"scale='if(gt(iw,ih),-1,{height})':'if(gt(iw,ih),{width},-1)'"
+        else:
+            complex_filter += f"scale='-1:{height}'"
+
+        if is_rounded:
+            complex_filter += \
+                (f"[scale];[scale]crop={width}:{height}[crop];"
+                 "[crop]geq=lum='p(X,Y)':"
+                 "a='if(gt(abs(W/2-X),W/2-15)*gt(abs(H/2-Y),H/2-15),"
+                 "if(lte(hypot(15-(W/2-abs(W/2-X)),15-(H/2-abs(H/2-Y))),15),255,0),255)'"
+                 "[rounded];"
+                 f"color=white@0.0:size={self.thumbnail_size},format=rgba[bg];"
+                 "[bg][rounded]overlay=x=0:y=0:shortest=1")
 
         if num_frames:
-            complex_filter += f"[combined];[combined][1]overlay=x={width - 60}:y={height - 60}"
+            complex_filter += "[combined];[combined][1]overlay=x=main_w-60:y=main_h-60"
 
         cmd += ["-f", "lavfi", "-i", f"color=white:size={self.thumbnail_size},format=rgba",
                 "-filter_complex", complex_filter, gif_dest_filename]
@@ -352,8 +367,10 @@ class Thumbnailer:
             return (None, None)
 
         (mp4_dest_filename, mp4_short_path) = \
-            self.__get_hashed_file_path(self.motion_photo_directory, media_id, "mp4")
+            self.__get_hashed_file_path(os.path.join(self.motion_photo_directory, "original"),
+                                        media_id, "mp4")
         self.generated_artifacts.add(mp4_dest_filename)
+        mp4_short_path = f"original/{mp4_short_path}"
 
         if not os.path.exists(mp4_dest_filename):
             logging.info("Extracting motion photo from %s", src_filename)
@@ -364,7 +381,8 @@ class Thumbnailer:
 
         return (mp4_dest_filename, mp4_short_path)
 
-    def create_animated_gif(self, src_filename, media_id, motion_photo_exiv2_metadata):
+    def create_animated_gif(self, src_filename, media_id, motion_photo_exiv2_metadata, is_rounded):
+        path_part = "squared" if is_rounded else "regular"
         if motion_photo_exiv2_metadata:
             (src_filename, mp4_short_path) = self._extract_motion_photo(src_filename, media_id,
                                                                         motion_photo_exiv2_metadata)
@@ -376,20 +394,21 @@ class Thumbnailer:
             mp4_short_path = None
 
         (gif_dest_filename, gif_short_path) = \
-            self.__get_hashed_file_path(self.motion_photo_directory, media_id, "gif")
+            self.__get_hashed_file_path(os.path.join(self.motion_photo_directory, path_part),
+                                        media_id, "gif")
         self.generated_artifacts.add(gif_dest_filename)
 
         if not os.path.exists(gif_dest_filename):
             cmd = self._get_ffmpeg_animated_gif_cmd(src_filename,
                                                     motion_photo_exiv2_metadata is None,
-                                                    gif_dest_filename)
+                                                    is_rounded, gif_dest_filename)
             if not cmd:
                 return None
 
             logging.info("Creating animated GIF for %s", src_filename)
             self._do_run_command(cmd, False)
 
-        return (mp4_short_path, f"thumbnails/motion_photo/{gif_short_path}")
+        return (mp4_short_path, f"thumbnails/motion_photo/{path_part}/{gif_short_path}")
 
     def write_exif_txt(self, img_filename, media_id):
         if not self.exif_text_command:

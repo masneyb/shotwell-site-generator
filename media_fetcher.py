@@ -8,6 +8,7 @@ import datetime
 import logging
 import os
 import pyexiv2
+from PIL import Image
 from common import add_date_to_stats, cleanup_event_title, get_dir_hash
 
 class Database:
@@ -179,10 +180,13 @@ class Database:
             cursor = self.conn.cursor()
             for row in cursor.execute(qry):
                 media_id = "video-%016x" % (row["id"])
-                short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
-                                                                     None)
+                reg_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
+                                                                         None, False)
+                sq_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
+                                                                        None, True)
                 media = self.__add_media(all_media, row, media_id, row["filename"], row["filename"],
-                                         None, 0, self.play_icon, short_mp_path, None)
+                                         None, 0, self.play_icon, self.play_icon, reg_short_mp_path,
+                                         sq_short_mp_path, None)
                 media["clip_duration"] = row["clip_duration"]
 
     def __process_photo_row(self, all_media, row, download_source, is_raw):
@@ -199,22 +203,28 @@ class Database:
         exiv2_metadata.read()
 
         media_id = "thumb%016x" % (row["id"])
-        short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
-                                                             exiv2_metadata)
+        reg_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
+                                                                 exiv2_metadata, False)
+        sq_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
+                                                                exiv2_metadata, True)
 
         if is_raw:
-            overlay_icon = self.raw_icon
-        elif short_mp_path:
-            overlay_icon = self.motion_photo_icon
+            reg_overlay_icon = self.raw_icon
+            sq_overlay_icon = self.raw_icon
+        elif reg_short_mp_path:
+            reg_overlay_icon = self.motion_photo_icon
+            sq_overlay_icon = self.motion_photo_icon
         elif row["width"] / row["height"] >= 2.0:
-            overlay_icon = self.panorama_icon
+            reg_overlay_icon = None
+            sq_overlay_icon = self.panorama_icon
         else:
-            overlay_icon = None
+            reg_overlay_icon = None
+            sq_overlay_icon = None
 
         exif_text = self.thumbnailer.write_exif_txt(row["filename"], media_id)
         media = self.__add_media(all_media, row, media_id, download_source, row["filename"],
-                                 row["transformations"], rotate, overlay_icon,
-                                 short_mp_path, exif_text)
+                                 row["transformations"], rotate, reg_overlay_icon,
+                                 sq_overlay_icon, reg_short_mp_path, sq_short_mp_path, exif_text)
 
         media.update(self.__parse_photo_exiv2_metadata(exiv2_metadata))
 
@@ -396,23 +406,74 @@ class Database:
         transformed_path = os.path.join(self.transformed_origs_directory, part)
         return self.thumbnailer.transform_video(source_video, transformed_path)
 
-    def __add_media(self, all_media, row, media_id, download_source, thumbnail_source,
-                    transformations, rotate, overlay_icon, motion_photo, exif_text):
-        # pylint: disable=too-many-arguments,too-many-locals,too-many-statements
+    def __get_image_dimensions(self, infile):
+        image = Image.open(infile)
+        return image.size
 
+    def __create_thumbnail(self, media, thumbnail_source, rotate, overlay_icon, is_rounded):
+        # pylint: disable=too-many-arguments
+        if is_rounded:
+            key = "thumbnail_path"
+            fspart = "squared"
+            file_ext = "png"
+        else:
+            key = "reg_thumbnail_path"
+            fspart = "regular"
+            file_ext = "jpg"
+
+        dir_shard = get_dir_hash(media["media_id"])
+        media[key] = "media/%s/%s/%s.%s" % (fspart, dir_shard, media["media_id"], file_ext)
+        fspath = self.__get_thumbnail_fs_path(media[key])
+        self.thumbnailer.create_thumbnail(thumbnail_source, media["media_id"].startswith("video"),
+                                          rotate, fspath, overlay_icon, is_rounded)
+        if not os.path.exists(fspath) and thumbnail_source != media["shotwell_thumbnail_path"]:
+            # If generating a thumbnail fails for some reason, then fall back to the Shotwell
+            # thumbnail. This can happen for some videos.
+            self.thumbnailer.create_thumbnail(media["shotwell_thumbnail_path"], False, rotate,
+                                              fspath, overlay_icon, is_rounded)
+        return fspath
+
+    def __add_media(self, all_media, row, media_id, download_source, thumbnail_source,
+                    transformations, rotate, reg_overlay_icon, sq_overlay_icon,
+                    reg_motion_photo, sq_motion_photo, exif_text):
+        # pylint: disable=too-many-arguments,too-many-locals,too-many-statements
         media = {}
         media["id"] = row["id"]
         media["event_id"] = row["event_id"]
         media["media_id"] = media_id
 
         media["shotwell_thumbnail_path"] = self.__get_shotwell_thumbnail_path(media_id)
-        dir_shard = get_dir_hash(media_id)
-        media["thumbnail_path"] = "media/%s/%s.png" % (dir_shard, media_id)
 
         if not thumbnail_source:
             thumbnail_source = media["shotwell_thumbnail_path"]
 
         all_artifacts = set([])
+
+        media["title"] = row["title"]
+        media["comment"] = row["comment"]
+        media["filesize"] = row["filesize"]
+
+        media["exposure_time"] = row["exposure_time"]
+        media["time_created"] = row["time_created"]
+        date = datetime.datetime.fromtimestamp(row["exposure_time"])
+        media["year"] = date.strftime("%Y")
+
+        media["rating"] = row["rating"]
+        # When generating composite thumbnails, give photos that are used as an event thumbnail in
+        # Shotwell an extra star rating.
+        media["extra_rating"] = 0
+
+        media["tags"] = set([])
+
+        # The regular thumbnails are used for the desktop version of the site on the search page.
+        reg_fspath = self.__create_thumbnail(media, thumbnail_source, rotate, reg_overlay_icon,
+                                             False)
+        all_artifacts.add(reg_fspath)
+        media["reg_thumbnail_width"] = self.__get_image_dimensions(reg_fspath)[0]
+
+        # The square thumbnails are used everywhere else.
+        all_artifacts.add(self.__create_thumbnail(media, thumbnail_source, rotate, sq_overlay_icon,
+                                                  True))
 
         if download_source:
             all_artifacts.add(download_source)
@@ -432,41 +493,15 @@ class Database:
             all_artifacts.add(thumbnail_source)
             media["filename"] = self.__get_html_basepath(thumbnail_source)
 
-        media["title"] = row["title"]
-        media["comment"] = row["comment"]
-        media["filesize"] = row["filesize"]
-
-        media["exposure_time"] = row["exposure_time"]
-        media["time_created"] = row["time_created"]
-        date = datetime.datetime.fromtimestamp(row["exposure_time"])
-        media["year"] = date.strftime("%Y")
-
-        media["rating"] = row["rating"]
-        # When generating composite thumbnails, give photos that are used as an event thumbnail in
-        # Shotwell an extra star rating.
-        media["extra_rating"] = 0
-
-        media["tags"] = set([])
-
-        fspath = self.__get_thumbnail_fs_path(media["thumbnail_path"])
-        self.thumbnailer.create_rounded_and_square_thumbnail(thumbnail_source,
-                                                             media_id.startswith("video"), rotate,
-                                                             fspath, overlay_icon)
-        if not os.path.exists(fspath) and thumbnail_source != media["shotwell_thumbnail_path"]:
-            # If generating a thumbnail fails for some reason, then fall back to the Shotwell
-            # thumbnail. This can happen for some videos.
-            self.thumbnailer.create_rounded_and_square_thumbnail(media["shotwell_thumbnail_path"],
-                                                                 False, rotate, fspath,
-                                                                 overlay_icon)
-        all_artifacts.add(fspath)
-
         all_media["media_by_id"][media_id] = media
 
-        media["motion_photo"] = motion_photo
-        if media["motion_photo"]:
-            if media["motion_photo"][0]:
-                all_artifacts.add(os.path.join(self.dest_directory, media["motion_photo"][0]))
-            all_artifacts.add(os.path.join(self.dest_directory, media["motion_photo"][1]))
+        for key, var in [("sq_motion_photo", sq_motion_photo),
+                         ("reg_motion_photo", reg_motion_photo)]:
+            media[key] = var
+            if media[key]:
+                if media[key][0]:
+                    all_artifacts.add(os.path.join(self.dest_directory, media[key][0]))
+                all_artifacts.add(os.path.join(self.dest_directory, media[key][1]))
 
         media["exif_text"] = exif_text
         if media["exif_text"]:

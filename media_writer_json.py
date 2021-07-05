@@ -29,7 +29,7 @@ class Json(CommonWriter):
                 continue
 
             item = self.__copy_fields(["title", "comment", "id", "date"], event)
-            item["thumbnail_path"] = "thumbnails/" + event["thumbnail_path"]
+            item["thumbnail"] = {"sq": "thumbnails/" + event["thumbnail_path"]}
             item["link"] = "event/%s.html" % (event["id"])
             item.update(self.__get_stats(event["stats"]))
             shown_events.append(item)
@@ -48,7 +48,13 @@ class Json(CommonWriter):
                 item["exposure_time_pretty"] = \
                     self._get_date_string(self._get_date_parts(media["exposure_time"]), True)
                 item["link"] = media["filename"]
-                item["thumbnail_path"] = "thumbnails/" + media["thumbnail_path"]
+
+                item["thumbnail"] = {}
+                item["thumbnail"]["sq"] = "thumbnails/" + media["thumbnail_path"]
+                if "reg_thumbnail_path" in media:
+                    item["thumbnail"]["reg"] = "thumbnails/" + media["reg_thumbnail_path"]
+                    item["thumbnail"]["reg_width"] = media["reg_thumbnail_width"]
+
                 item["tags"] = []
                 for tag_id, _ in self._cleanup_tags(media["tags"]):
                     item["tags"].append(tag_id)
@@ -59,10 +65,13 @@ class Json(CommonWriter):
                 if "exif_text" in media and media["exif_text"]:
                     item["exif_text"] = media["exif_text"]
 
-                if "motion_photo" in media and media["motion_photo"]:
-                    if media["motion_photo"][0]:
-                        item["motion_photo_mp4"] = media["motion_photo"][0]
-                    item["motion_photo_gif"] = media["motion_photo"][1]
+                if "sq_motion_photo" in media and media["sq_motion_photo"]:
+                    item["motion_photo"] = {}
+                    if media["sq_motion_photo"][0]:
+                        item["motion_photo"]["mp4"] = media["sq_motion_photo"][0]
+
+                    item["motion_photo"]["sq_gif"] = media["sq_motion_photo"][1]
+                    item["motion_photo"]["reg_gif"] = media["reg_motion_photo"][1]
 
                 if "lat" in media:
                     item["lat"] = float("%.5f" % (media["lat"]))
@@ -103,7 +112,7 @@ class Json(CommonWriter):
                 continue
 
             item = self.__copy_fields(["title", "full_title", "id"], tag)
-            item["thumbnail_path"] = "thumbnails/" + tag["thumbnail_path"]
+            item["thumbnail"] = {"sq": "thumbnails/" + tag["thumbnail_path"]}
             item["link"] = "tag/%s.html" % (tag["id"])
             item.update(self.__get_stats(tag["stats"]))
 
@@ -129,7 +138,7 @@ class Json(CommonWriter):
             item["id"] = year
             item["title"] = year
             item["link"] = "year/%s.html" % (year)
-            item["thumbnail_path"] = "thumbnails/%s" % (year_block["thumbnail_path"])
+            item["thumbnail"] = {"sq": "thumbnails/%s" % (year_block["thumbnail_path"])}
             item["num_events"] = len(year_block["events"])
             item.update(self.__get_stats(year_block["stats"]))
             shown_years.append(item)
