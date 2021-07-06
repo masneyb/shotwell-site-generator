@@ -56,8 +56,7 @@ def process_photos(options):
     json_writer.write()
 
     logging.info("Copying other support files")
-    write_redirect(os.path.join(options.dest_directory, "index.html"),
-                   "%s/index.html" % (options.default_view))
+    write_redirect(os.path.join(options.dest_directory, "index.html"), "search.html")
 
     thumbnailer.remove_thumbnails()
 
@@ -124,7 +123,6 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--thumbnail-size", default="390x390")
     ARGPARSER.add_argument("--years-prior-are-approximate", default="2000")
     ARGPARSER.add_argument("--max-media-per-page", type=int, default=24)
-    ARGPARSER.add_argument("--default-view", default="media")
     ARGPARSER.add_argument("--tags-to-skip", nargs="+", default=[])
     ARGPARSER.add_argument("--expand-all-elements", action="store_true", default=False)
     ARGPARSER.add_argument("--remove-stale-artifacts", action="store_true", default=False)
