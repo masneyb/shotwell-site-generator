@@ -850,8 +850,6 @@ function performSearch(allItems) {
   for (const criteria of allCriteria) {
     if (criteria.field.title === 'Tag ID' || criteria.field.title === 'Tag Parent ID') {
       sortedTypes.tags = 0;
-    } else if (criteria.field.title === 'Event ID') {
-      sortedTypes.events = 0;
     }
   }
   const sortby = getQueryParameter('sortby', 'taken'); // taken,created
