@@ -707,7 +707,7 @@ const searchFields = [
   },
 ];
 
-function performSearch(allItems) {
+function getSearchCriteria() {
   const allCriteria = [];
 
   for (const searchCriteria of getSearchQueryParams()) {
@@ -751,6 +751,11 @@ function performSearch(allItems) {
     allCriteria.push({ field: noopField, op: trueOp, searchValues: [] });
   }
 
+  return allCriteria;
+}
+
+function performSearch(allItems) {
+  const allCriteria = getSearchCriteria();
   const matchPolicy = getQueryParameter('match_policy', 'all'); // any,none,all
 
   const tagNames = {};
@@ -923,12 +928,6 @@ function processJson(resp, readyFunc) {
     tagNames[tag.id] = tag.title;
   }
 
-  document.title = `${resp.title}: Search`;
-  let ele = document.querySelector('#title');
-  if (ele) {
-    ele.innerText = document.title;
-  }
-
   ele = document.querySelector('#generated_timestamp');
   if (ele) {
     ele.innerText = `at ${resp.generated_at}`;
@@ -940,7 +939,7 @@ function processJson(resp, readyFunc) {
   }
 
   const allMedia = performSearch(resp);
-  readyFunc(allMedia, eventNames, tagNames, resp.extra_header);
+  readyFunc(allMedia, eventNames, tagNames, resp.extra_header, resp.title);
 }
 
 function loadJson(readyFunc, errorFunc) {

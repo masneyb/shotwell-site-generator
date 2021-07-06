@@ -37,13 +37,13 @@
         <a href="#" onclick="searchPageLinkGenerator([]);"`><span class="main_view">Date</span></a>
       </span>
       <span>
-        <a href="#" onclick="searchPageLinkGenerator([['Type', 'is a', 'events']]);"`><span class="main_view">Event</span></a>
+        <a href="#" onclick="searchPageLinkGenerator([['Type', 'is a', 'events']]);"`><span id="events_link" class="main_view">Event</span></a>
       </span>
       <span>
-        <a href="#" onclick="searchPageLinkGenerator([['Type', 'is a', 'years']]);"`><span class="main_view">Year</span></a>
+        <a href="#" onclick="searchPageLinkGenerator([['Type', 'is a', 'years']]);"`><span id="years_link" class="main_view">Year</span></a>
       </span>
       <span>
-        <a href="#" onclick="searchPageLinkGenerator([['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set']]);"`><span class="main_view">Tag</span></a>
+        <a href="#" onclick="searchPageLinkGenerator([['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set']]);"`><span id="tags_link" class="main_view">Tag</span></a>
       </span>
       <span id="extra_header"></span>
     </span>
@@ -398,7 +398,58 @@
         }
       }
 
-      function populateMedia(newAllMedia, newEventNames, newTagNames, extraHeader) {
+      function setPageTitle(mediaTitle) {
+        let selectedLink = null;
+        let newTitle = `${mediaTitle}: Search`;
+        const allCriteria = getSearchCriteria();
+        for (const criteria of allCriteria) {
+          if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' &&
+              criteria.searchValues[0] === 'years') {
+            newTitle = `${mediaTitle}: All Years`;
+            selectedLink = 'years_link';
+            break;
+          } else if (criteria.field.title === 'Year' && criteria.op.descr === 'equals') {
+            newTitle = `${mediaTitle}: Year ${criteria.searchValues[0]}`;
+            selectedLink = 'years_link';
+            break;
+          } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' &&
+              criteria.searchValues[0] === 'events') {
+            newTitle = `${mediaTitle}: All Events`;
+            selectedLink = 'events_link';
+            break;
+          } else if (criteria.field.title === 'Event ID' && criteria.op.descr === 'equals') {
+            newTitle = `${mediaTitle}: ${eventNames[criteria.searchValues[0]]}`;
+            selectedLink = 'events_link';
+            break;
+          } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' &&
+              criteria.searchValues[0] === 'tags') {
+            newTitle = `${mediaTitle}: All Tags`;
+            selectedLink = 'tags_link';
+            break;
+          } else if (criteria.field.title === 'Tag ID' && criteria.op.descr === 'equals') {
+            newTitle = `${mediaTitle}: ${tagNames[criteria.searchValues[0]]}`;
+            selectedLink = 'tags_link';
+            break;
+          }
+        }
+
+        document.title = newTitle;
+        let ele = document.querySelector('#title');
+        if (ele) {
+          ele.innerText = document.title;
+        }
+
+        if (selectedLink !== null) {
+          document.querySelector(`#${selectedLink}`).classList.add('main_view_selected');
+        }
+        for (const tagName of ['years_link', 'events_link', 'tags_link']) {
+          if (tagName !== selectedLink) {
+            document.querySelector(`#${tagName}`).classList.remove('main_view_selected');
+          }
+        }
+      }
+
+      function populateMedia(newAllMedia, newEventNames, newTagNames, extraHeader, mediaTitle) {
         allMedia = newAllMedia;
         eventNames = newEventNames;
         tagNames = newTagNames;
@@ -419,6 +470,7 @@
           extraHeaderEle.appendChild(outerSpan);
         }
 
+        setPageTitle(mediaTitle);
         showMedia();
         populateSearchValuesFromUrl();
       }
