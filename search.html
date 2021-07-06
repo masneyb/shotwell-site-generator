@@ -136,19 +136,19 @@
 
         const ret = [];
         if ('photo' in totalsByTypes) {
-          ret.push(`<span class="stat">${totalsByTypes.photo.toLocaleString()} photos</span>`);
+          ret.push(`<span class="stat">${getNumberString(totalsByTypes.photo, 'photo', 'photos')}</span>`);
         }
         if ('video' in totalsByTypes) {
-          ret.push(`<span class="stat">${totalsByTypes.video.toLocaleString()} videos</span>`);
+          ret.push(`<span class="stat">${getNumberString(totalsByTypes.video, 'video', 'videos')}</span>`);
         }
         if ('events' in totalsByTypes) {
-          ret.push(`<span class="stat">${totalsByTypes.events.toLocaleString()} events</span>`);
+          ret.push(`<span class="stat">${getNumberString(totalsByTypes.events, 'event', 'events')}</span>`);
         }
         if ('years' in totalsByTypes) {
-          ret.push(`<span class="stat">${totalsByTypes.years.toLocaleString()} years</span>`);
+          ret.push(`<span class="stat">${getNumberString(totalsByTypes.years, 'year', 'years')}</span>`);
         }
         if ('tags' in totalsByTypes) {
-          ret.push(`<span class="stat">${totalsByTypes.tags.toLocaleString()} tags</span>`);
+          ret.push(`<span class="stat">${getNumberString(totalsByTypes.tags, 'tag', 'tags')}</span>`);
         }
 
         return ret.join(' · ');

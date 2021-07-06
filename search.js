@@ -32,6 +32,10 @@ function getPrettyFileSize(size) {
   return `${size} bytes`;
 }
 
+function getNumberString(number, singular, plural) {
+  return number == 1 ? `${number.toLocaleString()} ${singular}` : `${number.toLocaleString()} ${plural}`;
+}
+
 function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator, showTitle) {
   let ret = [];
   if (showTitle && 'title' in entity && entity.title) {
@@ -39,11 +43,11 @@ function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator,
   }
 
   if (entity.num_photos > 0) {
-    ret.push(`${entity.num_photos.toLocaleString()} photos`);
+    ret.push(getNumberString(entity.num_photos, 'photo', 'photos'));
   }
 
   if (entity.num_videos > 0) {
-    ret.push(`${entity.num_videos.toLocaleString()} videos`);
+    ret.push(getNumberString(entity.num_videos, 'video', 'videos'));
   }
 
   if ('num_events' in entity && entity.num_events > 1) {
