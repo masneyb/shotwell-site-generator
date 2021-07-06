@@ -22,7 +22,6 @@ class Json(CommonWriter):
     def write(self):
         shown_media = []
         shown_events = []
-        all_media_index = self.__get_all_media_index()
 
         for event in self.all_media["events_by_id"].values():
             if not event["stats"]["min_date"]:
@@ -60,7 +59,6 @@ class Json(CommonWriter):
                     item["tags"].append(tag_id)
 
                 item["type"] = self.__get_media_type(media)
-                item["all_media_page"] = all_media_index["media"][media["media_id"]]["page"]
 
                 if "exif_text" in media and media["exif_text"]:
                     item["exif_text"] = media["exif_text"]
@@ -163,19 +161,6 @@ class Json(CommonWriter):
             outfile.write("  // Perform deep copy\n")
             outfile.write("  return JSON.parse(JSON.stringify(_allMedia));\n")
             outfile.write("}\n")
-
-    def __get_all_media_index(self):
-        shown_media = []
-        for event in self.all_media["events_by_id"].values():
-            for media in event["media"]:
-                shown_media.append({"media": media})
-
-        shown_media.sort(key=lambda media: media["media"]["exposure_time"], reverse=True)
-
-        all_media_index = {"year": {}, "event": {}, "media": {}}
-        self._generate_media_index(shown_media, self._all_media_indexer, all_media_index)
-
-        return all_media_index
 
     def __get_stats(self, stats):
         ret = self.__copy_fields(["num_photos", "num_videos"], stats)

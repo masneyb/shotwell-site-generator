@@ -109,11 +109,6 @@ function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator,
     ret.push('&starf;'.repeat(entity.rating) + '&star;'.repeat(5 - entity.rating));
   }
 
-  if (entity.all_media_page) {
-    const link = entity.all_media_page === 1 ? '' : `_${entity.all_media_page}`;
-    ret.push(`<a href="media/index${link}.html">Browse Nearby Media</a>`);
-  }
-
   return ret.join(' · ');
 }
 
