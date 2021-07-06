@@ -117,7 +117,9 @@ function generateSearchUrl(criterias, matchPolicy) {
   for (const criteria of criterias) {
     qs.push(`search=${encodeURI(criteria)}`);
   }
-  qs.push(`match_policy=${matchPolicy}`);
+  if (matchPolicy != 'all') {
+    qs.push(`match_policy=${matchPolicy}`);
+  }
   return `search.html?${qs.join('&')}#`;
 }
 
