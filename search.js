@@ -58,7 +58,7 @@ function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator,
     ret.push(getPrettyFileSize(entity.filesize));
   }
 
-  if ('motion_photo' in entity && "mp4" in entity["motion_photo"]) {
+  if ('motion_photo' in entity && 'mp4' in entity.motion_photo) {
     ret.push(`<a target="_new" href="${entity.motion_photo.mp4}">Motion Photo</a>`);
   }
 
@@ -118,7 +118,7 @@ function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator,
 }
 
 function generateSearchUrl(criterias, matchPolicy) {
-  let qs = []
+  const qs = [];
   for (const criteria of criterias) {
     qs.push(`search=${encodeURI(criteria)}`);
   }
@@ -480,21 +480,21 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
 
   if (showIsSet) {
     ops.push({
-        descr: 'is set',
-        matches(field, op, values, media) {
-          return performGenericOp(field, media, null,
-            (input, value) => input != null && input !== '');
-        },
-        numValues: 0,
+      descr: 'is set',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, null,
+          (input, value) => input != null && input !== '');
+      },
+      numValues: 0,
     });
 
     ops.push({
-        descr: 'is not set',
-        matches(field, op, values, media) {
-          return performGenericOp(field, media, null,
-            (input, value) => input == null || input === '');
-        },
-        numValues: 0,
+      descr: 'is not set',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, null,
+          (input, value) => input == null || input === '');
+      },
+      numValues: 0,
     });
   }
 
@@ -836,7 +836,7 @@ function performSearch(allItems) {
     }
   }
 
-  let sortedTypes = {
+  const sortedTypes = {
     photo: 1,
     motion_photo: 1,
     raw_photo: 1,
@@ -850,9 +850,9 @@ function performSearch(allItems) {
   // entities show up at the top.
   for (const criteria of allCriteria) {
     if (criteria.field.title === 'Tag ID' || criteria.field.title === 'Tag Parent ID') {
-      sortedTypes['tags'] = 0;
+      sortedTypes.tags = 0;
     } else if (criteria.field.title === 'Event ID') {
-      sortedTypes['events'] = 0;
+      sortedTypes.events = 0;
     }
   }
   const sortby = getQueryParameter('sortby', 'taken'); // taken,created
@@ -867,7 +867,7 @@ function performSearch(allItems) {
     }
 
     // No secondary sorting for tags
-    if (a.type == 'tags') {
+    if (a.type === 'tags') {
       return 0;
     }
 

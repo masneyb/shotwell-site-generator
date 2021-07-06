@@ -111,7 +111,7 @@
 
       function toggleMetadata() {
         metadataDisplay = metadataDisplay === 'none' ? 'block' : 'none';
-        document.querySelector("#toggle_metadata").innerText = metadataDisplay === 'none' ? "Show Metadata" : "Hide Metadata";
+        document.querySelector('#toggle_metadata').innerText = metadataDisplay === 'none' ? 'Show Metadata' : 'Hide Metadata';
         for (const name of ['.media_metadata', '.media_title', '.media_comment']) {
           for (const ele of document.querySelectorAll(name)) {
             ele.style.display = metadataDisplay;
@@ -121,7 +121,7 @@
 
       function toggleAnimations() {
         alwaysShowAnimations = !alwaysShowAnimations;
-        document.querySelector("#toggle_animations").innerText = alwaysShowAnimations ? "Hide Animations" : "Show Animations";
+        document.querySelector('#toggle_animations').innerText = alwaysShowAnimations ? 'Hide Animations' : 'Show Animations';
         showMedia();
       }
 
@@ -432,11 +432,11 @@
         populateSearchValuesFromUrl();
       }
 
-      function searchPageLinkGenerator(criterias, matchPolicy='all') {
-        let parts = [];
+      function searchPageLinkGenerator(criterias, matchPolicy = 'all') {
+        const parts = [];
         for (criteria of criterias) {
-            // field,op,value
-            parts.push(criteria.join(','));
+          // field,op,value
+          parts.push(criteria.join(','));
         }
 
         const search = generateSearchUrl(parts, matchPolicy);
@@ -500,9 +500,9 @@
       }
 
       function windowSizeChanged() {
-        let prevMobileView = isMobileView;
+        const prevMobileView = isMobileView;
         isMobileView = showMobileView();
-        if (prevMobileView != isMobileView) {
+        if (prevMobileView !== isMobileView) {
           showMedia();
         }
       }
@@ -511,7 +511,7 @@
         const pageSize = 24;
         const lastPageNumber = Math.ceil(allMedia.length / pageSize);
         if (pageNumber > lastPageNumber) {
-            return;
+          return;
         }
 
         const allMediaEle = document.querySelector('#all_media');
@@ -523,19 +523,19 @@
         };
 
         for (const media of allMedia.slice(startIdx, startIdx + pageSize)) {
-          let clone = template.content.cloneNode(true);
-          let mediaEle = clone.querySelector(".media_dyn");
+          const clone = template.content.cloneNode(true);
+          const mediaEle = clone.querySelector('.media_dyn');
 
           const anchor = clone.querySelector('a');
-          if (media.type == 'events') {
+          if (media.type === 'events') {
             anchor.href = '#';
             anchor.addEventListener('click', () => { searchPageLinkGenerator([['Event ID', 'equals', media.event_id]]); });
-          } else if (media.type == 'years') {
+          } else if (media.type === 'years') {
             anchor.href = '#';
             const search = [['Type', 'is a', 'events'],
-                            ['Date', 'is between', `${media.id}-01-01`, `${media.id}-12-31`]]
+                            ['Date', 'is between', `${media.id}-01-01`, `${media.id}-12-31`]];
             anchor.addEventListener('click', () => { searchPageLinkGenerator(search); });
-          } else if (media.type == 'tags') {
+          } else if (media.type === 'tags') {
             anchor.href = '#';
             const search = [['Tag Parent ID', 'equals', media.id], ['Tag ID', 'equals', media.id]];
             anchor.addEventListener('click', () => { searchPageLinkGenerator(search, 'any'); });
@@ -555,7 +555,7 @@
             }
           } else {
             const img = clone.querySelector('img');
-            if (isMobileView || !('reg' in media['thumbnail'])) {
+            if (isMobileView || !('reg' in media.thumbnail)) {
               img.src = media.thumbnail.sq;
               if (media.motion_photo) {
                 img.addEventListener('mouseover', () => { img.src = media.motion_photo.sq_gif; });
@@ -639,7 +639,7 @@
 
       function windowScrolled() {
         if (window.innerHeight + window.scrollY >= (document.body.offsetHeight * 0.90)) {
-           doShowMedia(currentPageNumber + 1);
+          doShowMedia(currentPageNumber + 1);
         }
       }
 
@@ -688,8 +688,8 @@
         allMediaEle.innerHTML = "<div class='error'>Error loading media</div>";
       });
 
-      window.addEventListener("scroll", windowScrolled, false);
-      window.addEventListener("resize", windowSizeChanged, false);
+      window.addEventListener('scroll', windowScrolled, false);
+      window.addEventListener('resize', windowSizeChanged, false);
 
       window.onpopstate = function () {
         processJson(getAllMediaViaJsFile(), populateMedia);
