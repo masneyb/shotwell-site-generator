@@ -284,7 +284,7 @@
             if ('inputStep' in op) {
               input.step = op.inputStep[i];
             }
-            input.size = 10;
+            input.size = 'inputSize' in op ? op.inputSize[i] : 10;
             input.placeholder = 'placeholder' in op && op.placeholder[i] != null ? op.placeholder[i] : '';
 
             input.addEventListener('change', () => { window.blur(); updateCritieraIfValuesPopulated(idx); });

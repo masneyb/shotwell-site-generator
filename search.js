@@ -442,6 +442,7 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
       placeholder: [placeholderText],
       numValues: 1,
       inputType: ['number'],
+      inputSize: [5],
     });
 
     ops.push({
@@ -453,6 +454,7 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
       placeholder: [placeholderText],
       numValues: 1,
       inputType: ['number'],
+      inputSize: [5],
     });
   }
 
@@ -465,6 +467,7 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
     placeholder: [placeholderText],
     numValues: 1,
     inputType: ['number'],
+    inputSize: [5],
   });
 
   ops.push({
@@ -476,6 +479,7 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
     placeholder: [placeholderText],
     numValues: 1,
     inputType: ['number'],
+    inputSize: [5],
   });
 
   if (showIsSet) {
