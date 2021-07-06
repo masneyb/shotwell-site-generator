@@ -698,6 +698,11 @@ const searchFields = [
     search: createNumberSearch('secs', true, false),
     searchFields: ['clip_duration_secs'],
   },
+  {
+    title: 'Year',
+    search: createNumberSearch(null, true, false),
+    searchFields: ['year'],
+  },
 ];
 
 function performSearch(allItems) {
@@ -784,6 +789,17 @@ function performSearch(allItems) {
       if (mediaType[0] !== 'media') {
         media.time_created = media.min_date;
         media.exposure_time = media.max_date;
+      }
+
+      if (mediaType[0] === 'years') {
+        media.year = [media.id]
+      } else if (mediaType[0] === 'events') {
+        media.year = []
+        const startYear = media.min_date.split('-')[0];
+        const endYear = media.max_date.split('-')[0];
+        for (let year = startYear; year <= endYear; year++) {
+          media.year.push(year);
+        }
       }
 
       if (mediaType[0] === 'events') {
