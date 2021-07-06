@@ -27,7 +27,7 @@ a {
 	font-weight: bold;
 }
 
-.summary_stats, .date_range, .event_comment, .header_links {
+.summary_stats, .date_range, .event_comment, .header_links, .static_html_fallback {
 	display: block;
 	font-size: 80%;
 	padding-top: 1px;
