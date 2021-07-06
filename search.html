@@ -368,6 +368,7 @@
 
       function populateSearchValuesFromUrl() {
         removeAllChildren(document.querySelector('#search_criterias'));
+        nextSearchInput = 0;
 
         for (const searchCriteria of getSearchQueryParams()) {
           const curIdx = nextSearchInput;
