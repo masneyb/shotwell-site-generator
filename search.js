@@ -117,15 +117,13 @@ function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator,
   return ret.join(' · ');
 }
 
-function generateSearchUrl(criterias) {
-  let qs = "";
+function generateSearchUrl(criterias, matchPolicy) {
+  let qs = []
   for (const criteria of criterias) {
-    if (qs !== "") {
-      qs += "&";
-    }
-    qs += `search=${encodeURI(criteria)}`;
+    qs.push(`search=${encodeURI(criteria)}`);
   }
-  return `search.html?${qs}`;
+  qs.push(`match_policy=${matchPolicy}`);
+  return `search.html?${qs.join('&')}#`;
 }
 
 function shuffleArray(arr) {

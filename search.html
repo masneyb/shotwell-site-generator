@@ -45,7 +45,7 @@
         </a>
       </span>
       <span>
-        <a href="#" onclick="searchPageLinkGenerator([['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set', null]]);"`>
+        <a href="#" onclick="searchPageLinkGenerator([['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set']]);"`>
           <span class="main_view">Tag</span>
         </a>
       </span>
@@ -83,7 +83,7 @@
       <span id="app_version"></span>.
     </span>
 
-    <template id="media_template"><span class="media_dyn"><a target="_new"><span class="media_thumb"><img></img></span></a><span class="media_title"></span><span class="media_metadata"></span><span class="media_comment"></span></span></template>
+    <template id="media_template"><span class="media_dyn"><a><span class="media_thumb"><img></img></span></a><span class="media_title"></span><span class="media_metadata"></span><span class="media_comment"></span></span></template>
 
     <template id="search_criteria_row">
       <span class="search_criteria">
@@ -431,18 +431,14 @@
         populateSearchValuesFromUrl();
       }
 
-      function searchPageLinkGenerator(criterias) {
+      function searchPageLinkGenerator(criterias, matchPolicy='all') {
         let parts = [];
         for (criteria of criterias) {
             // field,op,value
-            if (criteria[2] !== null) {
-              parts.push(`${criteria[0]},${criteria[1]},${criteria[2]}`);
-            } else {
-              parts.push(`${criteria[0]},${criteria[1]}`);
-            }
+            parts.push(criteria.join(','));
         }
 
-        const search = generateSearchUrl(parts);
+        const search = generateSearchUrl(parts, matchPolicy);
         window.history.pushState({}, '', search);
         processJson(getAllMediaViaJsFile(), populateMedia);
       }
@@ -529,7 +525,23 @@
           let clone = template.content.cloneNode(true);
           let mediaEle = clone.querySelector(".media_dyn");
 
-          clone.querySelector('a').href = media.link;
+          const anchor = clone.querySelector('a');
+          if (media.type == 'events') {
+            anchor.href = '#';
+            anchor.addEventListener('click', () => { searchPageLinkGenerator([['Event ID', 'equals', media.event_id]]); });
+          } else if (media.type == 'years') {
+            anchor.href = '#';
+            const search = [['Type', 'is a', 'events'],
+                            ['Date', 'is between', `${media.id}-01-01`, `${media.id}-12-31`]]
+            anchor.addEventListener('click', () => { searchPageLinkGenerator(search); });
+          } else if (media.type == 'tags') {
+            anchor.href = '#';
+            const search = [['Tag Parent ID', 'equals', media.id], ['Tag ID', 'equals', media.id]];
+            anchor.addEventListener('click', () => { searchPageLinkGenerator(search, 'any'); });
+          } else {
+            anchor.href = media.link;
+            anchor.target = '_new';
+          }
 
           if (alwaysShowAnimations && media.motion_photo) {
             const img = clone.querySelector('img');
