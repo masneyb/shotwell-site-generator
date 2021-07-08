@@ -58,6 +58,10 @@ a {
 	padding-left: 13px;
 }
 
+.media_comment {
+	font-style: italic;
+}
+
 .media_title {
 	font-weight: bold;
 }
