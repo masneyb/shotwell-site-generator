@@ -268,7 +268,8 @@
             if ('inputStep' in op) {
               input.step = op.inputStep[i];
             }
-            input.size = 'inputSize' in op ? op.inputSize[i] : 10;
+            const size = 'inputSize' in op ? op.inputSize[i] : 10;
+            input.style.width = `${size}em`;
             input.placeholder = 'placeholder' in op && op.placeholder[i] != null ? op.placeholder[i] : '';
 
             input.addEventListener('change', () => { window.blur(); updateCritieraIfValuesPopulated(idx); });
