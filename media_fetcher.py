@@ -583,7 +583,7 @@ class Database:
 
         aperture = exiv2_metadata.get_aperture()
         if aperture:
-            ret["exif"].append("F%.1f" % (aperture))
+            ret["exif"].append("f/%.2f" % (aperture))
 
         shutter = exiv2_metadata.get_shutter_speed()
         if shutter:
@@ -592,13 +592,13 @@ class Database:
             else:
                 ret["exif"].append("1/%ds" % (round(shutter.denominator / shutter.numerator)))
 
-        iso = exiv2_metadata.get_iso()
-        if iso:
-            ret["exif"].append("ISO%s" % (iso))
-
         focal_length = exiv2_metadata.get_focal_length()
         if focal_length:
             ret["exif"].append("%smm" % (focal_length))
+
+        iso = exiv2_metadata.get_iso()
+        if iso:
+            ret["exif"].append("ISO%s" % (iso))
 
         if "Exif.Image.Make" in exiv2_metadata:
             camera_make = exiv2_metadata["Exif.Image.Make"].value.strip()

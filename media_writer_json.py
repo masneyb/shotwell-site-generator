@@ -36,6 +36,10 @@ class Json(CommonWriter):
             for media in event["media"]:
                 item = self.__copy_fields(["title", "comment", "event_id", "rating", "filesize",
                                            "camera", "exif", "width", "height", "id"], media)
+                if "width" in media:
+                    item["megapixels"] = float("%.1f" % \
+                                               ((media["width"] * media["height"]) / (1000 * 1000)))
+
                 if "clip_duration" in media:
                     item["clip_duration"] = humanize.naturaldelta(int(media["clip_duration"]))
                     item["clip_duration_secs"] = int(media["clip_duration"])

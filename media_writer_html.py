@@ -266,18 +266,28 @@ class Html(CommonWriter):
             summary.append(self._get_date_string(self._get_date_parts(media["exposure_time"]),
                                                  True))
 
+        if "width" in media and media["width"]:
+            summary.append("%.1fMP" % ((media["width"] * media["height"]) / (1000 * 1000)))
+
         if "filesize" in media and media["filesize"] > 0:
             summary.append(humanize.naturalsize(media["filesize"], binary=True).replace(" ", ""))
 
         if "clip_duration" in media:
             summary.append(humanize.naturaldelta(int(media["clip_duration"])))
 
-        if "sq_motion_photo" in media and media["sq_motion_photo"] and media["sq_motion_photo"][0]:
-            summary.append("<a target='_new' href='../%s'>Motion Photo</a>" %
-                           (media["sq_motion_photo"][0]))
-
         if "width" in media and media["width"]:
             detailed.append("%sx%s" % (media["width"], media["height"]))
+
+        if "camera" in media:
+            detailed.append("<a href='../search.html?search=%s'>%s</a>" % \
+                            (urllib.parse.quote("Camera,equals,%s" % (media["camera"])),
+                             media["camera"]))
+
+        if "exif" in media:
+            detailed += media["exif"]
+
+        if "exif_text" in media and media["exif_text"]:
+            detailed.append("<a target='_new' href='../%s'>EXIF</a>" % (media["exif_text"]))
 
         if "event_id" in media and media["event_id"]:
             title = common.cleanup_event_title(self.all_media["events_by_id"][media["event_id"]])
@@ -295,16 +305,9 @@ class Html(CommonWriter):
             detailed.append("<a href='../search.html?search=%s'>GPS %.5f,%.5f</a>" % \
                             (urllib.parse.quote(search), media["lat"], media["lon"]))
 
-        if "exif" in media:
-            detailed += media["exif"]
-
-        if "camera" in media:
-            detailed.append("<a href='../search.html?search=%s'>%s</a>" % \
-                            (urllib.parse.quote("Camera,equals,%s" % (media["camera"])),
-                             media["camera"]))
-
-        if "exif_text" in media and media["exif_text"]:
-            detailed.append("<a target='_new' href='../%s'>EXIF</a>" % (media["exif_text"]))
+        if "sq_motion_photo" in media and media["sq_motion_photo"] and media["sq_motion_photo"][0]:
+            detailed.append("<a target='_new' href='../%s'>Motion Photo</a>" %
+                            (media["sq_motion_photo"][0]))
 
         if "rating" in media:
             detailed.append(("&starf;" * media["rating"]) + ("&star;" * (5 - media["rating"])))

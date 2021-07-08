@@ -58,12 +58,16 @@ function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator,
     ret.push(entity.exposure_time_pretty);
   }
 
-  if (entity.filesize) {
-    ret.push(getPrettyFileSize(entity.filesize));
+  if (entity.date_range) {
+    ret.push(entity.date_range);
   }
 
-  if ('motion_photo' in entity && 'mp4' in entity.motion_photo) {
-    ret.push(`<a target="_new" href="${entity.motion_photo.mp4}">Motion Photo</a>`);
+  if (entity.megapixels) {
+    ret.push(`${entity.megapixels}MP`);
+  }
+
+  if (entity.filesize) {
+    ret.push(getPrettyFileSize(entity.filesize));
   }
 
   if (entity.width) {
@@ -74,8 +78,17 @@ function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator,
     ret.push(entity.clip_duration);
   }
 
-  if (entity.date_range) {
-    ret.push(entity.date_range);
+  if ('camera' in entity) {
+    const anchorOpts = searchLinkGenerator('Camera', 'equals', entity.camera);
+    ret.push(`<a ${anchorOpts}>${entity.camera}</a>`);
+  }
+
+  if ('exif' in entity) {
+    ret = ret.concat(entity.exif);
+  }
+
+  if ('exif_text' in entity) {
+    ret.push(`<a target="_new" href="${entity.exif_text}">EXIF</a>`);
   }
 
   if (entity.event_id && entity.type !== 'events') {
@@ -96,17 +109,8 @@ function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator,
     ret.push(`<a ${anchorOpts}>GPS ${entity.lat},${entity.lon}</a>`);
   }
 
-  if ('exif' in entity) {
-    ret = ret.concat(entity.exif);
-  }
-
-  if ('camera' in entity) {
-    const anchorOpts = searchLinkGenerator('Camera', 'equals', entity.camera);
-    ret.push(`<a ${anchorOpts}>${entity.camera}</a>`);
-  }
-
-  if ('exif_text' in entity) {
-    ret.push(`<a target="_new" href="${entity.exif_text}">EXIF</a>`);
+  if ('motion_photo' in entity && 'mp4' in entity.motion_photo) {
+    ret.push(`<a target="_new" href="${entity.motion_photo.mp4}">Motion Photo</a>`);
   }
 
   if ('rating' in entity) {
@@ -635,6 +639,11 @@ const searchFields = [
     title: 'GPS Coordinate',
     search: gpsSearch,
     searchFields: ['lat'],
+  },
+  {
+    title: 'Megapixels',
+    search: createNumberSearch(null, true, false),
+    searchFields: ['megapixels'],
   },
   {
     title: 'Photo Height',
