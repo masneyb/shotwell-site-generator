@@ -27,7 +27,7 @@ a {
 	font-weight: bold;
 }
 
-.summary_stats, .date_range, .event_comment, .header_links, .static_html_fallback {
+.summary_stats, .date_range, .event_comment, .header_links {
 	display: block;
 	font-size: 80%;
 	padding-top: 1px;
@@ -36,6 +36,7 @@ a {
 
 .header_link {
 	padding: 5px;
+	white-space: nowrap;
 }
 
 .media, .media_dyn {
