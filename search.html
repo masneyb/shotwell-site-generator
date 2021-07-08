@@ -26,7 +26,6 @@
       ·
       <a href="#" onClick="toggleAnimations();"><span class="header_link" id="toggle_animations">Show Animations</span></a>
     </span>
-    <span id="saved_searches" class="header_links" style="display: none"></span>
     <span class="static_html_fallback">
       <a href="media/index.html"><span class="header_link">Static HTML site</span></a>
     </span>
@@ -688,41 +687,6 @@
         window.history.pushState({}, '', 'search.html');
         processJson(getAllMediaViaJsFile(), populateMedia);
       }
-
-      function loadSavedSearches() {
-        /*
-         * Read the saved searches from a javascript file rather than as a JSON file using
-         * XMLHttpRequest to work around browser mitigations that are in place for
-         * CVE-2019-11730. This change allows the search page to function correctly when
-         * accessed over a file URI.
-         */
-
-        const scr = document.createElement('script');
-        scr.setAttribute('src', 'saved_searches.js');
-        scr.onload = function () {
-          const ele = document.querySelector('#saved_searches');
-          const savedSearches = getSavedSearches();
-          if (savedSearches.length == 0) {
-            return;
-          }
-
-          for (let i = 0; i < savedSearches.length; i += 1) {
-            if (i > 0) {
-              const space = document.createElement('span');
-              space.innerHTML = ' · ';
-              ele.appendChild(space);
-            }
-
-            const anchor = document.createElement('a');
-            anchor.href = savedSearches[i].url;
-            anchor.innerText = savedSearches[i].label;
-            ele.appendChild(anchor);
-          }
-        };
-        document.body.appendChild(scr);
-      }
-
-      loadSavedSearches();
 
       loadJson(populateMedia, () => {
         const allMediaEle = document.querySelector('#all_media');

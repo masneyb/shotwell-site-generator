@@ -69,12 +69,6 @@ def process_photos(options):
     shutil.copyfile(__get_assets_path(options, "search.js"),
                     os.path.join(options.dest_directory, "search.js"))
 
-    saved_searches_dest = os.path.join(options.dest_directory, "saved_searches.js")
-    if not os.path.exists(saved_searches_dest):
-        # An example saved_searches.js file is provided. Only overwrite the destination if it
-        # does not exist.
-        shutil.copyfile(__get_assets_path(options, "saved_searches.js"), saved_searches_dest)
-
     if not options.skip_original_symlink:
         media_symlink = os.path.join(options.dest_directory, "original")
         if os.path.islink(media_symlink):
