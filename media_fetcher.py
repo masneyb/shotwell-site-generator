@@ -228,8 +228,13 @@ class Database:
 
         media.update(self.__parse_photo_exiv2_metadata(exiv2_metadata))
 
-        media["width"] = row["width"]
-        media["height"] = row["height"]
+        if rotate in (90, -90):
+            media["width"] = row["height"]
+            media["height"] = row["width"]
+        else:
+            media["width"] = row["width"]
+            media["height"] = row["height"]
+
         media["is_raw"] = is_raw
 
     def __parse_transformations(self, transformations):
