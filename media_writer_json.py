@@ -31,6 +31,7 @@ class Json(CommonWriter):
             item["thumbnail"] = {"sq": "thumbnails/" + event["thumbnail_path"]}
             item["link"] = "event/%s.html" % (event["id"])
             item.update(self.__get_stats(event["stats"]))
+            item.update(self.__add_year_blocks(event))
             shown_events.append(item)
 
             for media in event["media"]:
@@ -95,6 +96,20 @@ class Json(CommonWriter):
                                    'link': self.extra_header[1]}
 
         self.__write_json_files(ret)
+
+    def __add_year_blocks(self, event):
+        if len(event["years"]) <= 1:
+            return {}
+
+        ret = {"years": []}
+        for year in event["years"]:
+            year_block = {}
+            year_block["year"] = year
+            year_block["thumbnail"] = {"sq": "thumbnails/" + event["years"][year]["thumbnail_path"]}
+            year_block.update(self.__get_stats(event["years"][year]["stats"]))
+            ret["years"].append(year_block)
+
+        return ret
 
     def __get_media_type(self, media):
         if media["media_id"].startswith("thumb"):

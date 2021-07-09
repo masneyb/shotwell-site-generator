@@ -815,11 +815,15 @@ function performSearch(allItems) {
         media.year = [media.id]
       } else if (mediaType[0] === 'events') {
         media.year = []
-        const startYear = media.min_date.split('-')[0];
-        const endYear = media.max_date.split('-')[0];
-        for (let year = startYear; year <= endYear; year++) {
-          media.year.push(year);
+        if ('years' in media) {
+          for (const yearBlock of media['years']) {
+            media.year.push(yearBlock['year']);
+          }
+        } else {
+          media.year.push(media.min_date.split('-')[0]);
         }
+      } else if (mediaType[0] === 'media') {
+        media.year = [media.exposure_time.split('-')[0]]
       }
 
       if (mediaType[0] === 'events') {

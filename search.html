@@ -99,6 +99,7 @@
       let metadataDisplay = 'block';
       let alwaysShowAnimations = false;
       let isMobileView = showMobileView();
+      let currentYearView = null;
 
       function toggleMetadata() {
         metadataDisplay = metadataDisplay === 'none' ? 'block' : 'none';
@@ -400,51 +401,50 @@
       }
 
       function setPageTitle(mediaTitle) {
-        let selectedLink = null;
-        let newTitle = `${mediaTitle}: Search`;
+        currentYearView = null;
+
+        // Search criteria can be chained in any order. Get the distinct types and order below.
+        let eventTitle = null;
+        let yearTitle = null;
+        let tagTitle = null;
+
         const allCriteria = getSearchCriteria();
         for (const criteria of allCriteria) {
           if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' &&
               criteria.searchValues[0] === 'years') {
-            newTitle = `${mediaTitle}: All Years`;
-            selectedLink = 'years_link';
-            break;
+            yearTitle = `${mediaTitle}: All Years`;
           } else if (criteria.field.title === 'Year' && criteria.op.descr === 'equals') {
-            newTitle = `${mediaTitle}: Year ${criteria.searchValues[0]}`;
-            selectedLink = 'years_link';
-            break;
+            yearTitle = `${mediaTitle}: Year ${criteria.searchValues[0]}`;
+            // Used for generating search links when searching for events.
+            currentYearView = criteria.searchValues[0];
           } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' &&
-              criteria.searchValues[0] === 'events') {
-            newTitle = `${mediaTitle}: All Events`;
-            selectedLink = 'events_link';
-            break;
+                     criteria.searchValues[0] === 'events') {
+            eventTitle = `${mediaTitle}: All Events`;
           } else if (criteria.field.title === 'Event ID' && criteria.op.descr === 'equals') {
-            newTitle = `${mediaTitle}: ${eventNames[criteria.searchValues[0]]}`;
-            selectedLink = 'events_link';
-            break;
+            eventTitle = `${mediaTitle}: ${eventNames[criteria.searchValues[0]]}`;
           } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' &&
-              criteria.searchValues[0] === 'tags') {
-            newTitle = `${mediaTitle}: All Tags`;
-            selectedLink = 'tags_link';
-            break;
+                     criteria.searchValues[0] === 'tags') {
+            tagTitle = `${mediaTitle}: All Tags`;
           } else if (criteria.field.title === 'Tag ID' && criteria.op.descr === 'equals') {
-            newTitle = `${mediaTitle}: ${tagNames[criteria.searchValues[0]]}`;
-            selectedLink = 'tags_link';
-            break;
+            tagTitle = `${mediaTitle}: ${tagNames[criteria.searchValues[0]]}`;
           }
         }
 
-        document.title = newTitle;
+        const titles = [[eventTitle, 'events_link'], [yearTitle, 'years_link'],
+                        [tagTitle, 'tags_link'], [`${mediaTitle}: Search`, null]];
+        const preferredTitle = titles.find(ent => ent[0] !== null);
+
+        document.title = preferredTitle[0];
         let ele = document.querySelector('#title');
         if (ele) {
           ele.innerText = document.title;
         }
 
-        if (selectedLink !== null) {
-          document.querySelector(`#${selectedLink}`).classList.add('main_view_selected');
+        if (preferredTitle[1] !== null) {
+          document.querySelector(`#${preferredTitle[1]}`).classList.add('main_view_selected');
         }
         for (const tagName of ['years_link', 'events_link', 'tags_link']) {
-          if (tagName !== selectedLink) {
+          if (tagName !== preferredTitle[1]) {
             document.querySelector(`#${tagName}`).classList.remove('main_view_selected');
           }
         }
@@ -551,6 +551,48 @@
         }
       }
 
+      function populateMediaAnchorTag(anchor, media) {
+        if (media.type === 'events') {
+          anchor.href = '#';
+          const search = [['Event ID', 'equals', media.event_id]];
+
+          /*
+           * When searching for events by year, check to see if the JSON contains an entry
+           * for the current year. If so, use that since thumbnails and stats are generated
+           * for each year that the event spans.
+           */
+          if (currentYearView !== null) {
+            search.push(['Year', 'equals', currentYearView]);
+            if ("years" in media) {
+              for (const yearBlock of media.years) {
+                if (yearBlock.year === currentYearView) {
+                  yearBlock.title = media.title;
+                  if ("comment" in media) {
+                    yearBlock.comment = media.comment;
+                  }
+
+                  media = yearBlock;
+                }
+              }
+            }
+          }
+          anchor.addEventListener('click', () => { searchPageLinkGenerator(search); });
+        } else if (media.type === 'years') {
+          anchor.href = '#';
+          const search = [['Year', 'equals', media.id], ['Type', 'is a', 'events']];
+          anchor.addEventListener('click', () => { searchPageLinkGenerator(search); });
+        } else if (media.type === 'tags') {
+          anchor.href = '#';
+          const search = [['Tag Parent ID', 'equals', media.id], ['Tag ID', 'equals', media.id]];
+          anchor.addEventListener('click', () => { searchPageLinkGenerator(search, 'any'); });
+        } else {
+          anchor.href = media.link;
+          anchor.target = '_new';
+        }
+
+        return media;
+      }
+
       function doShowMedia(pageNumber) {
         const pageSize = 24;
         const lastPageNumber = Math.ceil(allMedia.length / pageSize);
@@ -566,25 +608,14 @@
           return `href="#" onclick="searchPageLinkGenerator([['${field}', '${op}', '${val}']]);"`;
         };
 
-        for (const media of allMedia.slice(startIdx, startIdx + pageSize)) {
+        for (let media of allMedia.slice(startIdx, startIdx + pageSize)) {
           const clone = template.content.cloneNode(true);
           const mediaEle = clone.querySelector('.media_dyn');
 
           const anchor = clone.querySelector('a');
-          if (media.type === 'events') {
-            anchor.href = '#';
-            anchor.addEventListener('click', () => { searchPageLinkGenerator([['Event ID', 'equals', media.event_id]]); });
-          } else if (media.type === 'years') {
-            anchor.href = '#';
-            anchor.addEventListener('click', () => { searchPageLinkGenerator([['Year', 'equals', media.id]]); });
-          } else if (media.type === 'tags') {
-            anchor.href = '#';
-            const search = [['Tag Parent ID', 'equals', media.id], ['Tag ID', 'equals', media.id]];
-            anchor.addEventListener('click', () => { searchPageLinkGenerator(search, 'any'); });
-          } else {
-            anchor.href = media.link;
-            anchor.target = '_new';
-          }
+
+          // See the comment above for why the media element can be overridden for the event search.
+          media = populateMediaAnchorTag(anchor, media);
 
           if (alwaysShowAnimations && media.motion_photo) {
             const img = clone.querySelector('img');
