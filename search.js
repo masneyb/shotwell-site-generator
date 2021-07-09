@@ -23,11 +23,11 @@ function getSearchQueryParams() {
 
 function getPrettyFileSize(size) {
   if (size > 1024 * 1024 * 1024) {
-    return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GiB`;
+    return `${(size / (1024 * 1024 * 1024)).toFixed(1)}GiB`;
   } if (size > 1024 * 1024) {
-    return `${(size / (1024 * 1024)).toFixed(1)} MiB`;
+    return `${(size / (1024 * 1024)).toFixed(1)}MiB`;
   } if (size > 1024) {
-    return `${(size / (1024)).toFixed(1)} KiB`;
+    return `${(size / (1024)).toFixed(1)}KiB`;
   }
   return `${size} bytes`;
 }
