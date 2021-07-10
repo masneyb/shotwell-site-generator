@@ -12,6 +12,7 @@
     <title>Search</title>
     <link rel="stylesheet" type="text/css" href="library.css"/>
     <script type="text/javascript" src="search.js"></script>
+    <script type="text/javascript" src="media.js" defer="defer" onLoad="processJson(populateMedia);" onError="jsonLoadError();"></script>
   </head>
 
   <body>
@@ -100,6 +101,11 @@
       let alwaysShowAnimations = false;
       let isMobileView = showMobileView();
       let currentYearView = null;
+
+      function jsonLoadError() {
+        const allMediaEle = document.querySelector('#all_media');
+        allMediaEle.innerHTML = "<div class='error'>Error loading media</div>";
+      }
 
       function toggleMetadata() {
         metadataDisplay = metadataDisplay === 'none' ? 'block' : 'none';
@@ -230,7 +236,7 @@
           const sortby = document.querySelector('#sortby').value;
           window.history.pushState({}, '',
             `search.html?${searchArgs.join('&')}&match_policy=${matchPolicy}&sortby=${sortby}`);
-          processJson(getAllMediaViaJsFile(), populateMedia);
+          processJson(populateMedia);
         }, 0);
       }
 
@@ -485,7 +491,7 @@
 
         const search = generateSearchUrl(parts, matchPolicy);
         window.history.pushState({}, '', search);
-        processJson(getAllMediaViaJsFile(), populateMedia);
+        processJson(populateMedia);
       }
 
       function writeCsvRow(cols) {
@@ -720,19 +726,14 @@
 
       function clearSearchCriteria() {
         window.history.pushState({}, '', 'search.html');
-        processJson(getAllMediaViaJsFile(), populateMedia);
+        processJson(populateMedia);
       }
-
-      loadJson(populateMedia, () => {
-        const allMediaEle = document.querySelector('#all_media');
-        allMediaEle.innerHTML = "<div class='error'>Error loading media</div>";
-      });
 
       window.addEventListener('scroll', windowScrolled, false);
       window.addEventListener('resize', windowSizeChanged, false);
 
       window.onpopstate = function () {
-        processJson(getAllMediaViaJsFile(), populateMedia);
+        processJson(populateMedia);
       };
     </script>
   </body>

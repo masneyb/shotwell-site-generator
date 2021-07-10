@@ -934,7 +934,8 @@ function performSearch(allItems) {
   return ret;
 }
 
-function processJson(resp, readyFunc) {
+function processJson(readyFunc) {
+  const resp = getAllMediaViaJsFile();
   const eventNames = {};
   for (const evt of resp.events) {
     eventNames[evt.id] = 'title' in evt ? evt.title : `Unnamed ${evt.id}`;
@@ -957,18 +958,4 @@ function processJson(resp, readyFunc) {
 
   const allMedia = performSearch(resp);
   readyFunc(allMedia, eventNames, tagNames, resp.extra_header, resp.title);
-}
-
-function loadJson(readyFunc, errorFunc) {
-  /*
-   * Read the media from a javascript file rather than as a JSON file using XMLHttpRequest
-   * to work around browser mitigations that are in place for CVE-2019-11730. This change allows
-   * the search and screensaver pages to function correctly when accessed over a file URI.
-   */
-
-  const scr = document.createElement('script');
-  scr.setAttribute('src', 'media.js');
-  scr.onload = function () { processJson(getAllMediaViaJsFile(), readyFunc); };
-  scr.onerror = function () { errorFunc(); };
-  document.body.appendChild(scr);
 }

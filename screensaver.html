@@ -11,6 +11,7 @@
     <meta name="viewport" content="width=device-width"/>
     <meta charset="UTF-8"/>
     <script type="text/javascript" src="search.js"></script>
+    <script type="text/javascript" src="media.js" defer="defer" onLoad="jsonLoaded();"></script>
     <style>
       body {
         text-align: center;
@@ -98,6 +99,23 @@
       const photoUpdateSecs = getIntQueryParameter('photo_update_secs', 10);
       const reinstateScreensaverSecs = getIntQueryParameter('reinstate_screensaver_secs', 300);
 
+      function jsonLoaded() {
+        processJson((allMedia, newEventNames, newTagNames, extraHeader) => {
+          eventNames = newEventNames;
+          tagNames = newTagNames;
+
+          shownPhotos = [];
+          for (const media of allMedia) {
+            if (media.type === 'photo') {
+              shownPhotos.push(media);
+            }
+          }
+
+          shuffleArray(shownPhotos);
+          showImage(0);
+        });
+      }
+
       function showImage(idx) {
         if (shownPhotos == null || idx < 0 || idx >= shownPhotos.length) {
           return;
@@ -129,24 +147,6 @@
           shuffleArray(shownPhotos);
         }
         showImage(curIdx);
-      }
-
-      function updateJson() {
-        loadJson((allMedia, newEventNames, newTagNames, extraHeader) => {
-          eventNames = newEventNames;
-          tagNames = newTagNames;
-
-          shownPhotos = [];
-          for (const media of allMedia) {
-            if (media.type === 'photo') {
-              shownPhotos.push(media);
-            }
-          }
-
-          shuffleArray(shownPhotos);
-          showImage(0);
-        }, () => {
-        });
       }
 
       function toggleUpdateImageTimer(userInitiated = false) {
@@ -185,8 +185,6 @@
           toggleUpdateImageTimer(true);
         }
       }
-
-      updateJson();
 
       toggleUpdateImageTimer(false);
 
