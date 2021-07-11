@@ -340,6 +340,27 @@ const dateSearch = {
       numValues: 0,
     },
     {
+      descr: 'was taken on this week',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, null, (input, value) => {
+          if (input == null) {
+            return false;
+          }
+
+          const firstDate = new Date();
+          firstDate.setDate(firstDate.getDate() - 6);
+          const firstMonthDay = `${String(firstDate.getMonth() + 1).padStart(2, '0')}-${String(firstDate.getDate()).padStart(2, '0')}`;
+
+          const lastDate = new Date();
+          const lastMonthDay = `${String(lastDate.getMonth() + 1).padStart(2, '0')}-${String(lastDate.getDate()).padStart(2, '0')}`;
+
+          const compareTo = input.split('T')[0].split('-').slice(1, 3).join('-');
+          return firstMonthDay <= compareTo && compareTo <= lastMonthDay;
+        });
+      },
+      numValues: 0,
+    },
+    {
       descr: 'was taken on this month',
       matches(field, op, values, media) {
         return performGenericOp(field, media, null, (input, value) => {
