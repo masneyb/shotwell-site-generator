@@ -125,7 +125,7 @@ function generateSearchUrl(criterias, matchPolicy) {
   for (const criteria of criterias) {
     qs.push(`search=${encodeURI(criteria)}`);
   }
-  if (matchPolicy != 'all') {
+  if (matchPolicy !== 'all') {
     qs.push(`match_policy=${matchPolicy}`);
   }
   return `search.html?${qs.join('&')}#`;
@@ -812,18 +812,18 @@ function performSearch(allItems) {
       }
 
       if (mediaType[0] === 'years') {
-        media.year = [media.id]
+        media.year = [media.id];
       } else if (mediaType[0] === 'events') {
-        media.year = []
+        media.year = [];
         if ('years' in media) {
-          for (const yearBlock of media['years']) {
-            media.year.push(yearBlock['year']);
+          for (const yearBlock of media.years) {
+            media.year.push(yearBlock.year);
           }
         } else {
           media.year.push(media.min_date.split('-')[0]);
         }
       } else if (mediaType[0] === 'media') {
-        media.year = [media.exposure_time.split('-')[0]]
+        media.year = [media.exposure_time.split('-')[0]];
       }
 
       if (mediaType[0] === 'events') {

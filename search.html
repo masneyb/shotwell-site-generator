@@ -438,10 +438,10 @@
 
         const titles = [[eventTitle, 'events_link'], [yearTitle, 'years_link'],
                         [tagTitle, 'tags_link'], [`${mediaTitle}: Search`, null]];
-        const preferredTitle = titles.find(ent => ent[0] !== null);
+        const preferredTitle = titles.find((ent) => ent[0] !== null);
 
         document.title = preferredTitle[0];
-        let ele = document.querySelector('#title');
+        const ele = document.querySelector('#title');
         if (ele) {
           ele.innerText = document.title;
         }
@@ -496,7 +496,6 @@
           event.preventDefault();
           event.stopPropagation();
           window.open(search, '_blank');
-          return false;
         } else {
           window.history.pushState({}, '', search);
           processJson(populateMedia);
@@ -578,11 +577,11 @@
            */
           if (currentYearView !== null) {
             search.push(['Year', 'equals', currentYearView]);
-            if ("years" in media) {
+            if ('years' in media) {
               for (const yearBlock of media.years) {
                 if (yearBlock.year === currentYearView) {
                   yearBlock.title = media.title;
-                  if ("comment" in media) {
+                  if ('comment' in media) {
                     yearBlock.comment = media.comment;
                   }
 
@@ -593,15 +592,15 @@
           }
 
           search.push(['Type', 'is not a', 'events']);
-          anchor.addEventListener('click', () => { searchPageLinkGenerator(event, search); });
+          anchor.addEventListener('click', (event) => { searchPageLinkGenerator(event, search); });
         } else if (media.type === 'years') {
           anchor.href = '#';
           const search = [['Year', 'equals', media.id], ['Type', 'is a', 'events']];
-          anchor.addEventListener('click', () => { searchPageLinkGenerator(event, search); });
+          anchor.addEventListener('click', (event) => { searchPageLinkGenerator(event, search); });
         } else if (media.type === 'tags') {
           anchor.href = '#';
           const search = [['Tag Parent ID', 'equals', media.id], ['Tag ID', 'equals', media.id]];
-          anchor.addEventListener('click', () => { searchPageLinkGenerator(event, search, 'any'); });
+          anchor.addEventListener('click', (event) => { searchPageLinkGenerator(event, search, 'any'); });
         } else {
           anchor.href = media.link;
           anchor.target = '_new';
