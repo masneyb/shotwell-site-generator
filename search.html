@@ -28,16 +28,16 @@
 
     <span class="main_views">
       <span>
-        <a href="#" onclick="searchPageLinkGenerator([]);"`><span class="main_view">Date</span></a>
+        <a href="#" onclick="searchPageLinkGenerator(event, []);"`><span class="main_view">Date</span></a>
       </span>
       <span>
-        <a href="#" onclick="searchPageLinkGenerator([['Type', 'is a', 'events']]);"`><span id="events_link" class="main_view">Event</span></a>
+        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'events']]);"`><span id="events_link" class="main_view">Event</span></a>
       </span>
       <span>
-        <a href="#" onclick="searchPageLinkGenerator([['Type', 'is a', 'years']]);"`><span id="years_link" class="main_view">Year</span></a>
+        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'years']]);"`><span id="years_link" class="main_view">Year</span></a>
       </span>
       <span>
-        <a href="#" onclick="searchPageLinkGenerator([['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set']]);"`><span id="tags_link" class="main_view">Tag</span></a>
+        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set']]);"`><span id="tags_link" class="main_view">Tag</span></a>
       </span>
       <span id="extra_header"></span>
     </span>
@@ -482,7 +482,7 @@
         populateSearchValuesFromUrl();
       }
 
-      function searchPageLinkGenerator(criterias, matchPolicy = 'all') {
+      function searchPageLinkGenerator(event, criterias, matchPolicy = 'all') {
         const parts = [];
         for (criteria of criterias) {
           // field,op,value
@@ -490,8 +490,17 @@
         }
 
         const search = generateSearchUrl(parts, matchPolicy);
-        window.history.pushState({}, '', search);
-        processJson(populateMedia);
+
+        // Check to see if the user control clicked the URL to request it be opened in a new tab.
+        if (event.ctrlKey || event.which === 2 || event.which === 3) {
+          event.preventDefault();
+          event.stopPropagation();
+          window.open(search, '_blank');
+          return false;
+        } else {
+          window.history.pushState({}, '', search);
+          processJson(populateMedia);
+        }
       }
 
       function writeCsvRow(cols) {
@@ -584,15 +593,15 @@
           }
 
           search.push(['Type', 'is not a', 'events']);
-          anchor.addEventListener('click', () => { searchPageLinkGenerator(search); });
+          anchor.addEventListener('click', () => { searchPageLinkGenerator(event, search); });
         } else if (media.type === 'years') {
           anchor.href = '#';
           const search = [['Year', 'equals', media.id], ['Type', 'is a', 'events']];
-          anchor.addEventListener('click', () => { searchPageLinkGenerator(search); });
+          anchor.addEventListener('click', () => { searchPageLinkGenerator(event, search); });
         } else if (media.type === 'tags') {
           anchor.href = '#';
           const search = [['Tag Parent ID', 'equals', media.id], ['Tag ID', 'equals', media.id]];
-          anchor.addEventListener('click', () => { searchPageLinkGenerator(search, 'any'); });
+          anchor.addEventListener('click', () => { searchPageLinkGenerator(event, search, 'any'); });
         } else {
           anchor.href = media.link;
           anchor.target = '_new';
@@ -613,7 +622,7 @@
         const template = document.querySelector('#media_template');
         const startIdx = (pageNumber - 1) * pageSize;
         const searchLinkGenerator = function (field, op, val) {
-          return `href="#" onclick="searchPageLinkGenerator([['${field}', '${op}', '${val}']]);"`;
+          return `href="#" onclick="searchPageLinkGenerator(event, [['${field}', '${op}', '${val}']]);"`;
         };
 
         for (let media of allMedia.slice(startIdx, startIdx + pageSize)) {
