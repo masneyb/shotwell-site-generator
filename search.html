@@ -125,6 +125,8 @@
 
       function createAllStatsHtml() {
         const totalsByTypes = {};
+        let artifactSize = 0;
+        let groupSize = 0;
 
         for (const media of allMedia) {
           let type = null;
@@ -138,6 +140,12 @@
             totalsByTypes[type] = 1;
           } else {
             totalsByTypes[type] += 1;
+          }
+
+          if ('artifact_filesize' in media) {
+            artifactSize += media.artifact_filesize;
+          } else if ('filesize' in media && type !== 'tags') {
+            groupSize += media.filesize;
           }
         }
 
@@ -156,6 +164,12 @@
         }
         if ('tags' in totalsByTypes) {
           ret.push(`<span class="stat">${getNumberString(totalsByTypes.tags, 'tag', 'tags')}</span>`);
+        }
+
+        if (artifactSize > 0) {
+          ret.push(`<span class="stat">${getPrettyFileSize(artifactSize)}</span>`);
+        } else if (groupSize > 0) {
+          ret.push(`<span class="stat">${getPrettyFileSize(groupSize)}</span>`);
         }
 
         return ret.join(' · ');
@@ -518,9 +532,9 @@
       function getCsvUriData() {
         let ret = 'data:text/csv;charset=utf-8,';
 
-        ret += writeCsvRow(['ID', 'Type', 'Path', 'Size', 'Rating', 'Width', 'Height',
-                            'Exposure Time', 'Event ID', 'Latitude', 'Longitude', 'Title',
-                            'Camera', 'Camera Settings']);
+        ret += writeCsvRow(['ID', 'Type', 'Path', 'Original Size', 'Original Size w/ Artifacts',
+                            'Rating', 'Width', 'Height', 'Exposure Time', 'Event ID', 'Latitude',
+                            'Longitude', 'Title', 'Camera', 'Camera Settings']);
 
         for (const media of allMedia) {
           const cols = [];
@@ -528,6 +542,7 @@
           cols.push(media.type);
           cols.push(media.link);
           cols.push('filesize' in media ? media.filesize.toString() : '');
+          cols.push('artifact_filesize' in media ? media.artifact_filesize.toString() : '');
           cols.push('rating' in media ? media.rating.toString() : '');
           cols.push('width' in media ? media.width.toString() : '');
           cols.push('height' in media ? media.height.toString() : '');

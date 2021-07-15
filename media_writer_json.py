@@ -35,51 +35,7 @@ class Json(CommonWriter):
             shown_events.append(item)
 
             for media in event["media"]:
-                item = self.__copy_fields(["title", "comment", "event_id", "rating", "filesize",
-                                           "camera", "exif", "width", "height", "id"], media)
-                if "width" in media:
-                    item["megapixels"] = float("%.1f" % \
-                                               ((media["width"] * media["height"]) / (1000 * 1000)))
-
-                if "clip_duration" in media:
-                    item["clip_duration"] = humanize.naturaldelta(int(media["clip_duration"]))
-                    item["clip_duration_secs"] = int(media["clip_duration"])
-
-                item["time_created"] = datetime.datetime.fromtimestamp(media["time_created"]) \
-                                            .isoformat()
-                item["exposure_time"] = datetime.datetime.fromtimestamp(media["exposure_time"]) \
-                                            .isoformat()
-                item["exposure_time_pretty"] = \
-                    self._get_date_string(self._get_date_parts(media["exposure_time"]), True)
-                item["link"] = media["filename"]
-
-                item["thumbnail"] = {}
-                item["thumbnail"]["sq"] = "thumbnails/" + media["thumbnail_path"]
-                if "reg_thumbnail_path" in media:
-                    item["thumbnail"]["reg"] = "thumbnails/" + media["reg_thumbnail_path"]
-                    item["thumbnail"]["reg_width"] = media["reg_thumbnail_width"]
-
-                item["tags"] = []
-                for tag_id, _ in self._cleanup_tags(media["tags"]):
-                    item["tags"].append(tag_id)
-
-                item["type"] = self.__get_media_type(media)
-
-                if "exif_text" in media and media["exif_text"]:
-                    item["exif_text"] = media["exif_text"]
-
-                if "sq_motion_photo" in media and media["sq_motion_photo"]:
-                    item["motion_photo"] = {}
-                    if media["sq_motion_photo"][0]:
-                        item["motion_photo"]["mp4"] = media["sq_motion_photo"][0]
-
-                    item["motion_photo"]["sq_gif"] = media["sq_motion_photo"][1]
-                    item["motion_photo"]["reg_gif"] = media["reg_motion_photo"][1]
-
-                if "lat" in media:
-                    item["lat"] = float("%.5f" % (media["lat"]))
-                    item["lon"] = float("%.5f" % (media["lon"]))
-
+                item = self.__create_media_element(media)
                 shown_media.append(item)
 
         shown_events.sort(key=lambda event: event["date"], reverse=True)
@@ -96,6 +52,56 @@ class Json(CommonWriter):
                                    'link': self.extra_header[1]}
 
         self.__write_json_files(ret)
+
+    def __create_media_element(self, media):
+        item = self.__copy_fields(["title", "comment", "event_id", "rating", "filesize",
+                                   "camera", "exif", "width", "height", "id"], media)
+        item["artifact_filesize"] = media["all_artifacts_size"]
+
+        if "width" in media:
+            item["megapixels"] = float("%.1f" % \
+                                       ((media["width"] * media["height"]) / (1000 * 1000)))
+
+        if "clip_duration" in media:
+            item["clip_duration"] = humanize.naturaldelta(int(media["clip_duration"]))
+            item["clip_duration_secs"] = int(media["clip_duration"])
+
+        item["time_created"] = datetime.datetime.fromtimestamp(media["time_created"]) \
+                                    .isoformat()
+        item["exposure_time"] = datetime.datetime.fromtimestamp(media["exposure_time"]) \
+                                    .isoformat()
+        item["exposure_time_pretty"] = \
+            self._get_date_string(self._get_date_parts(media["exposure_time"]), True)
+        item["link"] = media["filename"]
+
+        item["thumbnail"] = {}
+        item["thumbnail"]["sq"] = "thumbnails/" + media["thumbnail_path"]
+        if "reg_thumbnail_path" in media:
+            item["thumbnail"]["reg"] = "thumbnails/" + media["reg_thumbnail_path"]
+            item["thumbnail"]["reg_width"] = media["reg_thumbnail_width"]
+
+        item["tags"] = []
+        for tag_id, _ in self._cleanup_tags(media["tags"]):
+            item["tags"].append(tag_id)
+
+        item["type"] = self.__get_media_type(media)
+
+        if "exif_text" in media and media["exif_text"]:
+            item["exif_text"] = media["exif_text"]
+
+        if "sq_motion_photo" in media and media["sq_motion_photo"]:
+            item["motion_photo"] = {}
+            if media["sq_motion_photo"][0]:
+                item["motion_photo"]["mp4"] = media["sq_motion_photo"][0]
+
+            item["motion_photo"]["sq_gif"] = media["sq_motion_photo"][1]
+            item["motion_photo"]["reg_gif"] = media["reg_motion_photo"][1]
+
+        if "lat" in media:
+            item["lat"] = float("%.5f" % (media["lat"]))
+            item["lon"] = float("%.5f" % (media["lon"]))
+
+        return item
 
     def __add_year_blocks(self, event):
         if len(event["years"]) <= 1:
