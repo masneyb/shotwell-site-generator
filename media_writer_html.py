@@ -146,8 +146,9 @@ class Html(CommonWriter):
         links = []
         parent = tag["parent_tag"]
         while parent:
-            links.append("<a href='../tag/%d.html'><span class='header_link'>%s</span></a>" % \
-                         (parent["id"], html.escape(parent["title"])))
+            links.append("<a href='../tag/%d.html'><span class='header_link'>" % (parent["id"]) +
+                         "Parent: %s" % (html.escape(parent["title"])) +
+                         "</span></a>")
             parent = parent["parent_tag"]
 
         links.reverse()
@@ -159,7 +160,7 @@ class Html(CommonWriter):
         if not links:
             ret += "</span>"
         elif len(links) <= 11:
-            ret += " · Parents: " + " · ".join(links)
+            ret += " " + " ".join(links)
             ret += "</span>"
         else:
             ret += "</span>"
@@ -315,7 +316,9 @@ class Html(CommonWriter):
         if not summary:
             return
 
-        sep = " · "
+        summary = [f"<span class='media_stat'>{x}</span>" for x in summary]
+        detailed = [f"<span class='media_stat'>{x}</span>" for x in detailed]
+        sep = " "
         output.write(self.__get_expandable_element("meta%s" % (media["media_id"]),
                                                    sep.join(summary), sep.join(summary + detailed),
                                                    "media_metadata", "More"))
@@ -369,12 +372,12 @@ class Html(CommonWriter):
 
         ret = "<span id='%s' class='%s' style='display: %s;'%s>%s" % \
               (short_id, span_class, short_display, short_outer_onclick, short_value) + \
-              " · <span class='more_less'%s>%s</span>" % (short_inner_onclick, more_label) + \
+              " <span class='more_less'%s>%s</span>" % (short_inner_onclick, more_label) + \
               "</span>"
 
         ret += "<span id='%s' class='%s' style='display: %s;'%s>%s" % \
                (long_id, span_class, long_display, long_outer_onclick, long_value) + \
-               " · <span class='more_less'%s>Less</span>" % (long_inner_onclick) + \
+               " <span class='more_less'%s>Less</span>" % (long_inner_onclick) + \
                "</span>"
 
         return ret
@@ -473,7 +476,7 @@ class Html(CommonWriter):
         ret += self.__get_search_element("Event ID", event["id"])
 
         if event["id"] in all_media_index["event"]:
-            ret += " · "
+            ret += " "
             ret += self.__get_all_media_link(all_media_index["event"][event["id"]])
 
         year_links = []
@@ -489,7 +492,7 @@ class Html(CommonWriter):
                               "</a>")
 
         if len(year_links) <= 11:
-            ret += " · " + " · ".join(year_links)
+            ret += " " + " ".join(year_links)
             ret += "</span>"
         else:
             ret += "</span>"
@@ -519,8 +522,9 @@ class Html(CommonWriter):
 
         tag_links = []
         for tag in tag_counts[0:150]:
-            tag_links.append("<a href='../tag/%d.html'><span class='header_link'>%s</span></a>" % \
-                             (tag[0], html.escape(tag[1])))
+            tag_links.append("<a href='../tag/%d.html'><span class='header_link'>" % (tag[0]) +
+                             "Tag: %s" % (html.escape(tag[1])) +
+                             "</span></a>")
 
         return self.__get_expandable_header_links("Popular Tags", tag_links)
 
@@ -530,13 +534,12 @@ class Html(CommonWriter):
 
         if len(links) <= 11:
             return self.__get_expandable_element(label.replace(" ", "_").lower(),
-                                                 "%s: %s" % (label, " ".join(links)), None,
+                                                 " ".join(links), None,
                                                  "header_links", None)
 
         more_label = "+%s more" % (len(links) - 10)
         return self.__get_expandable_element(label.replace(" ", "_").lower(),
-                                             "%s: %s" % (label, " ".join(links[0:10])),
-                                             "%s: %s" % (label, " ".join(links)),
+                                             " ".join(links[0:10]), " ".join(links),
                                              "header_links", more_label)
 
     def __get_tag_event_links(self, tag):
@@ -554,7 +557,7 @@ class Html(CommonWriter):
         event_links = []
         for event in events:
             event_links.append("<a href='../event/%d.html'>" % (event["id"]) + \
-                               "<span class='header_link'>%s (%s)" % \
+                               "<span class='header_link'>Event: %s (%s)" % \
                                (html.escape(common.cleanup_event_title(event)),
                                 self._get_date_range(event["stats"]["min_date"],
                                                      event["stats"]["max_date"])) + \
@@ -795,15 +798,15 @@ class Html(CommonWriter):
         ret2 = []
         if date_range:
             if not page_date_range or page_date_range == date_range:
-                ret.append(date_range)
+                ret.append("<span class='stat'>%s</span>" % (date_range))
             else:
-                ret2.append("%s (page)" % (page_date_range))
-                ret2.append("%s (overall)" % (date_range))
+                ret2.append("<span class='stat'>%s (page)</span>" % (page_date_range))
+                ret2.append("<span class='stat'>%s (overall)</span>" % (date_range))
 
         if ret2:
-            return "%s<br/>%s" % (" · ".join(ret), " · ".join(ret2))
+            return "%s<br/>%s" % (" ".join(ret), " ".join(ret2))
 
-        return " · ".join(ret)
+        return " ".join(ret)
 
     def __has_shown_media(self, stats):
         return stats["num_photos"] > 0 or stats["num_videos"] > 0
