@@ -77,6 +77,13 @@ a {
 
 .stat {
 	white-space: nowrap;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+.media_stat {
+	padding-left: 5px;
+	padding-right: 5px;
 }
 
 .breadcrumbs {

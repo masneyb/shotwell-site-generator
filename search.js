@@ -117,7 +117,10 @@ function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator,
     ret.push('&starf;'.repeat(entity.rating) + '&star;'.repeat(5 - entity.rating));
   }
 
-  return ret.join(' · ');
+  for (let i = 0; i < ret.length; i += 1) {
+    ret[i] = `<span class="media_stat">${ret[i]}</span>`;
+  }
+  return ret.join(' ');
 }
 
 function generateSearchUrl(criterias, matchPolicy) {

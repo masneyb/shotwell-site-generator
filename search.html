@@ -172,7 +172,7 @@
           ret.push(`<span class="stat">${getPrettyFileSize(groupSize)}</span>`);
         }
 
-        return ret.join(' · ');
+        return ret.join(' ');
       }
 
       function jsHideShow(hideElement, showElement) {
@@ -194,14 +194,14 @@
         let ele = document.createElement('span');
         ele.id = shortId;
         ele.style.display = 'block';
-        ele.innerHTML = `${trimmedValue.substring(0, 140).trim()}... · <span class='more_less' onClick='jsHideShow("${shortId}", "${longId}");'>More</span>`;
+        ele.innerHTML = `${trimmedValue.substring(0, 140).trim()}... <span class='more_less' onClick='jsHideShow("${shortId}", "${longId}");'>More</span>`;
         parentEle.appendChild(ele);
 
         ele = document.createElement('span');
         ele.id = longId;
         ele.style.display = 'none';
         const longValEscaped = trimmedValue.replace(/</g, '&lt;').replace(/>/g, '&gt').replace(/\n/g, '<br/>');
-        ele.innerHTML = `${longValEscaped} · <span class='more_less' onClick='jsHideShow("${longId}", "${shortId}");'>Less</span>`;
+        ele.innerHTML = `${longValEscaped} <span class='more_less' onClick='jsHideShow("${longId}", "${shortId}");'>Less</span>`;
         parentEle.appendChild(ele);
 
         return parentEle;
