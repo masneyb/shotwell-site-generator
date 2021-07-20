@@ -606,11 +606,10 @@
             }
           }
 
-          search.push(['Type', 'is not a', 'events']);
           anchor.addEventListener('click', (event) => { searchPageLinkGenerator(event, search); });
         } else if (media.type === 'years') {
           anchor.href = '#';
-          const search = [['Year', 'equals', media.id], ['Type', 'is a', 'events']];
+          const search = [['Year', 'equals', media.id]];
           anchor.addEventListener('click', (event) => { searchPageLinkGenerator(event, search); });
         } else if (media.type === 'tags') {
           anchor.href = '#';
