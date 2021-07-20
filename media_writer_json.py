@@ -81,7 +81,7 @@ class Json(CommonWriter):
             item["thumbnail"]["reg_width"] = media["reg_thumbnail_width"]
 
         item["tags"] = []
-        for tag_id, _ in self._cleanup_tags(media["tags"]):
+        for tag_id in media["tags"]:
             item["tags"].append(tag_id)
 
         item["type"] = self.__get_media_type(media)

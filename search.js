@@ -854,8 +854,12 @@ function performSearch(allItems) {
         media.event_id = media.id;
         media.event_name = media.title;
       } else if (mediaType[0] === 'tags') {
-        media.tag_id = media.id;
-        media.tag_name = media.title;
+        media.tag_id = [media.id];
+        media.tag_name = [media.title];
+        if (media.parent_tag_id !== null) {
+          media.tag_id.push(media.parent_tag_id);
+          media.tag_name.push(tagNames[media.parent_tag_id]);
+        }
       }
 
       if ('width' in media) {
