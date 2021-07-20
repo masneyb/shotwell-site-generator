@@ -684,7 +684,11 @@
             const name = `title${media.type}${media.id}`;
             const title = clone.querySelector('.media_title');
             title.style.display = metadataDisplay;
-            title.appendChild(getExpandableString(name, media.title));
+            if (media.title_prefix) {
+              title.appendChild(getExpandableString(name, media.title_prefix + media.title));
+            } else {
+              title.appendChild(getExpandableString(name, media.title));
+            }
           }
 
           if (media.comment) {

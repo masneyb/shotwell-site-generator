@@ -39,7 +39,11 @@ function getNumberString(number, singular, plural) {
 function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator, showTitle) {
   let ret = [];
   if (showTitle && 'title' in entity && entity.title) {
-    ret.push(entity.title);
+    if (entity.title_prefix) {
+      ret.push(entity.title_prefix + entity.title);
+    } else {
+      ret.push(entity.title);
+    }
   }
 
   if (entity.num_photos > 0) {
@@ -891,11 +895,7 @@ function performSearch(allItems) {
 
       if (matches) {
         if (mediaType[1]) {
-          if (media.title) {
-            media.title = mediaType[1] + media.title;
-          } else {
-            media.title = mediaType[1];
-          }
+          media.title_prefix = mediaType[1];
         }
 
         ret.push(media);
