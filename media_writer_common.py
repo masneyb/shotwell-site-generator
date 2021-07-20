@@ -75,7 +75,7 @@ class CommonWriter:
 
         return "%s to %s" % (min_str, max_str)
 
-    def _cleanup_tags(self, taglist):
+    def _cleanup_tags(self, taglist, remove_nested_parents=True):
         # Cleanup nested tags. For example, ['/Places', '/Places/WV'] becomes ['WV']
         tags_to_remove = set([])
         all_tags = set(taglist)
@@ -93,9 +93,10 @@ class CommonWriter:
 
             tags_to_remove.add("/".join(tag_parts[0:-1]))
 
-        for tag_name in tags_to_remove:
-            tag_id = tag_name_to_id[tag_name]
-            all_tags.remove(tag_id)
+        if remove_nested_parents:
+            for tag_name in tags_to_remove:
+                tag_id = tag_name_to_id[tag_name]
+                all_tags.remove(tag_id)
 
         ret = [(tag_id, self.all_media["tags_by_id"][tag_id]["title"]) for tag_id in all_tags]
         ret.sort(key=lambda tag: tag[1])
