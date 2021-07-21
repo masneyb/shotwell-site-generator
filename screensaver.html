@@ -97,21 +97,6 @@
       const photoUpdateSecs = getIntQueryParameter('photo_update_secs', 10);
       const reinstateScreensaverSecs = getIntQueryParameter('reinstate_screensaver_secs', 300);
 
-      function jsonLoaded() {
-        processJson((allMedia, extraHeader) => {
-
-          shownPhotos = [];
-          for (const media of allMedia) {
-            if (media.type === 'photo') {
-              shownPhotos.push(media);
-            }
-          }
-
-          shuffleArray(shownPhotos);
-          showImage(0);
-        });
-      }
-
       function showImage(idx) {
         if (shownPhotos == null || idx < 0 || idx >= shownPhotos.length) {
           return;
@@ -134,6 +119,20 @@
         imageEle.src = shownPhotos[idx].link;
 
         curIdx = idx;
+      }
+
+      function jsonLoaded() {
+        processJson((allMedia, extraHeader) => {
+          shownPhotos = [];
+          for (const media of allMedia) {
+            if (media.type === 'photo') {
+              shownPhotos.push(media);
+            }
+          }
+
+          shuffleArray(shownPhotos);
+          showImage(0);
+        });
       }
 
       function showNextImage() {
