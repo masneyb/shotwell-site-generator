@@ -795,20 +795,7 @@ function getSearchCriteria() {
   return allCriteria;
 }
 
-function performSearch(allItems) {
-  const allCriteria = getSearchCriteria();
-  const matchPolicy = getQueryParameter('match_policy', 'all'); // any,none,all
-
-  const tagNames = {};
-  for (const tag of allItems.tags) {
-    tagNames[tag.id] = tag.title;
-  }
-
-  const eventNames = {};
-  for (const event of allItems.events) {
-    eventNames[event.id] = event.title;
-  }
-
+function doUpdateItems(allItems, eventNames, tagNames) {
   const fileExtensions = new Set([]);
 
   const ret = [];
@@ -877,29 +864,52 @@ function performSearch(allItems) {
         }
       }
 
-      let numFound = 0;
-      for (const criteria of allCriteria) {
-        if (criteria.op.matches(criteria.field, criteria.op, criteria.searchValues, media)) {
-          numFound += 1;
-        }
-      }
+      media.title_prefix = mediaType[1];
+      ret.push(media);
+    }
+  }
 
-      let matches = false;
-      if (matchPolicy === 'none') {
-        matches = numFound === 0;
-      } else if (matchPolicy === 'all') {
-        matches = numFound === allCriteria.length;
-      } else {
-        matches = numFound > 0;
-      }
+  for (const field of searchFields) {
+    if (field.title === 'File Extension') {
+      field.validValues = [];
 
-      if (matches) {
-        if (mediaType[1]) {
-          media.title_prefix = mediaType[1];
-        }
+      const sortedExtensions = Array.from(fileExtensions);
+      sortedExtensions.sort();
 
-        ret.push(media);
+      for (const ext of sortedExtensions) {
+        field.validValues.push([ext, ext]);
       }
+      break;
+    }
+  }
+
+  return ret;
+}
+
+function performSearch(allItems, eventNames, tagNames) {
+  const allCriteria = getSearchCriteria();
+  const matchPolicy = getQueryParameter('match_policy', 'all'); // any,none,all
+
+  const ret = [];
+  for (const media of allItems) {
+    let numFound = 0;
+    for (const criteria of allCriteria) {
+      if (criteria.op.matches(criteria.field, criteria.op, criteria.searchValues, media)) {
+        numFound += 1;
+      }
+    }
+
+    let matches = false;
+    if (matchPolicy === 'none') {
+      matches = numFound === 0;
+    } else if (matchPolicy === 'all') {
+      matches = numFound === allCriteria.length;
+    } else {
+      matches = numFound > 0;
+    }
+
+    if (matches) {
+      ret.push(media);
     }
   }
 
@@ -947,45 +957,41 @@ function performSearch(allItems) {
     return 0;
   });
 
-  for (const field of searchFields) {
-    if (field.title === 'File Extension') {
-      field.validValues = [];
-
-      const sortedExtensions = Array.from(fileExtensions);
-      sortedExtensions.sort();
-
-      for (const ext of sortedExtensions) {
-        field.validValues.push([ext, ext]);
-      }
-      break;
-    }
-  }
-
   return ret;
 }
 
+let processedMedia = null;
+const eventNames = {};
+const tagNames = {};
+let extraHeader = null;
+let mainTitle = null;
+
 function processJson(readyFunc) {
-  const resp = getAllMediaViaJsFile();
-  const eventNames = {};
-  for (const evt of resp.events) {
-    eventNames[evt.id] = 'title' in evt ? evt.title : `Unnamed ${evt.id}`;
+  if (processedMedia == null) {
+    const resp = getAllMediaViaJsFile();
+    for (const evt of resp.events) {
+      eventNames[evt.id] = 'title' in evt ? evt.title : `Unnamed ${evt.id}`;
+    }
+
+    for (const tag of resp.tags) {
+      tagNames[tag.id] = tag.title;
+    }
+
+    processedMedia = doUpdateItems(resp, eventNames, tagNames);
+    extraHeader = resp.extra_header;
+    mainTitle = resp.title;
+
+    ele = document.querySelector('#generated_timestamp');
+    if (ele) {
+      ele.innerText = `at ${resp.generated_at}`;
+    }
+
+    ele = document.querySelector('#app_version');
+    if (ele) {
+      ele.innerText = resp.version_label;
+    }
   }
 
-  const tagNames = {};
-  for (const tag of resp.tags) {
-    tagNames[tag.id] = tag.title;
-  }
-
-  ele = document.querySelector('#generated_timestamp');
-  if (ele) {
-    ele.innerText = `at ${resp.generated_at}`;
-  }
-
-  ele = document.querySelector('#app_version');
-  if (ele) {
-    ele.innerText = resp.version_label;
-  }
-
-  const allMedia = performSearch(resp);
-  readyFunc(allMedia, eventNames, tagNames, resp.extra_header, resp.title);
+  const matchedMedia = performSearch(processedMedia, eventNames, tagNames);
+  readyFunc(matchedMedia, extraHeader, mainTitle);
 }

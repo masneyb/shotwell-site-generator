@@ -95,8 +95,6 @@
       let nextSearchInput = 0;
 
       let allMedia = null;
-      let eventNames = null;
-      let tagNames = null;
       let metadataDisplay = 'block';
       let alwaysShowAnimations = false;
       let isMobileView = showMobileView();
@@ -470,10 +468,8 @@
         }
       }
 
-      function populateMedia(newAllMedia, newEventNames, newTagNames, extraHeader, mediaTitle) {
+      function populateMedia(newAllMedia, extraHeader, mediaTitle) {
         allMedia = newAllMedia;
-        eventNames = newEventNames;
-        tagNames = newTagNames;
 
         if (extraHeader) {
           const extraHeaderEle = document.querySelector('#extra_header');

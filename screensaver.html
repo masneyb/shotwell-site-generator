@@ -92,17 +92,13 @@
       let updateImageTimer = null;
       let reinstateImageTimer = null;
       let shownPhotos = null;
-      let eventNames = null;
-      let tagNames = null;
       let curIdx = 0;
 
       const photoUpdateSecs = getIntQueryParameter('photo_update_secs', 10);
       const reinstateScreensaverSecs = getIntQueryParameter('reinstate_screensaver_secs', 300);
 
       function jsonLoaded() {
-        processJson((allMedia, newEventNames, newTagNames, extraHeader) => {
-          eventNames = newEventNames;
-          tagNames = newTagNames;
+        processJson((allMedia, extraHeader) => {
 
           shownPhotos = [];
           for (const media of allMedia) {
