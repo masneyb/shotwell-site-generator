@@ -665,7 +665,7 @@
       }
 
       function doShowMedia(pageNumber) {
-        const pageSize = 24;
+        const pageSize = 12;
         const lastPageNumber = Math.ceil(allMedia.length / pageSize);
         if (pageNumber > lastPageNumber) {
           return;
@@ -747,6 +747,9 @@
         }
 
         currentPageNumber = pageNumber;
+
+        // Ensure that the viewport is filled with media for higher screen resolutions.
+        windowScrolled();
       }
 
       function showMedia() {
