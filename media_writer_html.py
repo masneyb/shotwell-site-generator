@@ -733,6 +733,7 @@ class Html(CommonWriter):
         self.generated_artifacts.add(path)
         output = open(path, "w", encoding="UTF-8")
 
+        output.write("<!DOCTYPE html>")
         output.write("<html lang='en'>")
         output.write("<head>")
         output.write("<link rel='stylesheet' type='text/css' href='../library.css'/>")
