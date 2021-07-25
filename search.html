@@ -771,22 +771,23 @@
         }
 
         removeAllChildren(allMediaEle);
-
-        doShowMedia(1);
-
-        const params = window.location.search.startsWith('?') ? window.location.search : '?';
-
-        document.querySelector('#screensaver_link').href = `screensaver.html${params}&photo_update_secs=30&reinstate_screensaver_secs=300&kiosk=0`;
-
-        for (const ele of document.querySelectorAll('.header_links')) {
-          ele.style.display = 'block';
-        }
-
-        document.querySelector('#csv_link').addEventListener('click', (event) => { downloadCsv(event); });
-
-        document.querySelector('.summary_stats').innerHTML = createAllStatsHtml();
-
         window.scrollTo(0, 0);
+
+        window.setTimeout(() => {
+          doShowMedia(1);
+
+          const params = window.location.search.startsWith('?') ? window.location.search : '?';
+
+          document.querySelector('#screensaver_link').href = `screensaver.html${params}&photo_update_secs=30&reinstate_screensaver_secs=300&kiosk=0`;
+
+          for (const ele of document.querySelectorAll('.header_links')) {
+            ele.style.display = 'block';
+          }
+
+          document.querySelector('#csv_link').addEventListener('click', (event) => { downloadCsv(event); });
+
+          document.querySelector('.summary_stats').innerHTML = createAllStatsHtml();
+        }, 0);
       }
 
       function windowScrolled() {
