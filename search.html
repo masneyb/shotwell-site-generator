@@ -439,12 +439,17 @@
                      criteria.searchValues[0] === 'events') {
             eventTitle = `${mediaTitle}: All Events`;
           } else if (criteria.field.title === 'Event ID' && criteria.op.descr === 'equals') {
-            eventTitle = `${mediaTitle}: ${eventNames[criteria.searchValues[0]]}`;
+            let eventName = eventNames[criteria.searchValues[0]];
+            if (eventName === undefined) {
+              eventName = 'Unknown event';
+            }
+            eventTitle = `${mediaTitle}: ${eventName}`;
           } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' &&
                      criteria.searchValues[0] === 'tags') {
             tagTitle = `${mediaTitle}: All Tags`;
           } else if (criteria.field.title === 'Tag ID' && criteria.op.descr === 'equals') {
-            tagTitle = `${mediaTitle}: ${tags[criteria.searchValues[0]].title}`;
+            let tag = tags[criteria.searchValues[0]];
+            tagTitle = `${mediaTitle}: ${tag !== undefined ? tag.title : 'Unknown tag'}`;
           }
         }
 
