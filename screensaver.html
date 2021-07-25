@@ -113,7 +113,7 @@
         };
 
         imageEle.addEventListener('load', () => {
-          descrEle.innerHTML = createMediaStatsHtml(shownPhotos[idx], eventNames, tagNames,
+          descrEle.innerHTML = createMediaStatsHtml(shownPhotos[idx], eventNames, tags,
             searchLinkGenerator, true);
         });
         imageEle.src = shownPhotos[idx].link;

@@ -36,7 +36,7 @@ function getNumberString(number, singular, plural) {
   return number == 1 ? `${number.toLocaleString()} ${singular}` : `${number.toLocaleString()} ${plural}`;
 }
 
-function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator, showTitle) {
+function createMediaStatsHtml(entity, eventNames, tags, searchLinkGenerator, showTitle) {
   let ret = [];
   if (showTitle && 'title' in entity && entity.title) {
     if (entity.title_prefix) {
@@ -101,9 +101,18 @@ function createMediaStatsHtml(entity, eventNames, tagNames, searchLinkGenerator,
   }
 
   if (entity.tags && entity.type !== 'tags') {
+    const parentTags = new Set([]);
     for (const tagId of entity.tags) {
-      const anchorOpts = searchLinkGenerator('Tag ID', 'equals', tagId);
-      ret.push(`Tag: <a ${anchorOpts}>${tagNames[tagId]}</a>`);
+      if (tags[tagId].parent_tag_id !== null) {
+        parentTags.add(tags[tagId].parent_tag_id);
+      }
+    }
+
+    for (const tagId of entity.tags) {
+      if (!parentTags.has(tagId)) {
+        const anchorOpts = searchLinkGenerator('Tag ID', 'equals', tagId);
+        ret.push(`Tag: <a ${anchorOpts}>${tags[tagId].title}</a>`);
+      }
     }
   }
 
@@ -795,7 +804,7 @@ function getSearchCriteria() {
   return allCriteria;
 }
 
-function doUpdateItems(allItems, eventNames, tagNames) {
+function doUpdateItems(allItems, eventNames, tags) {
   const fileExtensions = new Set([]);
 
   const ret = [];
@@ -812,7 +821,7 @@ function doUpdateItems(allItems, eventNames, tagNames) {
         media.tag_name = [];
         for (const tagId of media.tags) {
           media.tag_id.push(tagId);
-          media.tag_name.push(tagNames[tagId]);
+          media.tag_name.push(tags[tagId].title);
         }
       }
 
@@ -849,7 +858,7 @@ function doUpdateItems(allItems, eventNames, tagNames) {
         media.tag_name = [media.title];
         if (media.parent_tag_id !== null) {
           media.tag_id.push(media.parent_tag_id);
-          media.tag_name.push(tagNames[media.parent_tag_id]);
+          media.tag_name.push(tags[media.parent_tag_id].title);
         }
       }
 
@@ -886,7 +895,7 @@ function doUpdateItems(allItems, eventNames, tagNames) {
   return ret;
 }
 
-function performSearch(allItems, eventNames, tagNames) {
+function performSearch(allItems, eventNames, tags) {
   const allCriteria = getSearchCriteria();
   const matchPolicy = getQueryParameter('match_policy', 'all'); // any,none,all
 
@@ -962,7 +971,7 @@ function performSearch(allItems, eventNames, tagNames) {
 
 let processedMedia = null;
 const eventNames = {};
-const tagNames = {};
+const tags = {};
 let extraHeader = null;
 let mainTitle = null;
 
@@ -974,10 +983,10 @@ function processJson(readyFunc) {
     }
 
     for (const tag of resp.tags) {
-      tagNames[tag.id] = tag.title;
+      tags[tag.id] = tag;
     }
 
-    processedMedia = doUpdateItems(resp, eventNames, tagNames);
+    processedMedia = doUpdateItems(resp, eventNames, tags);
     extraHeader = resp.extra_header;
     mainTitle = resp.title;
 
@@ -992,6 +1001,6 @@ function processJson(readyFunc) {
     }
   }
 
-  const matchedMedia = performSearch(processedMedia, eventNames, tagNames);
+  const matchedMedia = performSearch(processedMedia, eventNames, tags);
   readyFunc(matchedMedia, extraHeader, mainTitle);
 }

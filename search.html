@@ -444,7 +444,7 @@
                      criteria.searchValues[0] === 'tags') {
             tagTitle = `${mediaTitle}: All Tags`;
           } else if (criteria.field.title === 'Tag ID' && criteria.op.descr === 'equals') {
-            tagTitle = `${mediaTitle}: ${tagNames[criteria.searchValues[0]]}`;
+            tagTitle = `${mediaTitle}: ${tags[criteria.searchValues[0]].title}`;
           }
         }
 
@@ -696,7 +696,7 @@
 
           const metadata = clone.querySelector('.media_metadata');
           metadata.style.display = metadataDisplay;
-          metadata.innerHTML = createMediaStatsHtml(media, eventNames, tagNames,
+          metadata.innerHTML = createMediaStatsHtml(media, eventNames, tags,
                                                     searchLinkGenerator, false);
 
           allMediaEle.appendChild(clone);
