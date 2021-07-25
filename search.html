@@ -155,14 +155,14 @@
         if ('video' in totalsByTypes) {
           ret.push(`<span class="stat">${getNumberString(totalsByTypes.video, 'video', 'videos')}</span>`);
         }
-        if ('events' in totalsByTypes) {
-          ret.push(`<span class="stat">${getNumberString(totalsByTypes.events, 'event', 'events')}</span>`);
+        if ('events' in totalsByTypes && totalsByTypes.events > 1) {
+          ret.push(`<span class="stat">${totalsByTypes.events} events}</span>`);
         }
-        if ('years' in totalsByTypes) {
-          ret.push(`<span class="stat">${getNumberString(totalsByTypes.years, 'year', 'years')}</span>`);
+        if ('years' in totalsByTypes && totalsByTypes.years > 1) {
+          ret.push(`<span class="stat">${totalsByTypes.years} years</span>`);
         }
-        if ('tags' in totalsByTypes) {
-          ret.push(`<span class="stat">${getNumberString(totalsByTypes.tags, 'tag', 'tags')}</span>`);
+        if ('tags' in totalsByTypes && totalsByTypes.tags > 1) {
+          ret.push(`<span class="stat">${totalsByTypes.tags} tags</span>`);
         }
 
         if (artifactSize > 0) {
