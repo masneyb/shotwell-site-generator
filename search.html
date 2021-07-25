@@ -25,6 +25,7 @@
       <a href="#" onClick="toggleAnimations();"><span class="header_link" id="toggle_animations">Show Animations</span></a>
       <a href="media/index.html"><span class="header_link">Static HTML Site</span></a>
     </span>
+    <span id="tag_parents" class="header_links" style="display: none"></span>
 
     <span class="main_views">
       <span>
@@ -418,6 +419,41 @@
         }
       }
 
+      function showParentTags(searchTag) {
+        const tagParentsEle = document.querySelector('#tag_parents');
+        removeAllChildren(tagParentsEle);
+
+        if (searchTag !== undefined) {
+          let parentTag = searchTag.parent_tag_id;
+          let firstChild = true;
+          while (parentTag !== null) {
+            const tag = tags[parentTag];
+
+            const span = document.createElement('span');
+            span.className = 'header_link';
+
+            if (firstChild) {
+              span.appendChild(document.createTextNode('Parent Tag: '));
+              firstChild = false;
+            }
+
+            const anchor = document.createElement('a');
+            anchor.innerText = tag.title;
+            anchor.href = '#';
+            const cb = (event) => { searchPageLinkGenerator(event, [['Tag ID', 'equals', tag.id]]); };
+            anchor.addEventListener('click', cb);
+            span.appendChild(anchor);
+
+            tagParentsEle.appendChild(span);
+
+            parentTag = tag.parent_tag_id;
+          }
+          document.querySelector('#tag_parents').display = 'block';
+        } else {
+          document.querySelector('#tag_parents').display = 'none';
+        }
+      }
+
       function setPageTitle(mediaTitle) {
         currentYearView = null;
 
@@ -425,6 +461,7 @@
         let eventTitle = null;
         let yearTitle = null;
         let tagTitle = null;
+        let searchTag;
 
         const allCriteria = getSearchCriteria();
         for (const criteria of allCriteria) {
@@ -448,8 +485,8 @@
                      criteria.searchValues[0] === 'tags') {
             tagTitle = `${mediaTitle}: All Tags`;
           } else if (criteria.field.title === 'Tag ID' && criteria.op.descr === 'equals') {
-            let tag = tags[criteria.searchValues[0]];
-            tagTitle = `${mediaTitle}: ${tag !== undefined ? tag.title : 'Unknown tag'}`;
+            searchTag = tags[criteria.searchValues[0]];
+            tagTitle = `${mediaTitle}: ${searchTag !== undefined ? searchTag.title : 'Unknown tag'}`;
           }
         }
 
@@ -471,6 +508,8 @@
             document.querySelector(`#${tagName}`).classList.remove('main_view_selected');
           }
         }
+
+        showParentTags(searchTag);
       }
 
       function populateMedia(newAllMedia, extraHeader, mediaTitle) {
