@@ -127,7 +127,9 @@ function createMediaStatsHtml(entity, eventNames, tags, searchLinkGenerator, sho
   }
 
   if ('rating' in entity) {
-    ret.push('&starf;'.repeat(entity.rating) + '&star;'.repeat(5 - entity.rating));
+    const anchorOpts = searchLinkGenerator('Rating', 'is at least', entity.rating);
+    const stars = '&starf;'.repeat(entity.rating) + '&star;'.repeat(5 - entity.rating);
+    ret.push(`<a ${anchorOpts}>${stars}</a>`);
   }
 
   for (let i = 0; i < ret.length; i += 1) {
