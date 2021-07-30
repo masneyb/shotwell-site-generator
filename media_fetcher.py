@@ -4,6 +4,7 @@
 #
 # Reads photos, videos, events, and tags from a Shotwell sqlite database.
 
+import csv
 import datetime
 import logging
 import os
@@ -31,6 +32,7 @@ class Database:
         self.play_icon = play_icon
         self.raw_icon = raw_icon
         self.motion_photo_icon = motion_photo_icon
+        self.camera_transformations = self.__get_camera_transformations()
 
         # Register the Pixel Motion Photo namespace. Make up a fake URL.
         pyexiv2.xmp.register_namespace('MotionPhotoItem/', 'Item')
@@ -567,6 +569,21 @@ class Database:
         if media["exposure_time"] != 0:
             add_date_to_stats(stats, media["exposure_time"])
 
+    def __get_camera_transformations(self):
+        camera_file = os.path.join(self.dest_directory, "cameras.csv")
+        if not os.path.exists(camera_file):
+            return {}
+
+        logging.info('Using camera transformation file %s', camera_file)
+
+        ret = {}
+        with open(camera_file, 'r') as csv_file:
+            reader = csv.reader(csv_file)
+            for row in reader:
+                ret[row[0]] = row[1]
+
+        return ret
+
     def __parse_photo_exiv2_metadata(self, exiv2_metadata):
         ret = {}
         ret["exif"] = []
@@ -606,9 +623,14 @@ class Database:
 
             if camera_make:
                 if camera_model.startswith(camera_make):
-                    ret["camera"] = camera_model
+                    camera = camera_model
                 else:
-                    ret["camera"] = "%s %s" % (camera_make, camera_model)
+                    camera = "%s %s" % (camera_make, camera_model)
+
+                if camera in self.camera_transformations:
+                    ret["camera"] = self.camera_transformations[camera]
+                else:
+                    ret["camera"] = camera
 
         return ret
 
