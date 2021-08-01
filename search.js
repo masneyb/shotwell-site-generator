@@ -680,24 +680,14 @@ const searchFields = [
     searchFields: ['lat'],
   },
   {
-    title: 'Megapixels',
-    search: createNumberSearch(null, true, false),
-    searchFields: ['megapixels'],
-  },
-  {
-    title: 'Photo Height',
+    title: 'Height',
     search: createNumberSearch('pixels', true, false),
     searchFields: ['height'],
   },
   {
-    title: 'Photo Width',
-    search: createNumberSearch('pixels', true, false),
-    searchFields: ['width'],
-  },
-  {
-    title: 'Photo W/H Ratio',
+    title: 'Megapixels',
     search: createNumberSearch(null, true, false),
-    searchFields: ['photo_ratio'],
+    searchFields: ['megapixels'],
   },
   {
     title: 'Rating',
@@ -748,9 +738,19 @@ const searchFields = [
     ],
   },
   {
-    title: 'Video Duration',
+    title: 'Video Length',
     search: createNumberSearch('secs', true, false),
     searchFields: ['clip_duration_secs'],
+  },
+  {
+    title: 'Width',
+    search: createNumberSearch('pixels', true, false),
+    searchFields: ['width'],
+  },
+  {
+    title: 'W/H Ratio',
+    search: createNumberSearch(null, true, false),
+    searchFields: ['photo_ratio'],
   },
   {
     title: 'Year',
