@@ -419,17 +419,7 @@ class Database:
 
     def __create_thumbnail(self, media, thumbnail_source, rotate, overlay_icon, is_rounded):
         # pylint: disable=too-many-arguments
-        if is_rounded:
-            key = "thumbnail_path"
-            fspart = "squared"
-            file_ext = "png"
-        else:
-            key = "reg_thumbnail_path"
-            fspart = "regular"
-            file_ext = "jpg"
-
-        dir_shard = get_dir_hash(media["media_id"])
-        media[key] = "media/%s/%s/%s.%s" % (fspart, dir_shard, media["media_id"], file_ext)
+        key = "thumbnail_path" if is_rounded else "reg_thumbnail_path"
         fspath = self.__get_thumbnail_fs_path(media[key])
         self.thumbnailer.create_thumbnail(thumbnail_source, media["media_id"].startswith("video"),
                                           rotate, fspath, overlay_icon, is_rounded)
@@ -472,15 +462,9 @@ class Database:
 
         media["tags"] = set([])
 
-        # The regular thumbnails are used for the desktop version of the site on the search page.
-        reg_fspath = self.__create_thumbnail(media, thumbnail_source, rotate, reg_overlay_icon,
-                                             False)
-        all_artifacts.add(reg_fspath)
-        media["reg_thumbnail_width"] = self.__get_image_dimensions(reg_fspath)[0]
-
-        # The square thumbnails are used everywhere else.
-        all_artifacts.add(self.__create_thumbnail(media, thumbnail_source, rotate, sq_overlay_icon,
-                                                  True))
+        dir_shard = get_dir_hash(media["media_id"])
+        media["thumbnail_path"] = "media/squared/%s/%s.png" % (dir_shard, media["media_id"])
+        media["reg_thumbnail_path"] = "media/regular/%s/%s.jpg" % (dir_shard, media["media_id"])
 
         if download_source:
             all_artifacts.add(download_source)
@@ -499,6 +483,16 @@ class Database:
                                                                  media["thumbnail_path"]))
             all_artifacts.add(thumbnail_source)
             media["filename"] = self.__get_html_basepath(thumbnail_source)
+
+        # The regular thumbnails are used for the desktop version of the site on the search page.
+        reg_fspath = self.__create_thumbnail(media, thumbnail_source, rotate, reg_overlay_icon,
+                                             False)
+        all_artifacts.add(reg_fspath)
+        media["reg_thumbnail_width"] = self.__get_image_dimensions(reg_fspath)[0]
+
+        # The square thumbnails are used everywhere else.
+        all_artifacts.add(self.__create_thumbnail(media, thumbnail_source, rotate, sq_overlay_icon,
+                                                  True))
 
         all_media["media_by_id"][media_id] = media
 
