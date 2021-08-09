@@ -33,6 +33,7 @@ class Database:
         self.raw_icon = raw_icon
         self.motion_photo_icon = motion_photo_icon
         self.camera_transformations = self.__get_camera_transformations()
+        Image.MAX_IMAGE_PIXELS = None
 
         # Register the Pixel Motion Photo namespace. Make up a fake URL.
         pyexiv2.xmp.register_namespace('MotionPhotoItem/', 'Item')
@@ -230,12 +231,15 @@ class Database:
 
         media.update(self.__parse_photo_exiv2_metadata(exiv2_metadata))
 
+        # Photos can be cropped and Shotwell doesn't contain the cropped size. Look it up again.
+        (width, height) = (row["width"], row["height"])
+        if media["filename"].startswith("transformed/"):
+            (width, height) = self.__get_image_dimensions(media["filename_fullpath"])
+
         if rotate in (90, -90):
-            media["width"] = row["height"]
-            media["height"] = row["width"]
+            (media["width"], media["height"]) = (height, width)
         else:
-            media["width"] = row["width"]
-            media["height"] = row["height"]
+            (media["width"], media["height"]) = (width, height)
 
         media["is_raw"] = is_raw
 
@@ -472,8 +476,10 @@ class Database:
                 transformed_video = thumbnail_source = self.__transform_video(download_source)
                 all_artifacts.add(transformed_video)
                 media["filename"] = self.__get_html_basepath(transformed_video)
+                media["filename_fullpath"] = transformed_video
             else:
                 media["filename"] = self.__get_html_basepath(download_source)
+                media["filename_fullpath"] = download_source
         else:
             # Overwrite the passed in thumbnail_source so that the transformed image is used
             # as the input image to generate the thumbnail.
@@ -483,6 +489,7 @@ class Database:
                                                                  media["thumbnail_path"]))
             all_artifacts.add(thumbnail_source)
             media["filename"] = self.__get_html_basepath(thumbnail_source)
+            media["filename_fullpath"] = thumbnail_source
 
         # The regular thumbnails are used for the desktop version of the site on the search page.
         reg_fspath = self.__create_thumbnail(media, thumbnail_source, rotate, reg_overlay_icon,
