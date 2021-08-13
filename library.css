@@ -14,7 +14,7 @@ a {
 }
 
 .main_views {
-	padding-top: 10px;
+	padding-top: 2px;
 	padding-bottom: 10px;
 	display: block;
 }
@@ -27,16 +27,24 @@ a {
 	font-weight: bold;
 }
 
-.summary_stats, .date_range, .event_comment, .header_links {
+.summary_stats, .date_range, .event_comment {
 	display: block;
 	font-size: 80%;
 	padding-top: 1px;
 	padding-bottom: 1px;
 }
 
+.header_links, #tag_parents {
+	display: block;
+	font-size: 80%;
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+
 .header_link {
-	padding: 5px;
+	padding: 2px;
 	white-space: nowrap;
+	display: inline-block;
 }
 
 .media, .media_small, .media_dyn {
@@ -86,8 +94,8 @@ a {
 
 .stat {
 	white-space: nowrap;
-	padding-left: 5px;
-	padding-right: 5px;
+	padding-left: 8px;
+	padding-right: 8px;
 }
 
 .media_stat {

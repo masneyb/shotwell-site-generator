@@ -20,27 +20,27 @@
     <span id="title" class="page_title">Search</span>
     <span class="summary_stats"></span>
     <span class="header_links" style="display: none">
-      <a href="#" id="csv_link"><span class="header_link">CSV</span></a>
-      <a id="screensaver_link"><span class="header_link">Screensaver</span></a>
-      <a href="#" onClick="toggleMetadata();"><span class="header_link" id="toggle_metadata">Hide Metadata</span></a>
-      <a href="#" onClick="toggleAnimations();"><span class="header_link" id="toggle_animations">Show Animations</span></a>
-      <a href="#" onClick="toggleImageSize();"><span class="header_link" id="toggle_size">Show Small Icons</span></a>
-      <a href="media/index.html"><span class="header_link">Static HTML Site</span></a>
+      <a class="header_link" href="#" id="csv_link">CSV</a>
+      <a class="header_link" id="screensaver_link">Screensaver</a>
+      <a class="header_link" id="toggle_metadata" href="#" onClick="toggleMetadata();">Hide Metadata</a>
+      <a class="header_link" id="toggle_animations" href="#" onClick="toggleAnimations();">Show Animations</a>
+      <a class="header_link" id="toggle_size" href="#" onClick="toggleImageSize();">Show Small Icons</a>
+      <a class="header_link" href="media/index.html">Static HTML Site</a>
     </span>
-    <span id="tag_parents" class="header_links" style="display: none"></span>
+    <span id="tag_parents" style="display: none;"></span>
 
     <span class="main_views">
       <span>
-        <a href="#" onclick="searchPageLinkGenerator(event, []);"`><span class="main_view">Date</span></a>
+        <a href="#" onclick="searchPageLinkGenerator(event, []);"><span class="main_view">Date</span></a>
       </span>
       <span>
-        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'events']]);"`><span id="events_link" class="main_view">Event</span></a>
+        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'events']]);"><span id="events_link" class="main_view">Event</span></a>
       </span>
       <span>
-        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'years']]);"`><span id="years_link" class="main_view">Year</span></a>
+        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'years']]);"><span id="years_link" class="main_view">Year</span></a>
       </span>
       <span>
-        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set']]);"`><span id="tags_link" class="main_view">Tag</span></a>
+        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set']]);"><span id="tags_link" class="main_view">Tag</span></a>
       </span>
       <span id="extra_header"></span>
     </span>
