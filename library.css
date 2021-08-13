@@ -39,14 +39,23 @@ a {
 	white-space: nowrap;
 }
 
-.media, .media_dyn {
+.media, .media_small, .media_dyn {
 	display: inline-block;
-	padding: 2px;
 	vertical-align: text-top;
 }
 
 .media {
 	width: 390px;
+	padding: 2px;
+}
+
+.media_dyn {
+	padding: 2px;
+}
+
+.media_small {
+	width: 90px;
+	padding: 0px;
 }
 
 .media_thumb {

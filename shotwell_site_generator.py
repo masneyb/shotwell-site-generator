@@ -19,7 +19,17 @@ def process_photos(options):
     conn = sqlite3.connect(options.input_database)
     conn.row_factory = sqlite3.Row
 
+    icons = media_fetcher.Icons(__get_image_path(options, "panorama-icon.png"),
+                                __get_image_path(options, "panorama-icon-small.png"),
+                                __get_image_path(options, "play-icon.png"),
+                                __get_image_path(options, "play-icon-small.png"),
+                                __get_image_path(options, "raw-icon.png"),
+                                __get_image_path(options, "raw-icon-small.png"),
+                                __get_image_path(options, "motion-photo.png"),
+                                __get_image_path(options, "motion-photo-small.png"))
+
     thumbnailer = media_thumbnailer.Thumbnailer(options.thumbnail_size,
+                                                options.small_thumbnail_size,
                                                 options.dest_directory,
                                                 options.remove_stale_artifacts,
                                                 options.imagemagick_command,
@@ -28,17 +38,14 @@ def process_photos(options):
                                                 options.video_convert_command,
                                                 options.exif_text_command,
                                                 options.skip_exif_text_if_exists,
-                                                __get_image_path(options, "play-icon.png"))
+                                                icons.play,
+                                                icons.play_small)
 
     fetcher = media_fetcher.Database(conn, options.input_media_path,
                                      options.input_thumbs_directory, options.dest_directory,
                                      thumbnailer, set(options.tags_to_skip),
                                      options.video_convert_ext,
-                                     options.add_path_to_overall_diskspace,
-                                     __get_image_path(options, "panorama-icon.png"),
-                                     __get_image_path(options, "play-icon.png"),
-                                     __get_image_path(options, "raw-icon.png"),
-                                     __get_image_path(options, "motion-photo.png"))
+                                     options.add_path_to_overall_diskspace, icons)
 
     logging.info("Fetching all media")
     all_media = fetcher.get_all_media()
@@ -115,6 +122,7 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--src-assets-directory", required=True)
     ARGPARSER.add_argument("--title", required=True)
     ARGPARSER.add_argument("--thumbnail-size", default="390x390")
+    ARGPARSER.add_argument("--small-thumbnail-size", default="90x90")
     ARGPARSER.add_argument("--years-prior-are-approximate", default="2000")
     ARGPARSER.add_argument("--max-media-per-page", type=int, default=24)
     ARGPARSER.add_argument("--tags-to-skip", nargs="+", default=[])

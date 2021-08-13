@@ -24,6 +24,7 @@
       <a id="screensaver_link"><span class="header_link">Screensaver</span></a>
       <a href="#" onClick="toggleMetadata();"><span class="header_link" id="toggle_metadata">Hide Metadata</span></a>
       <a href="#" onClick="toggleAnimations();"><span class="header_link" id="toggle_animations">Show Animations</span></a>
+      <a href="#" onClick="toggleImageSize();"><span class="header_link" id="toggle_size">Show Small Icons</span></a>
       <a href="media/index.html"><span class="header_link">Static HTML Site</span></a>
     </span>
     <span id="tag_parents" class="header_links" style="display: none"></span>
@@ -99,6 +100,7 @@
       let allMedia = null;
       let metadataDisplay = 'block';
       let alwaysShowAnimations = false;
+      let showSmallIcons = false;
       let isMobileView = showMobileView();
       let currentYearView = null;
 
@@ -107,12 +109,16 @@
         allMediaEle.innerHTML = "<div class='error'>Error loading media</div>";
       }
 
+      function getMetadataDisplay() {
+        return showSmallIcons ? 'none' : metadataDisplay;
+      }
+
       function toggleMetadata() {
         metadataDisplay = metadataDisplay === 'none' ? 'block' : 'none';
         document.querySelector('#toggle_metadata').innerText = metadataDisplay === 'none' ? 'Show Metadata' : 'Hide Metadata';
         for (const name of ['.media_metadata', '.media_title', '.media_comment']) {
           for (const ele of document.querySelectorAll(name)) {
-            ele.style.display = metadataDisplay;
+            ele.style.display = getMetadataDisplay();
           }
         }
       }
@@ -120,6 +126,12 @@
       function toggleAnimations() {
         alwaysShowAnimations = !alwaysShowAnimations;
         document.querySelector('#toggle_animations').innerText = alwaysShowAnimations ? 'Hide Animations' : 'Show Animations';
+        showMedia();
+      }
+
+      function toggleImageSize() {
+        showSmallIcons = !showSmallIcons;
+        document.querySelector('#toggle_size').innerText = showSmallIcons ? 'Show Large Icons' : 'Show Small Icons';
         showMedia();
       }
 
@@ -691,7 +703,10 @@
 
           if (alwaysShowAnimations && media.motion_photo) {
             const img = clone.querySelector('img');
-            if (isMobileView) {
+            if (showSmallIcons) {
+              img.src = media.motion_photo.small_gif;
+              mediaEle.className = 'media_small';
+            } else if (isMobileView) {
               img.src = media.motion_photo.sq_gif;
               mediaEle.className = 'media';
             } else {
@@ -700,7 +715,16 @@
             }
           } else {
             const img = clone.querySelector('img');
-            if (isMobileView || !('reg' in media.thumbnail)) {
+            if (showSmallIcons) {
+              img.src = media.thumbnail.small;
+              if (media.motion_photo) {
+                img.addEventListener('mouseover', () => { img.src = media.motion_photo.small_gif; });
+                img.addEventListener('mouseleave', () => { img.src = media.thumbnail.small; });
+                img.addEventListener('touchstart', () => { img.src = media.motion_photo.small_gif; });
+                img.addEventListener('touchend', () => { img.src = media.thumbnail.small; });
+              }
+              mediaEle.className = 'media_small';
+            } else if (isMobileView || !('reg' in media.thumbnail)) {
               img.src = media.thumbnail.sq;
               if (media.motion_photo) {
                 img.addEventListener('mouseover', () => { img.src = media.motion_photo.sq_gif; });
@@ -724,7 +748,7 @@
           if (media.title) {
             const name = `title${media.type}${media.id}`;
             const title = clone.querySelector('.media_title');
-            title.style.display = metadataDisplay;
+            title.style.display = getMetadataDisplay();
             if (media.title_prefix) {
               title.appendChild(getExpandableString(name, media.title_prefix + media.title));
             } else {
@@ -735,12 +759,12 @@
           if (media.comment) {
             const name = `comment${media.type}${media.id}`;
             const comment = clone.querySelector('.media_comment');
-            comment.style.display = metadataDisplay;
+            comment.style.display = getMetadataDisplay();
             comment.appendChild(getExpandableString(name, media.comment));
           }
 
           const metadata = clone.querySelector('.media_metadata');
-          metadata.style.display = metadataDisplay;
+          metadata.style.display = getMetadataDisplay();
           metadata.innerHTML = createMediaStatsHtml(media, eventNames, tags,
                                                     searchLinkGenerator, false);
 

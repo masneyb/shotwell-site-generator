@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (C) 2020-2021 Brian Masney <masneyb@onstation.org>
 
+import enum
 import logging
 import os
 import pathlib
@@ -10,14 +11,20 @@ import common
 
 COMPOSITE_FRAME_SIZE = 4
 
+class ThumbnailType(enum.Enum):
+    SMALL_SQ = 1
+    MEDIUM_SQ = 2
+    REGULAR = 3
+
 class Thumbnailer:
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, thumbnail_size, dest_directory, remove_stale_artifacts,
+    def __init__(self, thumbnail_size, small_thumbnail_size, dest_directory, remove_stale_artifacts,
                  imagemagick_command, ffmpeg_command, ffprobe_command, video_convert_command,
-                 exif_text_command, skip_exif_text_if_exists, play_icon):
+                 exif_text_command, skip_exif_text_if_exists, play_icon, play_icon_small):
         # pylint: disable=too-many-arguments
         self.thumbnail_size = thumbnail_size
+        self.small_thumbnail_size = small_thumbnail_size
         self.dest_thumbs_directory = os.path.join(dest_directory, "thumbnails")
         self.transformed_origs_directory = os.path.join(dest_directory, "transformed")
         self.motion_photo_directory = os.path.join(self.dest_thumbs_directory, "motion_photo")
@@ -30,6 +37,7 @@ class Thumbnailer:
         self.exif_text_command = exif_text_command
         self.skip_exif_text_if_exists = skip_exif_text_if_exists
         self.play_icon = play_icon
+        self.play_icon_small = play_icon_small
         self.generated_artifacts = set([])
 
     def _do_run_command(self, cmd, capture_output):
@@ -224,7 +232,7 @@ class Thumbnailer:
         return [self.imagemagick_command, original_image, *args, transformed_image]
 
     def create_thumbnail(self, source_image, is_video, rotate, resized_image, overlay_icon,
-                         is_rounded):
+                         thumbnail_type):
         # pylint: disable=too-many-arguments
         if not os.path.isfile(source_image):
             logging.warning("Cannot find filename %s", source_image)
@@ -243,21 +251,25 @@ class Thumbnailer:
         if is_video:
             source_image += "[1]"
 
-        if is_rounded:
+        if thumbnail_type == ThumbnailType.MEDIUM_SQ:
             tn_size = f'{self.thumbnail_size}^'
+        elif thumbnail_type == ThumbnailType.SMALL_SQ:
+            tn_size = f'{self.small_thumbnail_size}^'
         else:
             tn_size = 'x' + (self.thumbnail_size.split('x')[1])
 
         resize_cmd = [self.imagemagick_command, source_image, "-strip", "-rotate", str(rotate),
                       "-thumbnail", tn_size]
 
-        if is_rounded:
+        if thumbnail_type == ThumbnailType.MEDIUM_SQ:
             resize_cmd += ["-gravity", "center", "-extent", self.thumbnail_size]
+        elif thumbnail_type == ThumbnailType.SMALL_SQ:
+            resize_cmd += ["-gravity", "center", "-extent", self.small_thumbnail_size]
 
         if overlay_icon:
             resize_cmd += [overlay_icon, "-gravity", "southeast", "-composite"]
 
-        if is_rounded:
+        if thumbnail_type == ThumbnailType.MEDIUM_SQ:
             resize_cmd += ["(", "+clone", "-alpha", "extract",
                            "-draw", "fill black polygon 0,0 0,15 15,0 fill white circle 15,15 15,0",
                            "(", "+clone", "-flip", ")",
@@ -293,7 +305,8 @@ class Thumbnailer:
 
         return int(result.stdout) if result.stdout else None
 
-    def _get_ffmpeg_animated_gif_cmd(self, src_filename, is_video, is_rounded, gif_dest_filename):
+    def _get_ffmpeg_animated_gif_cmd(self, src_filename, is_video, thumbnail_type,
+                                     gif_dest_filename):
         max_frames = 100
         if is_video:
             num_frames = self._get_num_video_frames(src_filename)
@@ -305,12 +318,19 @@ class Thumbnailer:
         else:
             num_frames = None
 
-        (width, height) = [int(x) for x in self.thumbnail_size.split("x")]
+        if thumbnail_type == ThumbnailType.SMALL_SQ:
+            (width, height) = [int(x) for x in self.small_thumbnail_size.split("x")]
+        else:
+            (width, height) = [int(x) for x in self.thumbnail_size.split("x")]
+
         cmd = [self.ffmpeg_command, "-hide_banner", "-loglevel", "error",
                "-i", src_filename]
 
         if num_frames:
-            cmd += ["-i", self.play_icon]
+            if thumbnail_type == ThumbnailType.SMALL_SQ:
+                cmd += ["-i", self.play_icon_small]
+            else:
+                cmd += ["-i", self.play_icon]
 
         complex_filter = "[0]"
         if num_frames:
@@ -338,25 +358,30 @@ class Thumbnailer:
             complex_filter += (f"select=not(mod(n-1\\,{select_frames}))[skip];"
                                f"[skip]setpts=N/({pts}*TB)[fps];[fps]")
 
-        if is_rounded:
+        if thumbnail_type in (ThumbnailType.MEDIUM_SQ, ThumbnailType.SMALL_SQ):
             complex_filter += f"scale='if(gt(iw,ih),-1,{height})':'if(gt(iw,ih),{width},-1)'"
         else:
             complex_filter += f"scale='-1:{height}'"
 
-        if is_rounded:
+        if thumbnail_type == ThumbnailType.MEDIUM_SQ:
             complex_filter += \
                 (f"[scale];[scale]crop={width}:{height}[crop];"
                  "[crop]geq=lum='p(X,Y)':"
                  "a='if(gt(abs(W/2-X),W/2-15)*gt(abs(H/2-Y),H/2-15),"
                  "if(lte(hypot(15-(W/2-abs(W/2-X)),15-(H/2-abs(H/2-Y))),15),255,0),255)'"
                  "[rounded];"
-                 f"color=white@0.0:size={self.thumbnail_size},format=rgba[bg];"
+                 f"color=white@0.0:size={width}x{height},format=rgba[bg];"
                  "[bg][rounded]overlay=x=0:y=0:shortest=1")
+        elif thumbnail_type == ThumbnailType.SMALL_SQ:
+            complex_filter += f"[scale];[scale]crop={width}:{height}"
 
         if num_frames:
-            complex_filter += "[combined];[combined][1]overlay=x=main_w-60:y=main_h-60"
+            if thumbnail_type == ThumbnailType.SMALL_SQ:
+                complex_filter += "[combined];[combined][1]overlay=x=main_w-16:y=main_h-16"
+            else:
+                complex_filter += "[combined];[combined][1]overlay=x=main_w-60:y=main_h-60"
 
-        cmd += ["-f", "lavfi", "-i", f"color=white:size={self.thumbnail_size},format=rgba",
+        cmd += ["-f", "lavfi", "-i", f"color=white:size={width}x{height},format=rgba",
                 "-filter_complex", complex_filter, gif_dest_filename]
 
         return cmd
@@ -381,8 +406,15 @@ class Thumbnailer:
 
         return (mp4_dest_filename, mp4_short_path)
 
-    def create_animated_gif(self, src_filename, media_id, motion_photo_exiv2_metadata, is_rounded):
-        path_part = "squared" if is_rounded else "regular"
+    def create_animated_gif(self, src_filename, media_id, motion_photo_exiv2_metadata,
+                            thumbnail_type):
+        if thumbnail_type == ThumbnailType.SMALL_SQ:
+            path_part = "small"
+        elif thumbnail_type == ThumbnailType.MEDIUM_SQ:
+            path_part = "squared"
+        else:
+            path_part = "regular"
+
         if motion_photo_exiv2_metadata:
             (src_filename, mp4_short_path) = self._extract_motion_photo(src_filename, media_id,
                                                                         motion_photo_exiv2_metadata)
@@ -401,7 +433,7 @@ class Thumbnailer:
         if not os.path.exists(gif_dest_filename):
             cmd = self._get_ffmpeg_animated_gif_cmd(src_filename,
                                                     motion_photo_exiv2_metadata is None,
-                                                    is_rounded, gif_dest_filename)
+                                                    thumbnail_type, gif_dest_filename)
             if not cmd:
                 return None
 
