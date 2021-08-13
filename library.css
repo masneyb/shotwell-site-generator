@@ -20,7 +20,10 @@ a {
 }
 
 .main_view {
-	padding: 10px;
+	padding-top: 2px;
+	padding-bottom: 10px;
+	padding-left: 10px;
+	padding-right: 10px;
 }
 
 .main_view_selected {
