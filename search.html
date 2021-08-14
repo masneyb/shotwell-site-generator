@@ -55,8 +55,9 @@
         <option value="none">Match None</option>
       </select>
       <select id="sortby" onChange="updateSearchCriteria();">
-        <option value="taken">Sort date taken</option>
-        <option value="created">Sort date added</option>
+        <option value="takenZA">Sort taken Z-A</option>
+        <option value="takenAZ">Sort taken A-Z</option>
+        <option value="createdZA">Sort added Z-A</option>
       </select>
       <input type="button" onClick="updateSearchCriteria();" value="Search"></input>
       <input type="button" onClick="clearSearchCriteria();" value="Clear"></input>
@@ -424,7 +425,7 @@
         const matchPolicy = getQueryParameter('match_policy', 'all'); // any,none,all
         document.querySelector('#match_policy').value = matchPolicy;
 
-        const sortby = getQueryParameter('sortby', 'taken'); // taken,created
+        const sortby = getQueryParameter('sortby', 'takenZA'); // takenZA,takenAZ,createdZA
         document.querySelector('#sortby').value = sortby;
 
         if (nextSearchInput === 0) {

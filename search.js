@@ -943,8 +943,24 @@ function performSearch(allItems, eventNames, tags) {
       sortedTypes.events = 0;
     }
   }
-  const sortby = getQueryParameter('sortby', 'taken'); // taken,created
-  const sortField = sortby === 'created' ? 'time_created' : 'exposure_time';
+
+  const sortBy = getQueryParameter('sortby', 'takenZA'); // takenZA,takenAZ,createdZA
+  let sortField;
+  let sortValLt;
+  let sortValGt;
+  if (sortBy === 'createdZA') {
+    sortField = 'time_created';
+    sortValLt = 1;
+    sortValGt = -1;
+  } else if (sortBy === 'takenAZ') {
+    sortField = 'exposure_time';
+    sortValLt = -1;
+    sortValGt = 1;
+  } else {
+    sortField = 'exposure_time';
+    sortValLt = 1;
+    sortValGt = -1;
+  }
 
   ret.sort((a, b) => {
     if (sortedTypes[a.type] < sortedTypes[b.type]) {
@@ -960,10 +976,10 @@ function performSearch(allItems, eventNames, tags) {
     }
 
     if (a[sortField] < b[sortField]) {
-      return 1;
+      return sortValLt;
     }
     if (a[sortField] > b[sortField]) {
-      return -1;
+      return sortValGt;
     }
     return 0;
   });
