@@ -99,6 +99,7 @@
       let nextSearchInput = 0;
 
       let allMedia = null;
+      let dateRange = null;
       let metadataDisplay = 'block';
       let alwaysShowAnimations = false;
       let showSmallIcons = false;
@@ -183,6 +184,10 @@
           ret.push(`<span class="stat">${getPrettyFileSize(artifactSize)}</span>`);
         } else if (groupSize > 0) {
           ret.push(`<span class="stat">${getPrettyFileSize(groupSize)}</span>`);
+        }
+
+        if (dateRange) {
+          ret.push(`<span class="stat">${dateRange}</span>`);
         }
 
         return ret.join(' ');
@@ -526,8 +531,9 @@
         showParentTags(searchTag);
       }
 
-      function populateMedia(newAllMedia, extraHeader, mediaTitle) {
+      function populateMedia(newAllMedia, extraHeader, mediaTitle, newDateRange) {
         allMedia = newAllMedia;
+        dateRange = newDateRange;
 
         if (extraHeader) {
           const extraHeaderEle = document.querySelector('#extra_header');

@@ -897,9 +897,22 @@ function doUpdateItems(allItems, eventNames, tags) {
   return ret;
 }
 
+function shortenPrettyDate(input) {
+  const parts = input.split(' ');
+  if (parts.length < 5) {
+    return input;
+  }
+
+  return `${parts[1]} ${parts[2]} ${parts[3]}`;
+}
+
 function performSearch(allItems, eventNames, tags) {
   const allCriteria = getSearchCriteria();
   const matchPolicy = getQueryParameter('match_policy', 'all'); // any,none,all
+  let minDate = undefined;
+  let minDatePretty = undefined;
+  let maxDate = undefined;
+  let maxDatePretty = undefined;
 
   const ret = [];
   for (const media of allItems) {
@@ -921,6 +934,18 @@ function performSearch(allItems, eventNames, tags) {
 
     if (matches) {
       ret.push(media);
+
+      if ('exposure_time' in media) {
+        if (minDate === undefined || media.exposure_time < minDate) {
+          minDate = media.exposure_time;
+          minDatePretty = media.exposure_time_pretty;
+        }
+
+        if (maxDate === undefined || media.exposure_time > maxDate) {
+          maxDate = media.exposure_time;
+          maxDatePretty = media.exposure_time_pretty;
+        }
+      }
     }
   }
 
@@ -984,7 +1009,18 @@ function performSearch(allItems, eventNames, tags) {
     return 0;
   });
 
-  return ret;
+  let dateRange;
+  if (minDatePretty !== undefined) {
+    minDatePretty = shortenPrettyDate(minDatePretty);
+    maxDatePretty = shortenPrettyDate(maxDatePretty);
+    if (minDatePretty === maxDatePretty) {
+      dateRange = minDatePretty;
+    } else {
+      dateRange = `${minDatePretty} - ${maxDatePretty}`;
+    }
+  }
+
+  return [ret, dateRange];
 }
 
 let processedMedia = null;
@@ -1019,6 +1055,6 @@ function processJson(readyFunc) {
     }
   }
 
-  const matchedMedia = performSearch(processedMedia, eventNames, tags);
-  readyFunc(matchedMedia, extraHeader, mainTitle);
+  const searchResults = performSearch(processedMedia, eventNames, tags);
+  readyFunc(searchResults[0], extraHeader, mainTitle, searchResults[1]);
 }
