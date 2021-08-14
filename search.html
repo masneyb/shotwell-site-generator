@@ -798,6 +798,10 @@
         window.scrollTo(0, 0);
 
         window.setTimeout(() => {
+          // In case there are duplicate timeouts, remove the children again.
+          removeAllChildren(allMediaEle);
+          window.scrollTo(0, 0);
+
           doShowMedia(1);
 
           const params = window.location.search.startsWith('?') ? window.location.search : '?';
