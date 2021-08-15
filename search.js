@@ -899,7 +899,7 @@ function doUpdateItems(allItems, eventNames, tags) {
 
 function shortenPrettyDate(input) {
   const parts = input.split(' ');
-  if (parts.length < 5) {
+  if (parts.length < 4) {
     return input;
   }
 
