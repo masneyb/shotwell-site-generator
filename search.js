@@ -935,7 +935,7 @@ function performSearch(allItems, eventNames, tags) {
     if (matches) {
       ret.push(media);
 
-      if ('exposure_time' in media) {
+      if ('exposure_time' in media && 'exposure_time_pretty' in media) {
         if (minDate === undefined || media.exposure_time < minDate) {
           minDate = media.exposure_time;
           minDatePretty = media.exposure_time_pretty;
