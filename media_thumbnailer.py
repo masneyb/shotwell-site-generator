@@ -21,7 +21,7 @@ class Thumbnailer:
 
     def __init__(self, thumbnail_size, small_thumbnail_size, dest_directory, remove_stale_artifacts,
                  imagemagick_command, ffmpeg_command, ffprobe_command, video_convert_command,
-                 exif_text_command, skip_exif_text_if_exists, play_icon, play_icon_small):
+                 exiv2_command, skip_exif_text_if_exists, play_icon, play_icon_small):
         # pylint: disable=too-many-arguments
         self.thumbnail_size = thumbnail_size
         self.small_thumbnail_size = small_thumbnail_size
@@ -34,7 +34,7 @@ class Thumbnailer:
         self.ffmpeg_command = ffmpeg_command
         self.ffprobe_command = ffprobe_command
         self.video_convert_command = video_convert_command
-        self.exif_text_command = exif_text_command
+        self.exiv2_command = exiv2_command
         self.skip_exif_text_if_exists = skip_exif_text_if_exists
         self.play_icon = play_icon
         self.play_icon_small = play_icon_small
@@ -443,9 +443,6 @@ class Thumbnailer:
         return (mp4_short_path, f"thumbnails/motion_photo/{path_part}/{gif_short_path}")
 
     def write_exif_txt(self, img_filename, media_id):
-        if not self.exif_text_command:
-            return None
-
         (exif_filename, short_path) = self.__get_hashed_file_path(self.exif_directory, media_id,
                                                                   "txt")
         short_path = f"exif/{short_path}"
@@ -454,10 +451,7 @@ class Thumbnailer:
         if self.skip_exif_text_if_exists and os.path.exists(exif_filename):
             return short_path
 
-        cmd = []
-        for part in self.exif_text_command.split(' '):
-            part = part.replace('{infile}', img_filename)
-            cmd.append(part)
+        cmd = [self.exiv2_command, "-pa", img_filename]
 
         logging.debug("Executing %s", cmd)
         ret = subprocess.run(cmd, check=False, capture_output=True)
