@@ -118,7 +118,7 @@ function createMediaStatsHtml(entity, eventNames, tags, searchLinkGenerator, sho
 
   if ('lat' in entity) {
     const anchorOpts = searchLinkGenerator('GPS Coordinate', 'is within',
-      `${entity.lat},${entity.lon},0.1`);
+      `${entity.lat},${entity.lon},0.01`);
     ret.push(`<a ${anchorOpts}>GPS ${entity.lat},${entity.lon}</a>`);
   }
 
