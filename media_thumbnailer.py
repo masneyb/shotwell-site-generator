@@ -458,8 +458,8 @@ class Thumbnailer:
         if ret.returncode != 0:
             return None
 
-        with open(exif_filename, "wb") as file:
-            file.write(ret.stdout)
+        with open(exif_filename, "w") as file:
+            file.write(ret.stdout.decode('utf-8', 'ignore'))
 
         return short_path
 
