@@ -224,18 +224,37 @@ class Database:
         else:
             rotate = 0
 
+        # Read the EXIV/XMP/IPTC metadata two separate times: the first using
+        # python (and in turn libexiv2) since it provides a nice easy way to
+        # retrieve various attributes (like shutter speed, GPS, etc).
+        #
+        # The second method is from the generated text file with all of the
+        # metadata in text form. Some of the Android phones that support motion
+        # photos write out the XMP metadata with a tag like
+        # Xmp.Container.Directory[2]/Container:Item/Item:Length. However, some
+        # photos get written out with the tag
+        # Xmp.Container_1_.Directory[2]/Container_1_:Item/Item_1_:Length
+        # instead. Unfortunately, libexiv2 has a bug somewhere where
+        # you can't read successive photos from the two different XMP
+        # namespaces after the library has been initialized. It'll either
+        # read one or the other, depending on which one was read first. Reading
+        # via a new process and reinitializing the library each time works
+        # around the issue. So use the generated text files to generate the
+        # animated GIFs and to extract the motion photos.
         exiv2_metadata = pyexiv2.ImageMetadata(row["filename"])
         exiv2_metadata.read()
 
         media_id = "thumb%016x" % (row["id"])
+        (exif_text, exif_metadata) = self.thumbnailer.write_exif_txt(row["filename"], media_id)
+
         reg_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
-                                                                 exiv2_metadata,
+                                                                 exif_metadata,
                                                                  ThumbnailType.REGULAR)
         sq_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
-                                                                exiv2_metadata,
+                                                                exif_metadata,
                                                                 ThumbnailType.MEDIUM_SQ)
         small_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
-                                                                   exiv2_metadata,
+                                                                   exif_metadata,
                                                                    ThumbnailType.SMALL_SQ)
 
         if is_raw:
@@ -255,7 +274,6 @@ class Database:
             sq_overlay_icon = None
             small_overlay_icon = None
 
-        exif_text = self.thumbnailer.write_exif_txt(row["filename"], media_id)
         media = self.__add_media(all_media, row, media_id, download_source, row["filename"],
                                  row["transformations"], rotate, reg_overlay_icon,
                                  sq_overlay_icon, small_overlay_icon, reg_short_mp_path,

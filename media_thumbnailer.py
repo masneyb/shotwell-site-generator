@@ -6,6 +6,7 @@ import enum
 import logging
 import os
 import pathlib
+import re
 import subprocess
 import common
 
@@ -281,17 +282,20 @@ class Thumbnailer:
 
         self._do_run_command(resize_cmd, False)
 
-    def _get_motion_photo_offset(self, exiv2_metadata):
+    def _get_motion_photo_offset(self, photo_metadata):
         # Support the two types of Motion Photos from the Pixel phones:
         # v1 (MVIMG_*) and v2 (PXL_*.MP.jpg)
         mp_tags = [("Xmp.GCamera.MicroVideo", "1", "Xmp.GCamera.MicroVideoOffset"),
                    ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto",
-                    "Xmp.Container.Directory[2]/Container:Item/Item:Length")]
+                    "Xmp.Container.Directory[2]/Container:Item/Item:Length"),
+                   ("Xmp.Container_1_.Directory[2]/Container_1_:Item/Item_1_:Semantic",
+                    "MotionPhoto",
+                    "Xmp.Container_1_.Directory[2]/Container_1_:Item/Item_1_:Length")]
         for mp_tag in mp_tags:
-            if mp_tag[0] not in exiv2_metadata or exiv2_metadata[mp_tag[0]].value != mp_tag[1]:
+            if mp_tag[0] not in photo_metadata or photo_metadata[mp_tag[0]] != mp_tag[1]:
                 continue
 
-            return int(exiv2_metadata[mp_tag[2]].value)
+            return int(photo_metadata[mp_tag[2]])
 
         return None
 
@@ -386,8 +390,8 @@ class Thumbnailer:
 
         return cmd
 
-    def _extract_motion_photo(self, src_filename, media_id, motion_photo_exiv2_metadata):
-        offset = self._get_motion_photo_offset(motion_photo_exiv2_metadata)
+    def _extract_motion_photo(self, src_filename, media_id, photo_metadata):
+        offset = self._get_motion_photo_offset(photo_metadata)
         if not offset:
             return (None, None)
 
@@ -406,8 +410,7 @@ class Thumbnailer:
 
         return (mp4_dest_filename, mp4_short_path)
 
-    def create_animated_gif(self, src_filename, media_id, motion_photo_exiv2_metadata,
-                            thumbnail_type):
+    def create_animated_gif(self, src_filename, media_id, photo_metadata, thumbnail_type):
         if thumbnail_type == ThumbnailType.SMALL_SQ:
             path_part = "small"
         elif thumbnail_type == ThumbnailType.MEDIUM_SQ:
@@ -415,9 +418,9 @@ class Thumbnailer:
         else:
             path_part = "regular"
 
-        if motion_photo_exiv2_metadata:
+        if photo_metadata:
             (src_filename, mp4_short_path) = self._extract_motion_photo(src_filename, media_id,
-                                                                        motion_photo_exiv2_metadata)
+                                                                        photo_metadata)
             if not mp4_short_path:
                 return None
 
@@ -432,7 +435,7 @@ class Thumbnailer:
 
         if not os.path.exists(gif_dest_filename):
             cmd = self._get_ffmpeg_animated_gif_cmd(src_filename,
-                                                    motion_photo_exiv2_metadata is None,
+                                                    photo_metadata is None,
                                                     thumbnail_type, gif_dest_filename)
             if not cmd:
                 return None
@@ -442,6 +445,17 @@ class Thumbnailer:
 
         return (mp4_short_path, f"thumbnails/motion_photo/{path_part}/{gif_short_path}")
 
+    def _read_exif_txt(self, file_contents):
+        ret = {}
+        for line in file_contents:
+            parts = re.split(r'\s+', line.strip())
+            if len(parts) == 3:
+                ret[parts[0]] = ''
+            elif len(parts) == 4:
+                ret[parts[0]] = parts[3]
+
+        return ret
+
     def write_exif_txt(self, img_filename, media_id):
         (exif_filename, short_path) = self.__get_hashed_file_path(self.exif_directory, media_id,
                                                                   "txt")
@@ -449,19 +463,21 @@ class Thumbnailer:
         self.generated_artifacts.add(exif_filename)
 
         if self.skip_exif_text_if_exists and os.path.exists(exif_filename):
-            return short_path
+            logging.debug("Reading file %s", exif_filename)
+            with open(exif_filename, 'r') as infile:
+                return (short_path, self._read_exif_txt(infile))
 
         cmd = [self.exiv2_command, "-pa", img_filename]
 
         logging.debug("Executing %s", cmd)
         ret = subprocess.run(cmd, check=False, capture_output=True)
         if ret.returncode != 0:
-            return None
+            return (None, None)
 
         with open(exif_filename, "w") as file:
             file.write(ret.stdout.decode('utf-8', 'ignore'))
 
-        return short_path
+        return (short_path, self._read_exif_txt(ret.stdout.decode('utf-8', 'ignore')))
 
     def __get_hashed_file_path(self, dest_directory, media_id, file_ext):
         dirhash = common.get_dir_hash(media_id)
