@@ -472,7 +472,7 @@ class Thumbnailer:
         logging.debug("Executing %s", cmd)
         ret = subprocess.run(cmd, check=False, capture_output=True)
         if ret.returncode != 0:
-            return (None, None)
+            logging.warning("Error executing %s: %d", cmd, ret.returncode)
 
         decoded_text = ret.stdout.decode('utf-8', 'ignore')
         with open(exif_filename, "w") as file:
