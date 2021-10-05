@@ -474,10 +474,11 @@ class Thumbnailer:
         if ret.returncode != 0:
             return (None, None)
 
+        decoded_text = ret.stdout.decode('utf-8', 'ignore')
         with open(exif_filename, "w") as file:
-            file.write(ret.stdout.decode('utf-8', 'ignore'))
+            file.write(decoded_text)
 
-        return (short_path, self._read_exif_txt(ret.stdout.decode('utf-8', 'ignore')))
+        return (short_path, self._read_exif_txt(decoded_text.split('\n')))
 
     def __get_hashed_file_path(self, dest_directory, media_id, file_ext):
         dirhash = common.get_dir_hash(media_id)
