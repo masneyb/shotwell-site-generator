@@ -418,7 +418,7 @@ class Thumbnailer:
         else:
             path_part = "regular"
 
-        if photo_metadata:
+        if photo_metadata is None:
             (src_filename, mp4_short_path) = self._extract_motion_photo(src_filename, media_id,
                                                                         photo_metadata)
             if not mp4_short_path:
