@@ -20,12 +20,12 @@
     <span id="title" class="page_title">Search</span>
     <span class="summary_stats"></span>
     <span class="header_links" style="display: none">
-      <a class="header_link" href="#" id="csv_link">CSV</a>
-      <a class="header_link" id="screensaver_link">Screensaver</a>
+      <a class="header_link" id="toggle_fullscreen" href="#" onClick="toggleFullscreen();">Fullscreen</a>
+      <a class="header_link" id="toggle_size" href="#" onClick="toggleImageSize();">Small Icons</a>
       <a class="header_link" id="toggle_metadata" href="#" onClick="toggleMetadata();">Hide Metadata</a>
-      <a class="header_link" id="toggle_animations" href="#" onClick="toggleAnimations();">Show Animations</a>
-      <a class="header_link" id="toggle_size" href="#" onClick="toggleImageSize();">Show Small Icons</a>
-      <a class="header_link" href="media/index.html">Static HTML Site</a>
+      <a class="header_link" id="toggle_animations" href="#" onClick="toggleAnimations();">Animations</a>
+      <a class="header_link" id="screensaver_link">Screensaver</a>
+      <a class="header_link" href="#" id="csv_link">CSV</a>
     </span>
     <span id="tag_parents" style="display: none;"></span>
 
@@ -127,14 +127,29 @@
 
       function toggleAnimations() {
         alwaysShowAnimations = !alwaysShowAnimations;
-        document.querySelector('#toggle_animations').innerText = alwaysShowAnimations ? 'Hide Animations' : 'Show Animations';
+        document.querySelector('#toggle_animations').innerText = alwaysShowAnimations ? 'Stop Animations' : 'Animations';
         showMedia();
       }
 
       function toggleImageSize() {
         showSmallIcons = !showSmallIcons;
-        document.querySelector('#toggle_size').innerText = showSmallIcons ? 'Show Large Icons' : 'Show Small Icons';
+        if (showSmallIcons) {
+          document.querySelector('#toggle_size').innerText = 'Large Icons';
+          document.querySelector('#toggle_metadata').style.display = 'none';
+        } else {
+          document.querySelector('#toggle_size').innerText = 'Small Icons';
+          document.querySelector('#toggle_metadata').style.display = 'inline-block';
+        }
+
         showMedia();
+      }
+
+      function toggleFullscreen() {
+        if (document.fullscreenElement !== null) {
+          document.exitFullscreen();
+        } else {
+          document.documentElement.requestFullscreen();
+        }
       }
 
       function createAllStatsHtml() {
