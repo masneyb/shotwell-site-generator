@@ -22,21 +22,21 @@ class Thumbnailer:
 
     def __init__(self, thumbnail_size, small_thumbnail_size, dest_directory, remove_stale_artifacts,
                  imagemagick_command, ffmpeg_command, ffprobe_command, video_convert_command,
-                 exiv2_command, skip_exif_text_if_exists, play_icon, play_icon_small):
+                 exiv2_command, skip_metadata_text_if_exists, play_icon, play_icon_small):
         # pylint: disable=too-many-arguments
         self.thumbnail_size = thumbnail_size
         self.small_thumbnail_size = small_thumbnail_size
         self.dest_thumbs_directory = os.path.join(dest_directory, "thumbnails")
         self.transformed_origs_directory = os.path.join(dest_directory, "transformed")
         self.motion_photo_directory = os.path.join(self.dest_thumbs_directory, "motion_photo")
-        self.exif_directory = os.path.join(dest_directory, "exif")
+        self.metadata_directory = os.path.join(dest_directory, "metadata")
         self.remove_stale_artifacts = remove_stale_artifacts
         self.imagemagick_command = imagemagick_command
         self.ffmpeg_command = ffmpeg_command
         self.ffprobe_command = ffprobe_command
         self.video_convert_command = video_convert_command
         self.exiv2_command = exiv2_command
-        self.skip_exif_text_if_exists = skip_exif_text_if_exists
+        self.skip_metadata_text_if_exists = skip_metadata_text_if_exists
         self.play_icon = play_icon
         self.play_icon_small = play_icon_small
         self.generated_artifacts = set([])
@@ -457,12 +457,12 @@ class Thumbnailer:
         return ret
 
     def write_exif_txt(self, img_filename, media_id):
-        (exif_filename, short_path) = self.__get_hashed_file_path(self.exif_directory, media_id,
+        (exif_filename, short_path) = self.__get_hashed_file_path(self.metadata_directory, media_id,
                                                                   "txt")
-        short_path = f"exif/{short_path}"
+        short_path = f"metadata/{short_path}"
         self.generated_artifacts.add(exif_filename)
 
-        if self.skip_exif_text_if_exists and os.path.exists(exif_filename):
+        if self.skip_metadata_text_if_exists and os.path.exists(exif_filename):
             logging.debug("Reading file %s", exif_filename)
             with open(exif_filename, 'r') as infile:
                 return (short_path, self._read_exif_txt(infile))
@@ -480,6 +480,28 @@ class Thumbnailer:
 
         return (short_path, self._read_exif_txt(decoded_text.split('\n')))
 
+    def write_video_json(self, video_filename, media_id):
+        (exif_filename, short_path) = self.__get_hashed_file_path(self.metadata_directory, media_id,
+                                                                  "json")
+        short_path = f"metadata/{short_path}"
+        self.generated_artifacts.add(exif_filename)
+
+        if self.skip_metadata_text_if_exists and os.path.exists(exif_filename):
+            return short_path
+
+        cmd = [self.ffprobe_command, "-print_format", "json", "-show_streams", video_filename]
+
+        logging.debug("Executing %s", cmd)
+        ret = subprocess.run(cmd, check=False, capture_output=True)
+        if ret.returncode != 0:
+            logging.warning("Error executing %s: %d", cmd, ret.returncode)
+
+        decoded_text = ret.stdout.decode('utf-8', 'ignore')
+        with open(exif_filename, "w") as file:
+            file.write(decoded_text)
+
+        return short_path
+
     def __get_hashed_file_path(self, dest_directory, media_id, file_ext):
         dirhash = common.get_dir_hash(media_id)
         basedir = os.path.join(dest_directory, dirhash)
@@ -494,7 +516,7 @@ class Thumbnailer:
                                       self.remove_stale_artifacts)
         common.remove_stale_artifacts(self.transformed_origs_directory, self.generated_artifacts,
                                       self.remove_stale_artifacts)
-        common.remove_stale_artifacts(self.exif_directory, self.generated_artifacts,
+        common.remove_stale_artifacts(self.metadata_directory, self.generated_artifacts,
                                       self.remove_stale_artifacts)
         common.remove_stale_artifacts(self.motion_photo_directory, self.generated_artifacts,
                                       self.remove_stale_artifacts)

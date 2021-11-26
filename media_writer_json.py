@@ -91,8 +91,8 @@ class Json(CommonWriter):
 
         item["type"] = self.__get_media_type(media)
 
-        if "exif_text" in media and media["exif_text"]:
-            item["exif_text"] = media["exif_text"]
+        if "metadata_text" in media and media["metadata_text"]:
+            item["metadata_text"] = media["metadata_text"]
 
         if "sq_motion_photo" in media and media["sq_motion_photo"]:
             item["motion_photo"] = {}

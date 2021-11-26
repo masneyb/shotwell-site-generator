@@ -37,7 +37,7 @@ def process_photos(options):
                                                 options.ffprobe_command,
                                                 options.video_convert_command,
                                                 options.exiv2_command,
-                                                options.skip_exif_text_if_exists,
+                                                options.skip_metadata_text_if_exists,
                                                 icons.play,
                                                 icons.play_small)
 
@@ -138,7 +138,7 @@ if __name__ == "__main__":
                                 "-preset slow -pix_fmt yuv420p -c:a aac -b:a 128k {outfile}")
     ARGPARSER.add_argument("--video-convert-ext", help="example: mp4")
     ARGPARSER.add_argument("--exiv2-command", default="exiv2")
-    ARGPARSER.add_argument("--skip-exif-text-if-exists", action="store_true", default=False)
+    ARGPARSER.add_argument("--skip-metadata-text-if-exists", action="store_true", default=False)
     ARGPARSER.add_argument("--version-label")
     ARGPARSER.add_argument("--extra-header-link",
                            help="Optional extra URL to append to the header")

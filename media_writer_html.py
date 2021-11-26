@@ -287,8 +287,8 @@ class Html(CommonWriter):
         if "exif" in media:
             detailed += media["exif"]
 
-        if "exif_text" in media and media["exif_text"]:
-            detailed.append("<a target='_new' href='../%s'>EXIF</a>" % (media["exif_text"]))
+        if "metadata_text" in media and media["metadata_text"]:
+            detailed.append("<a target='_new' href='../%s'>Metadata</a>" % (media["metadata_text"]))
 
         if "event_id" in media and media["event_id"]:
             title = common.cleanup_event_title(self.all_media["events_by_id"][media["event_id"]])

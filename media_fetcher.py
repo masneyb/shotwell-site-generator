@@ -208,10 +208,12 @@ class Database:
                 small_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"],
                                                                            media_id, None,
                                                                            ThumbnailType.SMALL_SQ)
-                media = self.__add_media(all_media, row, media_id, row["filename"], row["filename"],
-                                         None, 0, self.icons.play, self.icons.play,
-                                         self.icons.play_small, reg_short_mp_path, sq_short_mp_path,
-                                         small_short_mp_path, None)
+                video = self.__transform_video(row["filename"])
+                video_json = self.thumbnailer.write_video_json(video, media_id)
+                media = self.__add_media(all_media, row, media_id, video, video, None, 0,
+                                         self.icons.play, self.icons.play, self.icons.play_small,
+                                         reg_short_mp_path, sq_short_mp_path, small_short_mp_path,
+                                         video_json)
                 media["clip_duration"] = row["clip_duration"]
 
     def __process_photo_row(self, all_media, row, download_source, is_raw):
@@ -245,7 +247,7 @@ class Database:
         exiv2_metadata.read()
 
         media_id = "thumb%016x" % (row["id"])
-        (exif_text, exif_metadata) = self.thumbnailer.write_exif_txt(row["filename"], media_id)
+        (metadata_text, exif_metadata) = self.thumbnailer.write_exif_txt(row["filename"], media_id)
 
         reg_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
                                                                  exif_metadata,
@@ -277,7 +279,7 @@ class Database:
         media = self.__add_media(all_media, row, media_id, download_source, row["filename"],
                                  row["transformations"], rotate, reg_overlay_icon,
                                  sq_overlay_icon, small_overlay_icon, reg_short_mp_path,
-                                 sq_short_mp_path, small_short_mp_path, exif_text)
+                                 sq_short_mp_path, small_short_mp_path, metadata_text)
 
         media.update(self.__parse_photo_exiv2_metadata(exiv2_metadata))
 
@@ -499,7 +501,7 @@ class Database:
     def __add_media(self, all_media, row, media_id, download_source, thumbnail_source,
                     transformations, rotate, reg_overlay_icon, sq_overlay_icon,
                     small_overlay_icon, reg_motion_photo, sq_motion_photo, small_motion_photo,
-                    exif_text):
+                    metadata_text):
         # pylint: disable=too-many-arguments,too-many-locals,too-many-statements
         media = {}
         media["id"] = row["id"]
@@ -536,14 +538,8 @@ class Database:
 
         if download_source:
             all_artifacts.add(download_source)
-            if media_id.startswith("video"):
-                transformed_video = thumbnail_source = self.__transform_video(download_source)
-                all_artifacts.add(transformed_video)
-                media["filename"] = self.__get_html_basepath(transformed_video)
-                media["filename_fullpath"] = transformed_video
-            else:
-                media["filename"] = self.__get_html_basepath(download_source)
-                media["filename_fullpath"] = download_source
+            media["filename"] = self.__get_html_basepath(download_source)
+            media["filename_fullpath"] = download_source
         else:
             # Overwrite the passed in thumbnail_source so that the transformed image is used
             # as the input image to generate the thumbnail.
@@ -579,9 +575,9 @@ class Database:
                     all_artifacts.add(os.path.join(self.dest_directory, media[key][0]))
                 all_artifacts.add(os.path.join(self.dest_directory, media[key][1]))
 
-        media["exif_text"] = exif_text
-        if media["exif_text"]:
-            all_artifacts.add(os.path.join(self.dest_directory, media["exif_text"]))
+        media["metadata_text"] = metadata_text
+        if media["metadata_text"]:
+            all_artifacts.add(os.path.join(self.dest_directory, media["metadata_text"]))
 
         event = self.__get_event(row["event_id"], all_media)
         event["media"].append(media)

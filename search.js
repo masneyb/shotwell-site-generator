@@ -91,8 +91,8 @@ function createMediaStatsHtml(entity, eventNames, tags, searchLinkGenerator, sho
     ret = ret.concat(entity.exif);
   }
 
-  if ('exif_text' in entity) {
-    ret.push(`<a target="_new" href="${entity.exif_text}">EXIF</a>`);
+  if ('metadata_text' in entity) {
+    ret.push(`<a target="_new" href="${entity.metadata_text}">Metadata</a>`);
   }
 
   if (entity.event_id && entity.type !== 'events') {
