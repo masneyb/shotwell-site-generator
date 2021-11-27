@@ -75,6 +75,8 @@ def process_photos(options):
                     os.path.join(options.dest_directory, "search.html"))
     shutil.copyfile(__get_assets_path(options, "search.js"),
                     os.path.join(options.dest_directory, "search.js"))
+    shutil.copyfile(__get_assets_path(options, "swiped-events.js"),
+                    os.path.join(options.dest_directory, "swiped-events.js"))
 
     if not options.skip_original_symlink:
         media_symlink = os.path.join(options.dest_directory, "original")

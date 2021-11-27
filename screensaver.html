@@ -12,6 +12,7 @@
     <meta name="viewport" content="width=device-width"/>
     <meta charset="UTF-8"/>
     <script type="text/javascript" src="search.js"></script>
+    <script type="text/javascript" src="swiped-events.js"></script>
     <script type="text/javascript" src="media.js" defer="defer" onLoad="jsonLoaded();"></script>
     <style>
       html, body {
@@ -201,6 +202,18 @@
       }
 
       document.addEventListener('keydown', processKeyPress);
+      document.addEventListener('swiped-left', function(e) {
+        showImage(curIdx - 1);
+      });
+      document.addEventListener('swiped-right', function(e) {
+        showImage(curIdx + 1);
+      });
+      document.addEventListener('swiped-up', function(e) {
+        toggleUpdateImageTimer(true);
+      });
+      document.addEventListener('swiped-down', function(e) {
+        toggleUpdateImageTimer(true);
+      });
     </script>
   </body>
 </html>
