@@ -67,8 +67,8 @@ def process_photos(options):
 
     thumbnailer.remove_thumbnails()
 
-    shutil.copyfile(__get_assets_path(options, "library.css"),
-                    os.path.join(options.dest_directory, "library.css"))
+    shutil.copyfile(__get_assets_path(options, "search.css"),
+                    os.path.join(options.dest_directory, "search.css"))
     shutil.copyfile(__get_assets_path(options, "screensaver.html"),
                     os.path.join(options.dest_directory, "screensaver.html"))
     shutil.copyfile(__get_assets_path(options, "search.html"),

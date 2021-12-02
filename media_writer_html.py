@@ -723,7 +723,7 @@ class Html(CommonWriter):
         return "../%s/%s.html" % (current_page_link[0], current_page_link[1])
 
     def __write_html_header(self, path_subparts, title, stats, page_date_range):
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-arguments,consider-using-with
         path = os.path.join(*[self.html_basedir, *path_subparts]) + ".html"
 
         parent_path = os.path.dirname(path)
@@ -736,7 +736,7 @@ class Html(CommonWriter):
         output.write("<!DOCTYPE html>")
         output.write("<html lang='en'>")
         output.write("<head>")
-        output.write("<link rel='stylesheet' type='text/css' href='../library.css'/>")
+        output.write("<link rel='stylesheet' type='text/css' href='../search.css'/>")
         output.write("<meta name='viewport' content='width=device-width'/>")
         output.write("<meta charset='UTF-8'/>")
 

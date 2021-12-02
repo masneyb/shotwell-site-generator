@@ -155,3 +155,42 @@ a {
 .loading, .error {
 	font-size: 120%;
 }
+
+#fullimage_background {
+	position: fixed;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+	z-index: 2;
+	background-color: black;
+}
+
+#fullimage_container {
+	position: fixed;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+	z-index: 3;
+}
+
+#fullimage {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	image-orientation: from-image;
+}
+
+#description {
+	position: fixed;
+	left: 50%;
+	bottom: 15px;
+	margin-left: -184px;
+	width: 360px;
+	height: auto;
+	background-color: white;
+	z-index: 4;
+	font-size: 80%;
+	padding: 4px;
+}

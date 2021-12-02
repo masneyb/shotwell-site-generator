@@ -52,7 +52,6 @@ The following files and directories will be generated in the path specified by
 
     event/              # Static HTML files for events view
     index.html          # HTTP redirect to the all media view
-    library.css         # CSS styling for all of the HTML files
     media/              # Static HTML files for all media view
     media.js            # JS file with all media, events, and tags. Some content as the
                         # media.json file, but this is present so that the search page
@@ -61,6 +60,7 @@ The following files and directories will be generated in the path specified by
                         # the site and is present for scripting purposes.
     original@           # Symlink to --input-database path for downloading full-sized media
     screensaver.html    # Screensaver linked from the search page
+    search.css          # CSS styling for all of the HTML files
     search.html         # Advanced search that uses Javascript in the user's browser.
                         # Reads content from generated media.json file.
     search.js           # Common functions for screensaver.html and search.html
