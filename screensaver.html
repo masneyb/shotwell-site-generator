@@ -106,10 +106,12 @@
       function showImage(idx) {
         if (shownPhotos == null) {
           return;
-        } else if (idx < 0) {
-           idx = shownPhotos.length - 1;
+        }
+
+        if (idx < 0) {
+          idx = shownPhotos.length - 1;
         } else if (idx >= shownPhotos.length) {
-           idx = 0;
+          idx = 0;
         }
 
         const imageEle = document.querySelector('#image');
@@ -123,8 +125,7 @@
         };
 
         imageEle.addEventListener('load', () => {
-          descrEle.innerHTML = createMediaStatsHtml(shownPhotos[idx], eventNames, tags,
-            searchLinkGenerator, true);
+          descrEle.innerHTML = createMediaStatsHtml(shownPhotos[idx], eventNames, tags, searchLinkGenerator, true);
         });
         imageEle.src = shownPhotos[idx].link;
 
@@ -202,16 +203,16 @@
       }
 
       document.addEventListener('keydown', processKeyPress);
-      document.addEventListener('swiped-left', function(e) {
+      document.addEventListener('swiped-left', (e) => {
         showImage(curIdx - 1);
       });
-      document.addEventListener('swiped-right', function(e) {
+      document.addEventListener('swiped-right', (e) => {
         showImage(curIdx + 1);
       });
-      document.addEventListener('swiped-up', function(e) {
+      document.addEventListener('swiped-up', (e) => {
         toggleUpdateImageTimer(true);
       });
-      document.addEventListener('swiped-down', function(e) {
+      document.addEventListener('swiped-down', (e) => {
         toggleUpdateImageTimer(true);
       });
     </script>

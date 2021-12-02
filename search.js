@@ -117,8 +117,7 @@ function createMediaStatsHtml(entity, eventNames, tags, searchLinkGenerator, sho
   }
 
   if ('lat' in entity) {
-    const anchorOpts = searchLinkGenerator('GPS Coordinate', 'is within',
-      `${entity.lat},${entity.lon},0.01`);
+    const anchorOpts = searchLinkGenerator('GPS Coordinate', 'is within', `${entity.lat},${entity.lon},0.01`);
     ret.push(`<a ${anchorOpts}>GPS ${entity.lat},${entity.lon}</a>`);
   }
 
@@ -252,48 +251,42 @@ const textSearch = {
     {
       descr: 'equals',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0],
-          (input, value) => input != null && input.toLowerCase() === value.toLowerCase());
+        return performGenericOp(field, media, values[0], (input, value) => input != null && input.toLowerCase() === value.toLowerCase());
       },
       numValues: 1,
     },
     {
       descr: 'does not equal',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0],
-          (input, value) => input == null || input.toLowerCase() !== value.toLowerCase());
+        return performGenericOp(field, media, values[0], (input, value) => input == null || input.toLowerCase() !== value.toLowerCase());
       },
       numValues: 1,
     },
     {
       descr: 'starts with',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0],
-          (input, value) => input != null && input.toLowerCase().startsWith(value.toLowerCase()));
+        return performGenericOp(field, media, values[0], (input, value) => input != null && input.toLowerCase().startsWith(value.toLowerCase()));
       },
       numValues: 1,
     },
     {
       descr: 'ends with',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0],
-          (input, value) => input != null && input.toLowerCase().endsWith(value.toLowerCase()));
+        return performGenericOp(field, media, values[0], (input, value) => input != null && input.toLowerCase().endsWith(value.toLowerCase()));
       },
       numValues: 1,
     },
     {
       descr: 'is set',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0],
-          (input, value) => input != null && input !== '');
+        return performGenericOp(field, media, values[0], (input, value) => input != null && input !== '');
       },
       numValues: 0,
     },
     {
       descr: 'is not set',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0],
-          (input, value) => input == null || input === '');
+        return performGenericOp(field, media, values[0], (input, value) => input == null || input === '');
       },
       numValues: 0,
     },
@@ -305,8 +298,7 @@ const dateSearch = {
     {
       descr: 'was taken on day',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0],
-          (input, value) => input != null && input.startsWith(value));
+        return performGenericOp(field, media, values[0], (input, value) => input != null && input.startsWith(value));
       },
       placeholder: ['yyyy-MM-dd'],
       numValues: 1,
@@ -384,8 +376,7 @@ const dateSearch = {
     {
       descr: 'is before',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0],
-          (input, value) => input != null && input < value);
+        return performGenericOp(field, media, values[0], (input, value) => input != null && input < value);
       },
       placeholder: ['yyyy-MM-dd'],
       numValues: 1,
@@ -393,8 +384,7 @@ const dateSearch = {
     {
       descr: 'is after',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0],
-          (input, value) => input != null && input > value);
+        return performGenericOp(field, media, values[0], (input, value) => input != null && input > value);
       },
       placeholder: ['yyyy-MM-dd'],
       numValues: 1,
@@ -402,8 +392,7 @@ const dateSearch = {
     {
       descr: 'is between',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values,
-          (input, value) => input != null && input >= value[0] && input <= value[1]);
+        return performGenericOp(field, media, values, (input, value) => input != null && input >= value[0] && input <= value[1]);
       },
       placeholder: ['yyyy-MM-dd', 'yyyy-MM-dd'],
       numValues: 2,
@@ -411,16 +400,14 @@ const dateSearch = {
     {
       descr: 'is set',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, null,
-          (input, value) => input != null && input !== '');
+        return performGenericOp(field, media, null, (input, value) => input != null && input !== '');
       },
       numValues: 0,
     },
     {
       descr: 'is not set',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, null,
-          (input, value) => input == null || input === '');
+        return performGenericOp(field, media, null, (input, value) => input == null || input === '');
       },
       numValues: 0,
     },
@@ -452,8 +439,7 @@ const mediaTypeSearch = {
     {
       descr: 'is not a',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0],
-          (input, value) => !doMediaSearchEquals(input, value));
+        return performGenericOp(field, media, values[0], (input, value) => !doMediaSearchEquals(input, value));
       },
       numValues: 1,
     },
@@ -467,8 +453,7 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
     ops.push({
       descr: 'is at least',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0],
-          (input, value) => input != null && input >= value);
+        return performGenericOp(field, media, values[0], (input, value) => input != null && input >= value);
       },
       placeholder: [placeholderText],
       numValues: 1,
@@ -479,8 +464,7 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
     ops.push({
       descr: 'is at most',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0],
-          (input, value) => input != null && input <= value);
+        return performGenericOp(field, media, values[0], (input, value) => input != null && input <= value);
       },
       placeholder: [placeholderText],
       numValues: 1,
@@ -492,8 +476,7 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
   ops.push({
     descr: 'equals',
     matches(field, op, values, media) {
-      return performGenericOp(field, media, values[0],
-        (input, value) => input != null && input == value);
+      return performGenericOp(field, media, values[0], (input, value) => input != null && input == value);
     },
     placeholder: [placeholderText],
     numValues: 1,
@@ -504,8 +487,7 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
   ops.push({
     descr: 'not equals',
     matches(field, op, values, media) {
-      return performGenericOp(field, media, values[0],
-        (input, value) => input == null || input != value);
+      return performGenericOp(field, media, values[0], (input, value) => input == null || input != value);
     },
     placeholder: [placeholderText],
     numValues: 1,
@@ -517,8 +499,7 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
     ops.push({
       descr: 'is set',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, null,
-          (input, value) => input != null && input !== '');
+        return performGenericOp(field, media, null, (input, value) => input != null && input !== '');
       },
       numValues: 0,
     });
@@ -526,8 +507,7 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
     ops.push({
       descr: 'is not set',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, null,
-          (input, value) => input == null || input === '');
+        return performGenericOp(field, media, null, (input, value) => input == null || input === '');
       },
       numValues: 0,
     });
@@ -578,16 +558,14 @@ const gpsSearch = {
     {
       descr: 'is set',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, null,
-          (input, value) => input != null && input !== '');
+        return performGenericOp(field, media, null, (input, value) => input != null && input !== '');
       },
       numValues: 0,
     },
     {
       descr: 'is not set',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, null,
-          (input, value) => input == null || input === '');
+        return performGenericOp(field, media, null, (input, value) => input == null || input === '');
       },
       numValues: 0,
     },
@@ -599,16 +577,14 @@ const fileExtSearch = {
     {
       descr: 'is',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0],
-          (input, value) => input != null && input.toLowerCase().endsWith(`.${value.toLowerCase()}`));
+        return performGenericOp(field, media, values[0], (input, value) => input != null && input.toLowerCase().endsWith(`.${value.toLowerCase()}`));
       },
       numValues: 1,
     },
     {
       descr: 'is not',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0],
-          (input, value) => input == null || !input.toLowerCase().endsWith(`.${value.toLowerCase()}`));
+        return performGenericOp(field, media, values[0], (input, value) => input == null || !input.toLowerCase().endsWith(`.${value.toLowerCase()}`));
       },
       numValues: 1,
     },
@@ -896,10 +872,10 @@ function shortenPrettyDate(input) {
 function performSearch(allItems, eventNames, tags) {
   const allCriteria = getSearchCriteria();
   const matchPolicy = getQueryParameter('match_policy', 'all'); // any,none,all
-  let minDate = undefined;
-  let minDatePretty = undefined;
-  let maxDate = undefined;
-  let maxDatePretty = undefined;
+  let minDate;
+  let minDatePretty;
+  let maxDate;
+  let maxDatePretty;
 
   const ret = [];
   for (const media of allItems) {

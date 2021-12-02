@@ -274,6 +274,93 @@
         return option;
       }
 
+      function setFullImageDisplay(shown) {
+        const displayState = shown ? 'block' : 'none';
+        for (const eleName of ['#fullimage_background', '#fullimage_container', '#description']) {
+          const ele = document.querySelector(eleName);
+          ele.style.display = displayState;
+        }
+
+        if (shown) {
+          document.body.style.overflow = 'hidden';
+        } else {
+          document.body.style.overflow = 'auto';
+          const ele = document.querySelector('#fullimage');
+          ele.src = '';
+        }
+      }
+
+      function isImageFullscreen() {
+        const fullImageEle = document.querySelector('#fullimage_container');
+        return fullImageEle.style.display !== 'none';
+      }
+
+      function exitImageFullscreen() {
+        if (isImageFullscreen()) {
+          setFullImageDisplay(false);
+          window.scrollTo(preFullscreenScrollX, preFullscreenScrollY);
+        }
+      }
+
+      function toggleFullscreenDescription() {
+        if (isImageFullscreen()) {
+          if (fullscreenImageLink === null) {
+            const descrEle = document.querySelector('#description');
+            const shown = descrEle.style.display !== 'none';
+            descrEle.style.display = shown ? 'none' : 'block';
+          } else {
+            window.open(fullscreenImageLink, '_blank');
+          }
+        }
+      }
+
+      function searchPageLinkGenerator(event, criterias, matchPolicy = 'all') {
+        const parts = [];
+        for (criteria of criterias) {
+          // field,op,value
+          parts.push(criteria.join(','));
+        }
+
+        const search = generateSearchUrl(parts, matchPolicy);
+
+        // Check to see if the user control clicked the URL to request it be opened in a new tab.
+        if (event.ctrlKey || event.which === 2 || event.which === 3) {
+          event.preventDefault();
+          event.stopPropagation();
+          window.open(search, '_blank');
+        } else {
+          window.history.pushState({}, '', search);
+          processJson(populateMedia);
+        }
+      }
+
+      function doShowFullscreenImage() {
+        const descrEle = document.querySelector('#description');
+        descrEle.innerHTML = "<div class='loading'>Loading</div>";
+
+        const imageEle = document.querySelector('#fullimage');
+        const searchLinkGenerator = function (field, op, val) {
+          return `href="#" onclick="exitImageFullscreen(); searchPageLinkGenerator(event, [['${field}', '${op}', '${val}']]);"`;
+        };
+        imageEle.addEventListener('load', () => {
+          descrEle.innerHTML = createMediaStatsHtml(allMedia[allMediaFullscreenIndex], eventNames, tags, searchLinkGenerator, true);
+        });
+
+        if (allMedia[allMediaFullscreenIndex].type === 'photo') {
+          imageEle.src = allMedia[allMediaFullscreenIndex].link;
+          fullscreenImageLink = null;
+        } else if ('reg' in allMedia[allMediaFullscreenIndex].thumbnail) {
+          imageEle.src = allMedia[allMediaFullscreenIndex].thumbnail.reg;
+        } else {
+          imageEle.src = allMedia[allMediaFullscreenIndex].thumbnail.sq;
+        }
+
+        // FIXME - links to events, tags, and years don't work at the moment
+        if (allMedia[allMediaFullscreenIndex].type === 'video') {
+          fullscreenImageLink = allMedia[allMediaFullscreenIndex].link;
+        }
+      }
+
       function updateSearchCriteria() {
         document.querySelector('#all_media').innerHTML = "<div class='loading'>Searching</div>";
         hideResultsInfo();
@@ -295,8 +382,7 @@
 
           const matchPolicy = document.querySelector('#match_policy').value;
           const sortby = document.querySelector('#sortby').value;
-          window.history.pushState({}, '',
-            `search.html?${searchArgs.join('&')}&match_policy=${matchPolicy}&sortby=${sortby}`);
+          window.history.pushState({}, '', `search.html?${searchArgs.join('&')}&match_policy=${matchPolicy}&sortby=${sortby}`);
           processJson(populateMedia);
         }, 0);
       }
@@ -349,8 +435,7 @@
 
             input.addEventListener('change', () => { window.blur(); updateCritieraIfValuesPopulated(idx); });
 
-            if (i < existingValues.length && existingValues[i][0] === input.type &&
-                existingValues[i][1] === input.placeholder) {
+            if (i < existingValues.length && existingValues[i][0] === input.type && existingValues[i][1] === input.placeholder) {
               input.value = existingValues[i][2];
             }
 
@@ -401,8 +486,7 @@
             updateCritieraIfValuesPopulated(idx);
           };
         };
-        row.querySelector('.search_field').addEventListener('change',
-          fieldOnChange(nextSearchInput));
+        row.querySelector('.search_field').addEventListener('change', fieldOnChange(nextSearchInput));
 
         const opOnChange = function (idx) {
           return function () {
@@ -513,15 +597,13 @@
 
         const allCriteria = getSearchCriteria();
         for (const criteria of allCriteria) {
-          if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' &&
-              criteria.searchValues[0] === 'years') {
+          if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'years') {
             yearTitle = `${mediaTitle}: All Years`;
           } else if (criteria.field.title === 'Year' && criteria.op.descr === 'equals') {
             yearTitle = `${mediaTitle}: Year ${criteria.searchValues[0]}`;
             // Used for generating search links when searching for events.
             currentYearView = criteria.searchValues[0];
-          } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' &&
-                     criteria.searchValues[0] === 'events') {
+          } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'events') {
             eventTitle = `${mediaTitle}: All Events`;
           } else if (criteria.field.title === 'Event ID' && criteria.op.descr === 'equals') {
             let eventName = eventNames[criteria.searchValues[0]];
@@ -529,8 +611,7 @@
               eventName = 'Unknown event';
             }
             eventTitle = `${mediaTitle}: ${eventName}`;
-          } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' &&
-                     criteria.searchValues[0] === 'tags') {
+          } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'tags') {
             tagTitle = `${mediaTitle}: All Tags`;
           } else if (criteria.field.title === 'Tag ID' && criteria.op.descr === 'equals') {
             searchTag = tags[criteria.searchValues[0]];
@@ -583,26 +664,6 @@
         setPageTitle(mediaTitle);
         showMedia();
         populateSearchValuesFromUrl();
-      }
-
-      function searchPageLinkGenerator(event, criterias, matchPolicy = 'all') {
-        const parts = [];
-        for (criteria of criterias) {
-          // field,op,value
-          parts.push(criteria.join(','));
-        }
-
-        const search = generateSearchUrl(parts, matchPolicy);
-
-        // Check to see if the user control clicked the URL to request it be opened in a new tab.
-        if (event.ctrlKey || event.which === 2 || event.which === 3) {
-          event.preventDefault();
-          event.stopPropagation();
-          window.open(search, '_blank');
-        } else {
-          window.history.pushState({}, '', search);
-          processJson(populateMedia);
-        }
       }
 
       function writeCsvRow(cols) {
@@ -666,74 +727,6 @@
         isMobileView = showMobileView();
         if (prevMobileView !== isMobileView) {
           showMedia();
-        }
-      }
-
-      function setFullImageDisplay(shown) {
-        const displayState = shown ? 'block' : 'none';
-        for (const eleName of ['#fullimage_background', '#fullimage_container', '#description']) {
-          const ele = document.querySelector(eleName);
-          ele.style.display = displayState;
-        }
-
-        if (shown) {
-          document.body.style.overflow = 'hidden';
-        } else {
-          document.body.style.overflow = 'auto';
-          const ele = document.querySelector('#fullimage');
-          ele.src = '';
-        }
-      }
-
-      function isImageFullscreen() {
-        const fullImageEle = document.querySelector('#fullimage_container');
-        return fullImageEle.style.display !== 'none';
-      }
-
-      function exitImageFullscreen() {
-        if (isImageFullscreen()) {
-          setFullImageDisplay(false);
-          window.scrollTo(preFullscreenScrollX, preFullscreenScrollY);
-        }
-      }
-
-      function toggleFullscreenDescription() {
-        if (isImageFullscreen()) {
-          if (fullscreenImageLink === null) {
-            const descrEle = document.querySelector('#description');
-            const shown = descrEle.style.display !== 'none';
-            descrEle.style.display = shown ? 'none' : 'block';
-          } else {
-            window.open(fullscreenImageLink, '_blank');
-          }
-        }
-      }
-
-      function doShowFullscreenImage() {
-        const descrEle = document.querySelector('#description');
-        descrEle.innerHTML = "<div class='loading'>Loading</div>";
-
-        const imageEle = document.querySelector('#fullimage');
-        const searchLinkGenerator = function (field, op, val) {
-          return `href="#" onclick="exitImageFullscreen(); searchPageLinkGenerator(event, [['${field}', '${op}', '${val}']]);"`;
-        };
-        imageEle.addEventListener('load', () => {
-          descrEle.innerHTML = createMediaStatsHtml(allMedia[allMediaFullscreenIndex], eventNames, tags,
-            searchLinkGenerator, true);
-        });
-
-        if (allMedia[allMediaFullscreenIndex].type === 'photo') {
-          imageEle.src = allMedia[allMediaFullscreenIndex].link;
-          fullscreenImageLink = null;
-        } else if ('reg' in allMedia[allMediaFullscreenIndex].thumbnail) {
-          imageEle.src = allMedia[allMediaFullscreenIndex].thumbnail.reg;
-        } else {
-          imageEle.src = allMedia[allMediaFullscreenIndex].thumbnail.sq;
-        }
-
-        // FIXME - links to events, tags, and years don't work at the moment
-        if (allMedia[allMediaFullscreenIndex].type === 'video') {
-          fullscreenImageLink = allMedia[allMediaFullscreenIndex].link;
         }
       }
 
@@ -804,6 +797,12 @@
         }
 
         return media;
+      }
+
+      function windowScrolled() {
+        if (window.innerHeight + window.scrollY >= (document.body.offsetHeight * 0.90)) {
+          doShowMedia(currentPageNumber + 1);
+        }
       }
 
       function doShowMedia(pageNumber) {
@@ -894,8 +893,7 @@
 
           const metadata = clone.querySelector('.media_metadata');
           metadata.style.display = getMetadataDisplay();
-          metadata.innerHTML = createMediaStatsHtml(media, eventNames, tags,
-                                                    searchLinkGenerator, false);
+          metadata.innerHTML = createMediaStatsHtml(media, eventNames, tags, searchLinkGenerator, false);
 
           allMediaEle.appendChild(clone);
         }
@@ -945,12 +943,6 @@
 
           document.querySelector('.summary_stats').innerHTML = createAllStatsHtml();
         }, 0);
-      }
-
-      function windowScrolled() {
-        if (window.innerHeight + window.scrollY >= (document.body.offsetHeight * 0.90)) {
-          doShowMedia(currentPageNumber + 1);
-        }
       }
 
       function clearSearchCriteria() {
