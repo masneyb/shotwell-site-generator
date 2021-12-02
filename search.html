@@ -13,6 +13,7 @@
     <title>Search</title>
     <link rel="stylesheet" type="text/css" href="search.css"/>
     <script type="text/javascript" src="search.js"></script>
+    <script type="text/javascript" src="swiped-events.js"></script>
     <script type="text/javascript" src="media.js" defer="defer" onLoad="processJson(populateMedia);" onError="jsonLoadError();"></script>
   </head>
 
@@ -72,6 +73,12 @@
       <span id="app_version"></span>.
     </span>
 
+    <div id="fullimage_background" style="display: none;"></div>
+    <div id="fullimage_container" style="display: none;">
+      <img id="fullimage"></img>
+      <div id="description"></div>
+    </div>
+
     <template id="media_template">
       <span class="media_dyn">
         <a><span class="media_thumb"><img></img></span></a>
@@ -105,6 +112,11 @@
       let showSmallIcons = false;
       let isMobileView = showMobileView();
       let currentYearView = null;
+
+      let preFullscreenScrollX = -1;
+      let preFullscreenScrollY = -1;
+      let allMediaFullscreenIndex = -1;
+      let fullscreenImageLink = null;
 
       function jsonLoadError() {
         const allMediaEle = document.querySelector('#all_media');
@@ -265,6 +277,8 @@
       function updateSearchCriteria() {
         document.querySelector('#all_media').innerHTML = "<div class='loading'>Searching</div>";
         hideResultsInfo();
+
+        setFullImageDisplay(false);
 
         window.setTimeout(() => {
           const searchArgs = [];
@@ -655,7 +669,91 @@
         }
       }
 
-      function populateMediaAnchorTag(anchor, media) {
+      function setFullImageDisplay(shown) {
+        const displayState = shown ? 'block' : 'none';
+        for (const eleName of ['#fullimage_background', '#fullimage_container', '#description']) {
+          const ele = document.querySelector(eleName);
+          ele.style.display = displayState;
+        }
+
+        if (shown) {
+          document.body.style.overflow = 'hidden';
+        } else {
+          document.body.style.overflow = 'auto';
+          const ele = document.querySelector('#fullimage');
+          ele.src = '';
+        }
+      }
+
+      function isImageFullscreen() {
+        const fullImageEle = document.querySelector('#fullimage_container');
+        return fullImageEle.style.display !== 'none';
+      }
+
+      function exitImageFullscreen() {
+        if (isImageFullscreen()) {
+          setFullImageDisplay(false);
+          window.scrollTo(preFullscreenScrollX, preFullscreenScrollY);
+        }
+      }
+
+      function toggleFullscreenDescription() {
+        if (isImageFullscreen()) {
+          if (fullscreenImageLink === null) {
+            const descrEle = document.querySelector('#description');
+            const shown = descrEle.style.display !== 'none';
+            descrEle.style.display = shown ? 'none' : 'block';
+          } else {
+            window.open(fullscreenImageLink, '_blank');
+          }
+        }
+      }
+
+      function doShowFullscreenImage() {
+        const descrEle = document.querySelector('#description');
+        descrEle.innerHTML = "<div class='loading'>Loading</div>";
+
+        const imageEle = document.querySelector('#fullimage');
+        const searchLinkGenerator = function (field, op, val) {
+          return `href="#" onclick="exitImageFullscreen(); searchPageLinkGenerator(event, [['${field}', '${op}', '${val}']]);"`;
+        };
+        imageEle.addEventListener('load', () => {
+          descrEle.innerHTML = createMediaStatsHtml(allMedia[allMediaFullscreenIndex], eventNames, tags,
+            searchLinkGenerator, true);
+        });
+
+        if (allMedia[allMediaFullscreenIndex].type === 'photo') {
+          imageEle.src = allMedia[allMediaFullscreenIndex].link;
+          fullscreenImageLink = null;
+        } else if ('reg' in allMedia[allMediaFullscreenIndex].thumbnail) {
+          imageEle.src = allMedia[allMediaFullscreenIndex].thumbnail.reg;
+        } else {
+          imageEle.src = allMedia[allMediaFullscreenIndex].thumbnail.sq;
+        }
+
+        // FIXME - links to events, tags, and years don't work at the moment
+        if (allMedia[allMediaFullscreenIndex].type === 'video') {
+          fullscreenImageLink = allMedia[allMediaFullscreenIndex].link;
+        }
+      }
+
+      function showPreviousImageFullscreen(event) {
+        if (isImageFullscreen()) {
+          const fullImageEle = document.querySelector('#fullimage');
+          allMediaFullscreenIndex = allMediaFullscreenIndex === 0 ? allMedia.length - 1 : allMediaFullscreenIndex - 1;
+          doShowFullscreenImage();
+        }
+      }
+
+      function showNextImageFullscreen(event) {
+        if (isImageFullscreen()) {
+          const fullImageEle = document.querySelector('#fullimage');
+          allMediaFullscreenIndex = allMediaFullscreenIndex >= allMedia.length - 1 ? 0 : allMediaFullscreenIndex + 1;
+          doShowFullscreenImage();
+        }
+      }
+
+      function populateMediaAnchorTag(anchor, media, allMediaIndex) {
         if (media.type === 'events') {
           anchor.href = '#';
           const search = [['Event ID', 'equals', media.event_id]];
@@ -692,8 +790,17 @@
           const search = [['Tag ID', 'equals', media.id]];
           anchor.addEventListener('click', (event) => { searchPageLinkGenerator(event, search); });
         } else {
-          anchor.href = media.link;
-          anchor.target = '_new';
+          anchor.href = '#';
+          const link = media.link;
+
+          anchor.addEventListener('click', (event) => {
+            preFullscreenScrollX = window.scrollX;
+            preFullscreenScrollY = window.scrollY;
+            allMediaFullscreenIndex = allMediaIndex;
+
+            setFullImageDisplay(true);
+            doShowFullscreenImage();
+          });
         }
 
         return media;
@@ -714,14 +821,14 @@
           return `href="#" onclick="searchPageLinkGenerator(event, [['${field}', '${op}', '${val}']]);"`;
         };
 
-        for (let media of allMedia.slice(startIdx, startIdx + pageSize)) {
+        for (let [index, media] of allMedia.slice(startIdx, startIdx + pageSize).entries()) {
           const clone = template.content.cloneNode(true);
           const mediaEle = clone.querySelector('.media_dyn');
 
           const anchor = clone.querySelector('a');
 
           // See the comment above for why the media element can be overridden for the event search.
-          media = populateMediaAnchorTag(anchor, media);
+          media = populateMediaAnchorTag(anchor, media, startIdx + index);
 
           if (alwaysShowAnimations && media.motion_photo) {
             const img = clone.querySelector('img');
@@ -853,6 +960,23 @@
 
       window.addEventListener('scroll', windowScrolled, false);
       window.addEventListener('resize', windowSizeChanged, false);
+
+      const fullImageEle = document.querySelector('#fullimage');
+      fullImageEle.addEventListener('click', toggleFullscreenDescription);
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowLeft') {
+          showPreviousImageFullscreen(event);
+        } else if (event.key === 'ArrowRight') {
+          showNextImageFullscreen(event);
+        } else if (event.key === 'Escape') {
+          exitImageFullscreen();
+        }
+      });
+      document.addEventListener('swiped-left', showNextImageFullscreen);
+      document.addEventListener('swiped-right', showPreviousImageFullscreen);
+      document.addEventListener('swiped-up', exitImageFullscreen);
+      document.addEventListener('swiped-down', exitImageFullscreen);
 
       window.onpopstate = function () {
         processJson(populateMedia);
