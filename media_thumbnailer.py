@@ -481,15 +481,16 @@ class Thumbnailer:
         return (short_path, self._read_exif_txt(decoded_text.split('\n')))
 
     def write_video_json(self, video_filename, media_id):
-        (exif_filename, short_path) = self.__get_hashed_file_path(self.metadata_directory, media_id,
-                                                                  "json")
+        (metadata_filename, short_path) = self.__get_hashed_file_path(self.metadata_directory,
+                                                                      media_id, "json")
         short_path = f"metadata/{short_path}"
-        self.generated_artifacts.add(exif_filename)
+        self.generated_artifacts.add(metadata_filename)
 
-        if self.skip_metadata_text_if_exists and os.path.exists(exif_filename):
+        if self.skip_metadata_text_if_exists and os.path.exists(metadata_filename):
             return short_path
 
-        cmd = [self.ffprobe_command, "-print_format", "json", "-show_streams", video_filename]
+        cmd = [self.ffprobe_command, "-v", "quiet", "-print_format", "json", "-show_streams",
+               video_filename]
 
         logging.debug("Executing %s", cmd)
         ret = subprocess.run(cmd, check=False, capture_output=True)
@@ -497,7 +498,7 @@ class Thumbnailer:
             logging.warning("Error executing %s: %d", cmd, ret.returncode)
 
         decoded_text = ret.stdout.decode('utf-8', 'ignore')
-        with open(exif_filename, "w") as file:
+        with open(metadata_filename, "w") as file:
             file.write(decoded_text)
 
         return short_path
