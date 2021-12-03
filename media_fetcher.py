@@ -112,14 +112,6 @@ class Database:
 
     def __get_extra_paths_space_utilization(self):
         size = 0
-        size += os.path.getsize(os.path.join(self.dest_directory, "index.html"))
-        size += os.path.getsize(os.path.join(self.dest_directory, "media.js"))
-        size += os.path.getsize(os.path.join(self.dest_directory, "media.json"))
-        size += os.path.getsize(os.path.join(self.dest_directory, "screensaver.html"))
-        size += os.path.getsize(os.path.join(self.dest_directory, "search.css"))
-        size += os.path.getsize(os.path.join(self.dest_directory, "search.html"))
-        size += os.path.getsize(os.path.join(self.dest_directory, "search.js"))
-
         paths = []
         paths += self.add_paths_to_overall_diskspace
         paths.append(os.path.join(self.dest_thumbs_directory, "event"))
