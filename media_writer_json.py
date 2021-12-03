@@ -202,7 +202,6 @@ class Json(CommonWriter):
             outfile.write(json.dumps(ret, indent=None))
             outfile.write(";\n")
             outfile.write("function getAllMediaViaJsFile() {\n")
-            outfile.write("  // Perform deep copy\n")
             outfile.write("  return _allMedia;\n")
             outfile.write("}\n")
 
