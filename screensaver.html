@@ -186,7 +186,13 @@
         document.querySelector('#right_control').style.display = display;
       }
 
-      function processKeyPress(event) {
+      toggleUpdateImageTimer(false);
+
+      if (getIntQueryParameter('kiosk', 0) === 1) {
+        document.body.style.cursor = 'none';
+      }
+
+      document.addEventListener('keydown', (event) => {
         if (event.key === 'ArrowLeft') {
           showImage(curIdx - 1);
         } else if (event.key === 'ArrowRight') {
@@ -194,15 +200,7 @@
         } else if (event.key === ' ') {
           toggleUpdateImageTimer(true);
         }
-      }
-
-      toggleUpdateImageTimer(false);
-
-      if (getIntQueryParameter('kiosk', 0) === 1) {
-        document.body.style.cursor = 'none';
-      }
-
-      document.addEventListener('keydown', processKeyPress);
+      });
       document.addEventListener('swiped-left', (e) => {
         showImage(curIdx - 1);
       });
