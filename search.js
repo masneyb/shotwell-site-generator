@@ -148,6 +148,19 @@ function generateSearchUrl(criterias, matchPolicy) {
   return `search.html?${qs.join('&')}#`;
 }
 
+function shuffleArray(arr) {
+  if (arr === null) {
+    return;
+  }
+
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * i);
+    const tmp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = tmp;
+  }
+}
+
 function doTextSearch(fieldInfo, op, value, media, searchOp) {
   const allParts = value.toLowerCase().split(' ');
   let numPartsMatched = 0;
