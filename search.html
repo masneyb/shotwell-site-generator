@@ -14,7 +14,7 @@
     <link rel="stylesheet" type="text/css" href="search.css"/>
     <script type="text/javascript" src="search.js"></script>
     <script type="text/javascript" src="swiped-events.js"></script>
-    <script type="text/javascript" src="media.js" defer="defer" onLoad="processJson(populateMedia);" onError="jsonLoadError();"></script>
+    <script type="text/javascript" src="media.js" defer="defer" onLoad="processJson(populateMedia); checkForPhotoFrameMode();" onError="jsonLoadError();"></script>
   </head>
 
   <body>
@@ -25,7 +25,7 @@
       <a class="header_link" id="toggle_size" href="#" onClick="toggleImageSize();">Small Icons</a>
       <a class="header_link" id="toggle_metadata" href="#" onClick="toggleMetadata();">Hide Metadata</a>
       <a class="header_link" id="toggle_animations" href="#" onClick="toggleAnimations();">Animations</a>
-      <a class="header_link" id="screensaver_link">Screensaver</a>
+      <a class="header_link" href="#" onClick="slideshowClicked();">Slideshow</a>
       <a class="header_link" href="#" id="csv_link">CSV</a>
     </span>
     <span id="tag_parents" style="display: none;"></span>
@@ -118,9 +118,73 @@
       let allMediaFullscreenIndex = -1;
       let fullscreenImageLink = null;
 
+      // For the photo frame / slideshow functionality
+      let inPhotoFrameMode = false;
+      let fullScreenPhotoUpdateSecs = 0;
+      let fullscreenPhotoUpdateTimer = null;
+      let fullscreenReinstateSlideshowSecs = 0;
+      let fullscreenReinstateSlideshowTimer = null;
+
       function jsonLoadError() {
         const allMediaEle = document.querySelector('#all_media');
         allMediaEle.innerHTML = "<div class='error'>Error loading media</div>";
+      }
+
+      function toggleSlideshowTimers() {
+        if (fullScreenPhotoUpdateSecs === 0) {
+          return;
+        }
+
+        if (fullscreenPhotoUpdateTimer == null) {
+          setFullscreenDescriptionShown(false);
+
+          if (fullscreenReinstateSlideshowTimer != null) {
+            clearInterval(fullscreenReinstateSlideshowTimer);
+            fullscreenReinstateSlideshowTimer = null;
+          }
+          fullscreenPhotoUpdateTimer = setInterval(showNextImageFullscreen, fullScreenPhotoUpdateSecs * 1000);
+        } else {
+          setFullscreenDescriptionShown(true);
+
+          clearInterval(fullscreenPhotoUpdateTimer);
+          fullscreenPhotoUpdateTimer = null;
+          fullscreenReinstateSlideshowTimer = setInterval(toggleSlideshowTimers, fullscreenReinstateSlideshowSecs * 1000);
+        }
+      }
+
+      function slideshowClicked() {
+        const params = window.location.search.startsWith('?') ? window.location.search : '?';
+        let search = `search.html${params}`;
+        if (!search.includes('photo_frame=')) {
+          search += `&photo_frame=1`;
+        }
+        if (!search.includes('photo_update_secs=')) {
+          search += `&photo_update_secs=30`;
+        }
+        search += '#';
+        window.history.pushState({}, '', search);
+
+        startSlideshow();
+      }
+
+      function startSlideshow() {
+        fullScreenPhotoUpdateSecs = getIntQueryParameter('photo_update_secs', 10);
+        fullscreenReinstateSlideshowSecs = getIntQueryParameter('reinstate_slideshow_secs', 300);
+        setFullImageDisplay(true);
+        allMediaFullscreenIndex = 0;
+        doShowFullscreenImage();
+        toggleSlideshowTimers();
+      }
+
+      function checkForPhotoFrameMode() {
+        if (getIntQueryParameter('photo_frame', 0) === 0) {
+          return;
+        }
+
+        inPhotoFrameMode = true;
+        document.body.style.cursor = 'none';
+        shuffleArray(allMedia);
+        startSlideshow();
       }
 
       function getMetadataDisplay() {
@@ -275,8 +339,10 @@
       }
 
       function setFullImageDisplay(shown) {
+        document.querySelector('#description').style.display = 'none';
+
         const displayState = shown ? 'block' : 'none';
-        for (const eleName of ['#fullimage_background', '#fullimage_container', '#description']) {
+        for (const eleName of ['#fullimage_background', '#fullimage_container']) {
           const ele = document.querySelector(eleName);
           ele.style.display = displayState;
         }
@@ -297,17 +363,28 @@
 
       function exitImageFullscreen() {
         if (isImageFullscreen()) {
+          fullScreenPhotoUpdateSecs = 0;
+          fullscreenReinstateSlideshowSecs = 0;
+          document.body.style.cursor = 'auto';
           setFullImageDisplay(false);
           window.scrollTo(preFullscreenScrollX, preFullscreenScrollY);
         }
       }
 
+      function setFullscreenDescriptionShown(shown) {
+        const descrEle = document.querySelector('#description');
+        document.body.style.cursor = shown ? 'auto' : 'none';
+        descrEle.style.display = shown ? 'block' : 'none';
+      }
+
       function toggleFullscreenDescription() {
         if (isImageFullscreen()) {
-          if (fullscreenImageLink === null) {
+          if (inPhotoFrameMode) {
+            toggleSlideshowTimers();
+          } else if (fullscreenImageLink === null) {
             const descrEle = document.querySelector('#description');
             const shown = descrEle.style.display !== 'none';
-            descrEle.style.display = shown ? 'none' : 'block';
+            setFullscreenDescriptionShown(!shown)
           } else {
             window.open(fullscreenImageLink, '_blank');
           }
@@ -931,10 +1008,6 @@
 
           doShowMedia(1);
 
-          const params = window.location.search.startsWith('?') ? window.location.search : '?';
-
-          document.querySelector('#screensaver_link').href = `screensaver.html${params}&photo_update_secs=30&reinstate_screensaver_secs=300&kiosk=0`;
-
           for (const ele of document.querySelectorAll('.header_links')) {
             ele.style.display = 'block';
           }
@@ -963,12 +1036,17 @@
           showNextImageFullscreen(event);
         } else if (event.key === 'Escape') {
           exitImageFullscreen();
+        } else if (event.key === ' ') {
+          toggleFullscreenDescription();
         }
       });
       document.addEventListener('swiped-left', showNextImageFullscreen);
       document.addEventListener('swiped-right', showPreviousImageFullscreen);
-      document.addEventListener('swiped-up', exitImageFullscreen);
-      document.addEventListener('swiped-down', exitImageFullscreen);
+      document.addEventListener('swiped-down', (e) => {
+        if (!inPhotoFrameMode) {
+          exitImageFullscreen();
+        }
+      });
 
       window.onpopstate = function () {
         processJson(populateMedia);
