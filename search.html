@@ -59,6 +59,7 @@
         <option value="takenZA">Sort taken Z-A</option>
         <option value="takenAZ">Sort taken A-Z</option>
         <option value="createdZA">Sort added Z-A</option>
+        <option value="random">Sort random</option>
       </select>
       <input type="button" onClick="updateSearchCriteria();" value="Search"></input>
       <input type="button" onClick="clearSearchCriteria();" value="Clear"></input>
@@ -183,7 +184,6 @@
 
         inPhotoFrameMode = true;
         document.body.style.cursor = 'none';
-        shuffleArray(allMedia);
         startSlideshow();
       }
 

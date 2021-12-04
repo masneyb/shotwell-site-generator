@@ -945,45 +945,49 @@ function performSearch(allItems, eventNames, tags) {
     }
   }
 
-  const sortBy = getQueryParameter('sortby', 'takenZA'); // takenZA,takenAZ,createdZA
-  let sortField;
-  let sortValLt;
-  let sortValGt;
-  if (sortBy === 'createdZA') {
-    sortField = 'time_created';
-    sortValLt = 1;
-    sortValGt = -1;
-  } else if (sortBy === 'takenAZ') {
-    sortField = 'exposure_time';
-    sortValLt = -1;
-    sortValGt = 1;
+  const sortBy = getQueryParameter('sortby', 'takenZA'); // takenZA,takenAZ,createdZA,random
+  if (sortBy === 'random') {
+    shuffleArray(ret);
   } else {
-    sortField = 'exposure_time';
-    sortValLt = 1;
-    sortValGt = -1;
-  }
-
-  ret.sort((a, b) => {
-    if (sortedTypes[a.type] < sortedTypes[b.type]) {
-      return -1;
+    let sortField;
+    let sortValLt;
+    let sortValGt;
+    if (sortBy === 'createdZA') {
+      sortField = 'time_created';
+      sortValLt = 1;
+      sortValGt = -1;
+    } else if (sortBy === 'takenAZ') {
+      sortField = 'exposure_time';
+      sortValLt = -1;
+      sortValGt = 1;
+    } else {
+      sortField = 'exposure_time';
+      sortValLt = 1;
+      sortValGt = -1;
     }
-    if (sortedTypes[a.type] > sortedTypes[b.type]) {
-      return 1;
-    }
 
-    // No secondary sorting for tags
-    if (a.type === 'tags') {
+    ret.sort((a, b) => {
+      if (sortedTypes[a.type] < sortedTypes[b.type]) {
+        return -1;
+      }
+      if (sortedTypes[a.type] > sortedTypes[b.type]) {
+        return 1;
+      }
+
+      // No secondary sorting for tags
+      if (a.type === 'tags') {
+        return 0;
+      }
+
+      if (a[sortField] < b[sortField]) {
+        return sortValLt;
+      }
+      if (a[sortField] > b[sortField]) {
+        return sortValGt;
+      }
       return 0;
-    }
-
-    if (a[sortField] < b[sortField]) {
-      return sortValLt;
-    }
-    if (a[sortField] > b[sortField]) {
-      return sortValGt;
-    }
-    return 0;
-  });
+    });
+  }
 
   let dateRange;
   if (minDatePretty !== undefined) {
