@@ -859,6 +859,9 @@
           anchor.href = '#';
           const search = [['Tag ID', 'equals', media.id]];
           anchor.addEventListener('click', (event) => { searchPageLinkGenerator(event, search); });
+        } else if (media.type === 'video') {
+          anchor.href = media.link;
+          anchor.target = '_new';
         } else {
           anchor.href = '#';
           const link = media.link;
