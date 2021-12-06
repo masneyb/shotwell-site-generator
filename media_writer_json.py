@@ -196,7 +196,7 @@ class Json(CommonWriter):
             outfile.write(json.dumps(ret, indent="\t"))
 
         # Write out the media in an embedded Javascript file to work around browser mitigations
-        # for CVE-2019-11730 so that the search/screensaver pages will work for file URIs.
+        # for CVE-2019-11730 so that the search page will work for file URIs.
         with open(os.path.join(self.dest_directory, "media.js"), "w") as outfile:
             outfile.write("const _allMedia = ")
             outfile.write(json.dumps(ret, indent=None))

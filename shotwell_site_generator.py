@@ -69,8 +69,6 @@ def process_photos(options):
 
     shutil.copyfile(__get_assets_path(options, "search.css"),
                     os.path.join(options.dest_directory, "search.css"))
-    shutil.copyfile(__get_assets_path(options, "screensaver.html"),
-                    os.path.join(options.dest_directory, "screensaver.html"))
     shutil.copyfile(__get_assets_path(options, "search.html"),
                     os.path.join(options.dest_directory, "search.html"))
     shutil.copyfile(__get_assets_path(options, "search.js"),

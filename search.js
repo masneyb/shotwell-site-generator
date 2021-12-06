@@ -2,8 +2,7 @@
  * SPDX-License-Identifier: Apache-2.0
  * Copyright (C) 2020-2021 Brian Masney <masneyb@onstation.org>
  *
- * Generic functions for searching for media that's used by the search and
- * screensaver pages.
+ * Generic functions for searching for media that's used by the search page.
  */
 
 function getQueryParameter(name, defaultValue) {
