@@ -114,6 +114,7 @@
       let isMobileView = showMobileView();
       let currentYearView = null;
 
+      let wasPreviouslyFullscreen = false;
       let preFullscreenScrollX = -1;
       let preFullscreenScrollY = -1;
       let allMediaFullscreenIndex = -1;
@@ -220,9 +221,19 @@
         showMedia();
       }
 
+      function isFullscreen() {
+        return document.fullscreenElement != null || document.webkitIsFullScreen || document.mozFullScreen || document.msFullscreenElement != null;
+      }
+
+      function doExitFullscreen() {
+        if (isFullscreen()) {
+          document.exitFullscreen();
+        }
+      }
+
       function toggleFullscreen() {
         if (document.fullscreenElement !== null) {
-          document.exitFullscreen();
+          doExitFullscreen();
         } else {
           document.documentElement.requestFullscreen();
         }
@@ -348,8 +359,17 @@
         }
 
         if (shown) {
+          wasPreviouslyFullscreen = isFullscreen();
+          if (!wasPreviouslyFullscreen) {
+            document.documentElement.requestFullscreen();
+          }
+
           document.body.style.overflow = 'hidden';
         } else {
+          if (!wasPreviouslyFullscreen) {
+            doExitFullscreen();
+          }
+
           document.body.style.overflow = 'auto';
           const ele = document.querySelector('#fullimage');
           ele.src = '';
@@ -1041,6 +1061,11 @@
           exitImageFullscreen();
         } else if (event.key === ' ') {
           toggleFullscreenDescription();
+        }
+      });
+      document.addEventListener('fullscreenchange', (evt) => {
+        if (!isFullscreen()) {
+          exitImageFullscreen();
         }
       });
       document.addEventListener('swiped-left', showNextImageFullscreen);
