@@ -439,9 +439,9 @@
         const searchLinkGenerator = function (field, op, val) {
           return `href="#" onclick="exitImageFullscreen(); searchPageLinkGenerator(event, [['${field}', '${op}', '${val}']]);"`;
         };
-        imageEle.addEventListener('load', () => {
+        imageEle.onload = () => {
           descrEle.innerHTML = createMediaStatsHtml(allMedia[allMediaFullscreenIndex], eventNames, tags, searchLinkGenerator, true);
-        });
+        };
 
         if (allMedia[allMediaFullscreenIndex].type === 'photo') {
           imageEle.src = allMedia[allMediaFullscreenIndex].link;
@@ -517,7 +517,7 @@
             for (const validValue of field.validValues) {
               select.appendChild(createOptionNode(validValue[0], validValue[1]));
             }
-            select.addEventListener('change', () => { updateCritieraIfValuesPopulated(idx); });
+            select.onchange = () => { updateCritieraIfValuesPopulated(idx); };
             values.appendChild(select);
           } else {
             const input = document.createElement('input');
@@ -530,7 +530,7 @@
             input.style.width = `${size}em`;
             input.placeholder = 'placeholder' in op && op.placeholder[i] != null ? op.placeholder[i] : '';
 
-            input.addEventListener('change', () => { window.blur(); updateCritieraIfValuesPopulated(idx); });
+            input.onchange = () => { window.blur(); updateCritieraIfValuesPopulated(idx); };
 
             if (i < existingValues.length && existingValues[i][0] === input.type && existingValues[i][1] === input.placeholder) {
               input.value = existingValues[i][2];
@@ -583,7 +583,7 @@
             updateCritieraIfValuesPopulated(idx);
           };
         };
-        row.querySelector('.search_field').addEventListener('change', fieldOnChange(nextSearchInput));
+        row.querySelector('.search_field').onchange = fieldOnChange(nextSearchInput);
 
         const opOnChange = function (idx) {
           return function () {
@@ -591,7 +591,7 @@
             updateCritieraIfValuesPopulated(idx);
           };
         };
-        row.querySelector('.search_op').addEventListener('change', opOnChange(nextSearchInput));
+        row.querySelector('.search_op').onchange = opOnChange(nextSearchInput);
 
         const delRow = function (idx) {
           return function () {
@@ -600,7 +600,7 @@
             updateSearchCriteria();
           };
         };
-        row.querySelector('.search_delete_row').addEventListener('click', delRow(nextSearchInput));
+        row.querySelector('.search_delete_row').onclick = delRow(nextSearchInput);
 
         document.querySelector('#search_criterias').appendChild(row);
         populateSearchFields(nextSearchInput);
@@ -669,8 +669,7 @@
             const anchor = document.createElement('a');
             anchor.innerText = tag.title;
             anchor.href = '#';
-            const cb = (event) => { searchPageLinkGenerator(event, [['Tag ID', 'equals', tag.id]]); };
-            anchor.addEventListener('click', cb);
+            anchor.onclick = (event) => { searchPageLinkGenerator(event, [['Tag ID', 'equals', tag.id]]); };
             span.appendChild(anchor);
 
             tagParentsEle.appendChild(span);
@@ -870,15 +869,15 @@
           }
 
           search.push(['Type', 'is not a', 'events']);
-          anchor.addEventListener('click', (event) => { searchPageLinkGenerator(event, search); });
+          anchor.onclick = (event) => { searchPageLinkGenerator(event, search); };
         } else if (media.type === 'years') {
           anchor.href = '#';
           const search = [['Year', 'equals', media.id]];
-          anchor.addEventListener('click', (event) => { searchPageLinkGenerator(event, search); });
+          anchor.onclick = (event) => { searchPageLinkGenerator(event, search); };
         } else if (media.type === 'tags') {
           anchor.href = '#';
           const search = [['Tag ID', 'equals', media.id]];
-          anchor.addEventListener('click', (event) => { searchPageLinkGenerator(event, search); });
+          anchor.onclick = (event) => { searchPageLinkGenerator(event, search); };
         } else if (media.type === 'video') {
           anchor.href = media.link;
           anchor.target = '_new';
@@ -886,14 +885,14 @@
           anchor.href = '#';
           const link = media.link;
 
-          anchor.addEventListener('click', (event) => {
+          anchor.onclick = (event) => {
             preFullscreenScrollX = window.scrollX;
             preFullscreenScrollY = window.scrollY;
             allMediaFullscreenIndex = allMediaIndex;
 
             setFullImageDisplay(true);
             doShowFullscreenImage();
-          });
+          };
         }
 
         return media;
@@ -946,28 +945,28 @@
             if (showSmallIcons) {
               img.src = media.thumbnail.small;
               if (media.motion_photo) {
-                img.addEventListener('mouseover', () => { img.src = media.motion_photo.small_gif; });
-                img.addEventListener('mouseleave', () => { img.src = media.thumbnail.small; });
-                img.addEventListener('touchstart', () => { img.src = media.motion_photo.small_gif; });
-                img.addEventListener('touchend', () => { img.src = media.thumbnail.small; });
+                img.onmouseover = () => { img.src = media.motion_photo.small_gif; };
+                img.onmouseleave = () => { img.src = media.thumbnail.small; };
+                img.ontouchstart = () => { img.src = media.motion_photo.small_gif; };
+                img.ontouchend = () => { img.src = media.thumbnail.small; };
               }
               mediaEle.className = 'media_small';
             } else if (isMobileView || !('reg' in media.thumbnail)) {
               img.src = media.thumbnail.sq;
               if (media.motion_photo) {
-                img.addEventListener('mouseover', () => { img.src = media.motion_photo.sq_gif; });
-                img.addEventListener('mouseleave', () => { img.src = media.thumbnail.sq; });
-                img.addEventListener('touchstart', () => { img.src = media.motion_photo.sq_gif; });
-                img.addEventListener('touchend', () => { img.src = media.thumbnail.sq; });
+                img.onmouseover = () => { img.src = media.motion_photo.sq_gif; };
+                img.onmouseleave = () => { img.src = media.thumbnail.sq; };
+                img.ontouchstart = () => { img.src = media.motion_photo.sq_gif; };
+                img.ontouchend = () => { img.src = media.thumbnail.sq; };
               }
               mediaEle.className = 'media';
             } else {
               img.src = media.thumbnail.reg;
               if (media.motion_photo) {
-                img.addEventListener('mouseover', () => { img.src = media.motion_photo.reg_gif; });
-                img.addEventListener('mouseleave', () => { img.src = media.thumbnail.reg; });
-                img.addEventListener('touchstart', () => { img.src = media.motion_photo.reg_gif; });
-                img.addEventListener('touchend', () => { img.src = media.thumbnail.reg; });
+                img.onmouseover = () => { img.src = media.motion_photo.reg_gif; };
+                img.onmouseleave = () => { img.src = media.thumbnail.reg; };
+                img.ontouchstart = () => { img.src = media.motion_photo.reg_gif; };
+                img.ontouchend = () => { img.src = media.thumbnail.reg; };
               }
               mediaEle.style.width = `${media.thumbnail.reg_width}px`;
             }
@@ -1035,7 +1034,7 @@
             ele.style.display = 'block';
           }
 
-          document.querySelector('#csv_link').addEventListener('click', (event) => { downloadCsv(event); });
+          document.querySelector('#csv_link').onclick = (event) => { downloadCsv(event); };
 
           document.querySelector('.summary_stats').innerHTML = createAllStatsHtml();
         }, 0);
@@ -1046,13 +1045,13 @@
         processJson(populateMedia);
       }
 
-      window.addEventListener('scroll', windowScrolled, false);
-      window.addEventListener('resize', windowSizeChanged, false);
+      window.onscroll = windowScrolled;
+      window.onresize = windowSizeChanged;
 
       const fullImageEle = document.querySelector('#fullimage');
-      fullImageEle.addEventListener('click', toggleFullscreenDescription);
+      fullImageEle.onclick = toggleFullscreenDescription;
 
-      document.addEventListener('keydown', (event) => {
+      document.onkeydown = (event) => {
         if (event.key === 'ArrowLeft') {
           showPreviousImageFullscreen(event);
         } else if (event.key === 'ArrowRight') {
@@ -1062,12 +1061,12 @@
         } else if (event.key === ' ') {
           toggleFullscreenDescription();
         }
-      });
-      document.addEventListener('fullscreenchange', (evt) => {
+      };
+      document.onfullscreenchange = (evt) => {
         if (!isFullscreen()) {
           exitImageFullscreen();
         }
-      });
+      };
       document.addEventListener('swiped-left', showNextImageFullscreen);
       document.addEventListener('swiped-right', showPreviousImageFullscreen);
       document.addEventListener('swiped-down', (e) => {
