@@ -12,7 +12,10 @@
     <meta charset="UTF-8"/>
     <title>Search</title>
     <link rel="stylesheet" type="text/css" href="search.css"/>
+    <script type="text/javascript" src="search-controls.js"></script>
+    <script type="text/javascript" src="search-csv.js"></script>
     <script type="text/javascript" src="search-engine.js"></script>
+    <script type="text/javascript" src="search-slideshow.js"></script>
     <script type="text/javascript" src="swiped-events.js"></script>
     <script type="text/javascript" src="media.js" defer="defer" onLoad="processJson(populateMedia); checkForPhotoFrameMode();" onError="jsonLoadError();"></script>
   </head>
@@ -104,8 +107,6 @@
       }
 
       let currentPageNumber = 1;
-      let nextSearchInput = 0;
-
       let allMedia = null;
       let dateRange = null;
       let metadataDisplay = 'block';
@@ -114,78 +115,9 @@
       let isMobileView = showMobileView();
       let currentYearView = null;
 
-      let wasPreviouslyFullscreen = false;
-      let preFullscreenScrollX = -1;
-      let preFullscreenScrollY = -1;
-      let allMediaFullscreenIndex = -1;
-      let fullscreenImageLink = null;
-
-      // For the photo frame / slideshow functionality
-      let inPhotoFrameMode = false;
-      let fullScreenPhotoUpdateSecs = 0;
-      let fullscreenPhotoUpdateTimer = null;
-      let fullscreenReinstateSlideshowSecs = 0;
-      let fullscreenReinstateSlideshowTimer = null;
-
       function jsonLoadError() {
         const allMediaEle = document.querySelector('#all_media');
         allMediaEle.innerHTML = "<div class='error'>Error loading media</div>";
-      }
-
-      function toggleSlideshowTimers() {
-        if (fullScreenPhotoUpdateSecs === 0) {
-          return;
-        }
-
-        if (fullscreenPhotoUpdateTimer == null) {
-          setFullscreenDescriptionShown(false);
-
-          if (fullscreenReinstateSlideshowTimer != null) {
-            clearInterval(fullscreenReinstateSlideshowTimer);
-            fullscreenReinstateSlideshowTimer = null;
-          }
-          fullscreenPhotoUpdateTimer = setInterval(showNextImageFullscreen, fullScreenPhotoUpdateSecs * 1000);
-        } else {
-          setFullscreenDescriptionShown(true);
-
-          clearInterval(fullscreenPhotoUpdateTimer);
-          fullscreenPhotoUpdateTimer = null;
-          fullscreenReinstateSlideshowTimer = setInterval(toggleSlideshowTimers, fullscreenReinstateSlideshowSecs * 1000);
-        }
-      }
-
-      function slideshowClicked() {
-        const params = window.location.search.startsWith('?') ? window.location.search : '?';
-        let search = `search.html${params}`;
-        if (!search.includes('photo_frame=')) {
-          search += `&photo_frame=1`;
-        }
-        if (!search.includes('photo_update_secs=')) {
-          search += `&photo_update_secs=30`;
-        }
-        search += '#';
-        window.history.pushState({}, '', search);
-
-        startSlideshow();
-      }
-
-      function startSlideshow() {
-        fullScreenPhotoUpdateSecs = getIntQueryParameter('photo_update_secs', 10);
-        fullscreenReinstateSlideshowSecs = getIntQueryParameter('reinstate_slideshow_secs', 300);
-        setFullImageDisplay(true);
-        allMediaFullscreenIndex = 0;
-        doShowFullscreenImage();
-        toggleSlideshowTimers();
-      }
-
-      function checkForPhotoFrameMode() {
-        if (getIntQueryParameter('photo_frame', 0) === 0) {
-          return;
-        }
-
-        inPhotoFrameMode = true;
-        document.body.style.cursor = 'none';
-        startSlideshow();
       }
 
       function getMetadataDisplay() {
@@ -219,24 +151,6 @@
         }
 
         showMedia();
-      }
-
-      function isFullscreen() {
-        return document.fullscreenElement != null || document.webkitIsFullScreen || document.mozFullScreen || document.msFullscreenElement != null;
-      }
-
-      function doExitFullscreen() {
-        if (isFullscreen()) {
-          document.exitFullscreen();
-        }
-      }
-
-      function toggleFullscreen() {
-        if (document.fullscreenElement !== null) {
-          doExitFullscreen();
-        } else {
-          document.documentElement.requestFullscreen();
-        }
       }
 
       function createAllStatsHtml() {
@@ -327,86 +241,11 @@
         return parentEle;
       }
 
-      function removeAllChildren(node) {
-        while (node.firstChild) {
-          node.removeChild(node.firstChild);
-        }
-      }
-
       function hideResultsInfo() {
         removeAllChildren(document.querySelector('.summary_stats'));
         for (const search of ['.header_links']) {
           for (const ele of document.querySelectorAll(search)) {
             ele.style.display = 'none';
-          }
-        }
-      }
-
-      function createOptionNode(text, value) {
-        const option = document.createElement('option');
-        option.value = value;
-        option.innerHTML = text;
-        return option;
-      }
-
-      function setFullImageDisplay(shown) {
-        document.querySelector('#description').style.display = 'none';
-
-        const displayState = shown ? 'block' : 'none';
-        for (const eleName of ['#fullimage_background', '#fullimage_container']) {
-          const ele = document.querySelector(eleName);
-          ele.style.display = displayState;
-        }
-
-        if (shown) {
-          wasPreviouslyFullscreen = isFullscreen();
-          if (!wasPreviouslyFullscreen) {
-            document.documentElement.requestFullscreen();
-          }
-
-          document.body.style.overflow = 'hidden';
-        } else {
-          if (!wasPreviouslyFullscreen) {
-            doExitFullscreen();
-          }
-
-          document.body.style.overflow = 'auto';
-          const ele = document.querySelector('#fullimage');
-          ele.src = '';
-        }
-      }
-
-      function isImageFullscreen() {
-        const fullImageEle = document.querySelector('#fullimage_container');
-        return fullImageEle.style.display !== 'none';
-      }
-
-      function exitImageFullscreen() {
-        if (isImageFullscreen()) {
-          fullScreenPhotoUpdateSecs = 0;
-          fullscreenReinstateSlideshowSecs = 0;
-          document.body.style.cursor = 'auto';
-          setFullImageDisplay(false);
-          window.scrollTo(preFullscreenScrollX, preFullscreenScrollY);
-        }
-      }
-
-      function setFullscreenDescriptionShown(shown) {
-        const descrEle = document.querySelector('#description');
-        document.body.style.cursor = shown ? 'auto' : 'none';
-        descrEle.style.display = shown ? 'block' : 'none';
-      }
-
-      function toggleFullscreenDescription() {
-        if (isImageFullscreen()) {
-          if (inPhotoFrameMode) {
-            toggleSlideshowTimers();
-          } else if (fullscreenImageLink === null) {
-            const descrEle = document.querySelector('#description');
-            const shown = descrEle.style.display !== 'none';
-            setFullscreenDescriptionShown(!shown)
-          } else {
-            window.open(fullscreenImageLink, '_blank');
           }
         }
       }
@@ -428,223 +267,6 @@
         } else {
           window.history.pushState({}, '', search);
           processJson(populateMedia);
-        }
-      }
-
-      function doShowFullscreenImage() {
-        const descrEle = document.querySelector('#description');
-        descrEle.innerHTML = "<div class='loading'>Loading</div>";
-
-        const imageEle = document.querySelector('#fullimage');
-        const searchLinkGenerator = function (field, op, val) {
-          return `href="#" onclick="exitImageFullscreen(); searchPageLinkGenerator(event, [['${field}', '${op}', '${val}']]);"`;
-        };
-        imageEle.onload = () => {
-          descrEle.innerHTML = createMediaStatsHtml(allMedia[allMediaFullscreenIndex], eventNames, tags, searchLinkGenerator, true);
-        };
-
-        if (allMedia[allMediaFullscreenIndex].type === 'photo') {
-          imageEle.src = allMedia[allMediaFullscreenIndex].link;
-          fullscreenImageLink = null;
-        } else if ('reg' in allMedia[allMediaFullscreenIndex].thumbnail) {
-          imageEle.src = allMedia[allMediaFullscreenIndex].thumbnail.reg;
-        } else {
-          imageEle.src = allMedia[allMediaFullscreenIndex].thumbnail.sq;
-        }
-
-        // FIXME - links to events, tags, and years don't work at the moment
-        if (allMedia[allMediaFullscreenIndex].type === 'video') {
-          fullscreenImageLink = allMedia[allMediaFullscreenIndex].link;
-        }
-      }
-
-      function updateSearchCriteria() {
-        document.querySelector('#all_media').innerHTML = "<div class='loading'>Searching</div>";
-        hideResultsInfo();
-
-        setFullImageDisplay(false);
-
-        window.setTimeout(() => {
-          const searchArgs = [];
-          for (const critChild of document.querySelector('#search_criterias').children) {
-            const field = critChild.querySelector('.search_field').value;
-            const op = critChild.querySelector('.search_op').value;
-
-            let search = `${field},${op}`;
-            for (const valChild of critChild.querySelector('.search_values').children) {
-              search += `,${valChild.value}`;
-            }
-            searchArgs.push(`search=${encodeURIComponent(search)}`);
-          }
-
-          const matchPolicy = document.querySelector('#match_policy').value;
-          const sortby = document.querySelector('#sortby').value;
-          window.history.pushState({}, '', `search.html?${searchArgs.join('&')}&match_policy=${matchPolicy}&sortby=${sortby}`);
-          processJson(populateMedia);
-        }, 0);
-      }
-
-      function updateCritieraIfValuesPopulated(idx) {
-        const searchEles = document.querySelector(`#search_criteria${idx}`);
-        for (const child of searchEles.querySelector('.search_values').children) {
-          if (child.value === '') {
-            return;
-          }
-        }
-
-        updateSearchCriteria();
-      }
-
-      function searchOpChanged(idx) {
-        const searchEles = document.querySelector(`#search_criteria${idx}`);
-        const field = searchFields[searchEles.querySelector('.search_field').selectedIndex];
-        const op = field.search.ops[searchEles.querySelector('.search_op').selectedIndex];
-
-        const values = searchEles.querySelector('.search_values');
-        const existingValues = [];
-        if (op.numValues === values.children.length) {
-          for (const child of values.children) {
-            existingValues.push([child.type, child.placeholder, child.value]);
-          }
-        }
-
-        removeAllChildren(values);
-
-        for (let i = 0; i < op.numValues; i += 1) {
-          if ('validValues' in field) {
-            const select = document.createElement('select');
-            select.appendChild(createOptionNode('', ''));
-            for (const validValue of field.validValues) {
-              select.appendChild(createOptionNode(validValue[0], validValue[1]));
-            }
-            select.onchange = () => { updateCritieraIfValuesPopulated(idx); };
-            values.appendChild(select);
-          } else {
-            const input = document.createElement('input');
-            input.className = `search_value${i}`;
-            input.type = 'inputType' in op ? op.inputType[i] : 'text';
-            if ('inputStep' in op) {
-              input.step = op.inputStep[i];
-            }
-            const size = 'inputSize' in op ? op.inputSize[i] : 6;
-            input.style.width = `${size}em`;
-            input.placeholder = 'placeholder' in op && op.placeholder[i] != null ? op.placeholder[i] : '';
-
-            input.onchange = () => { window.blur(); updateCritieraIfValuesPopulated(idx); };
-
-            if (i < existingValues.length && existingValues[i][0] === input.type && existingValues[i][1] === input.placeholder) {
-              input.value = existingValues[i][2];
-            }
-
-            values.appendChild(input);
-          }
-        }
-      }
-
-      function searchFieldChanged(idx) {
-        const searchEles = document.querySelector(`#search_criteria${idx}`);
-        const field = searchFields[searchEles.querySelector('.search_field').selectedIndex];
-
-        const select = searchEles.querySelector('.search_op');
-        removeAllChildren(select);
-
-        for (const op of field.search.ops) {
-          const option = document.createElement('option');
-          option.textContent = option.value = op.descr;
-          select.appendChild(option);
-        }
-
-        searchOpChanged(idx);
-      }
-
-      function populateSearchFields(idx) {
-        const searchEles = document.querySelector(`#search_criteria${idx}`);
-        const select = searchEles.querySelector('.search_field');
-        removeAllChildren(select);
-
-        for (const field of searchFields) {
-          const option = document.createElement('option');
-          option.textContent = option.value = field.title;
-          select.appendChild(option);
-        }
-
-        searchFieldChanged(idx);
-      }
-
-      function addSearchInputRow() {
-        const template = document.querySelector('#search_criteria_row');
-
-        const row = template.content.cloneNode(true);
-        row.querySelector('.search_criteria').id = `search_criteria${nextSearchInput}`;
-
-        const fieldOnChange = function (idx) {
-          return function () {
-            searchFieldChanged(idx);
-            updateCritieraIfValuesPopulated(idx);
-          };
-        };
-        row.querySelector('.search_field').onchange = fieldOnChange(nextSearchInput);
-
-        const opOnChange = function (idx) {
-          return function () {
-            searchOpChanged(idx);
-            updateCritieraIfValuesPopulated(idx);
-          };
-        };
-        row.querySelector('.search_op').onchange = opOnChange(nextSearchInput);
-
-        const delRow = function (idx) {
-          return function () {
-            const ele = document.querySelector(`#search_criteria${idx}`);
-            ele.remove();
-            updateSearchCriteria();
-          };
-        };
-        row.querySelector('.search_delete_row').onclick = delRow(nextSearchInput);
-
-        document.querySelector('#search_criterias').appendChild(row);
-        populateSearchFields(nextSearchInput);
-        nextSearchInput += 1;
-      }
-
-      function populateSearchValuesFromUrl() {
-        removeAllChildren(document.querySelector('#search_criterias'));
-        nextSearchInput = 0;
-
-        for (const searchCriteria of getSearchQueryParams()) {
-          const curIdx = nextSearchInput;
-          addSearchInputRow();
-
-          const parts = searchCriteria.split(',');
-          if (parts.length < 2) {
-            continue;
-          }
-
-          const searchEles = document.querySelector(`#search_criteria${curIdx}`);
-
-          const fieldEle = searchEles.querySelector('.search_field');
-          fieldEle.value = parts[0];
-          searchFieldChanged(curIdx);
-          const field = searchFields[fieldEle.selectedIndex];
-
-          const opEle = searchEles.querySelector('.search_op');
-          opEle.value = parts[1];
-          searchOpChanged(curIdx);
-          const op = field.search.ops[opEle.selectedIndex];
-
-          for (let i = 0; i < Math.min(parts.length - 2, op.numValues); i += 1) {
-            searchEles.querySelector('.search_values').children[i].value = parts[i + 2];
-          }
-        }
-
-        const matchPolicy = getQueryParameter('match_policy', 'all'); // any,none,all
-        document.querySelector('#match_policy').value = matchPolicy;
-
-        const sortby = getQueryParameter('sortby', 'takenZA'); // takenZA,takenAZ,createdZA
-        document.querySelector('#sortby').value = sortby;
-
-        if (nextSearchInput === 0) {
-          addSearchInputRow();
         }
       }
 
@@ -762,83 +384,11 @@
         populateSearchValuesFromUrl();
       }
 
-      function writeCsvRow(cols) {
-        let ret = '';
-        for (let i = 0; i < cols.length; i += 1) {
-          if (i > 0) {
-            ret += ',';
-          }
-          ret += `"${encodeURIComponent(cols[i])}"`;
-        }
-        ret += encodeURIComponent('\n');
-
-        return ret;
-      }
-
-      function getCsvUriData() {
-        let ret = 'data:text/csv;charset=utf-8,';
-
-        ret += writeCsvRow(['ID', 'Type', 'Path', 'Original Size', 'Original Size w/ Artifacts',
-                            'Rating', 'Width', 'Height', 'Exposure Time', 'Event ID', 'Latitude',
-                            'Longitude', 'Title', 'Camera', 'Camera Settings']);
-
-        for (const media of allMedia) {
-          const cols = [];
-          cols.push(media.id);
-          cols.push(media.type);
-          cols.push(media.link);
-          cols.push('filesize' in media ? media.filesize.toString() : '');
-          cols.push('artifact_filesize' in media ? media.artifact_filesize.toString() : '');
-          cols.push('rating' in media ? media.rating.toString() : '');
-          cols.push('width' in media ? media.width.toString() : '');
-          cols.push('height' in media ? media.height.toString() : '');
-          cols.push('exposure_time' in media ? media.exposure_time : '');
-          cols.push('event_id' in media ? media.event_id.toString() : '');
-          cols.push('lat' in media ? media.lat.toString() : '');
-          cols.push('lon' in media ? media.lon.toString() : '');
-          cols.push('title' in media ? media.title : '');
-          cols.push('camera' in media ? media.camera : '');
-          cols.push('exif' in media ? media.exif.join(' ') : '');
-          ret += writeCsvRow(cols);
-        }
-
-        return ret;
-      }
-
-      function downloadCsv(event) {
-        if (event.detail !== 1) {
-          return;
-        }
-
-        const link = document.createElement('a');
-        link.href = getCsvUriData();
-        link.download = 'media.csv';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-
       function windowSizeChanged() {
         const prevMobileView = isMobileView;
         isMobileView = showMobileView();
         if (prevMobileView !== isMobileView) {
           showMedia();
-        }
-      }
-
-      function showPreviousImageFullscreen(event) {
-        if (isImageFullscreen()) {
-          const fullImageEle = document.querySelector('#fullimage');
-          allMediaFullscreenIndex = allMediaFullscreenIndex === 0 ? allMedia.length - 1 : allMediaFullscreenIndex - 1;
-          doShowFullscreenImage();
-        }
-      }
-
-      function showNextImageFullscreen(event) {
-        if (isImageFullscreen()) {
-          const fullImageEle = document.querySelector('#fullimage');
-          allMediaFullscreenIndex = allMediaFullscreenIndex >= allMedia.length - 1 ? 0 : allMediaFullscreenIndex + 1;
-          doShowFullscreenImage();
         }
       }
 
@@ -884,15 +434,7 @@
         } else {
           anchor.href = '#';
           const link = media.link;
-
-          anchor.onclick = (event) => {
-            preFullscreenScrollX = window.scrollX;
-            preFullscreenScrollY = window.scrollY;
-            allMediaFullscreenIndex = allMediaIndex;
-
-            setFullImageDisplay(true);
-            doShowFullscreenImage();
-          };
+          anchor.onclick = () => { enterSlideshowMode(allMediaIndex); };
         }
 
         return media;
