@@ -3,8 +3,6 @@
   <!--
       SPDX-License-Identifier: Apache-2.0
       Copyright (C) 2020-2021 Brian Masney <masneyb@onstation.org>
-
-      Allows dynamically searching for content in a Shotwell library inside a browser.
   -->
 
   <head>
@@ -27,7 +25,7 @@
       <a class="header_link" id="toggle_fullscreen" href="#" onClick="toggleFullscreen();">Fullscreen</a>
       <a class="header_link" id="toggle_size" href="#" onClick="toggleImageSize();">Small Icons</a>
       <a class="header_link" id="toggle_metadata" href="#" onClick="toggleMetadata();">Hide Metadata</a>
-      <a class="header_link" id="toggle_animations" href="#" onClick="toggleAnimations();">Animations</a>
+      <a class="header_link" id="toggle_animations" href="#" onClick="toggleAnimations();">Show Animations</a>
       <a class="header_link" href="#" onClick="slideshowClicked();">Slideshow</a>
       <a class="header_link" href="#" id="csv_link">CSV</a>
     </span>
@@ -136,7 +134,7 @@
 
       function toggleAnimations() {
         alwaysShowAnimations = !alwaysShowAnimations;
-        document.querySelector('#toggle_animations').innerText = alwaysShowAnimations ? 'Stop Animations' : 'Animations';
+        document.querySelector('#toggle_animations').innerText = alwaysShowAnimations ? 'Stop Animations' : 'Show Animations';
         showMedia();
       }
 
