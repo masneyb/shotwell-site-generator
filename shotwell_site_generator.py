@@ -64,6 +64,7 @@ def process_photos(options):
 
     logging.info("Copying other support files")
     write_redirect(os.path.join(options.dest_directory, "index.html"), "search.html")
+    write_redirect(os.path.join(options.dest_directory, "static-site.html"), "media/index.html")
 
     thumbnailer.remove_thumbnails()
 
@@ -87,10 +88,6 @@ def process_photos(options):
         if os.path.islink(media_symlink):
             os.unlink(media_symlink)
         os.symlink(options.input_media_path, media_symlink)
-
-    static_symlink = os.path.join(options.dest_directory, "static-site.html")
-    if not os.path.islink(static_symlink):
-        os.symlink("media/index.html", static_symlink)
 
     photos = media_writer_html.Html(all_media, options.dest_directory, options.title,
                                     options.years_prior_are_approximate,
