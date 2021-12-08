@@ -30,7 +30,7 @@ function getPrettyFileSize(size) {
 }
 
 function getNumberString(number, singular, plural) {
-  return number == 1 ? `${number.toLocaleString()} ${singular}` : `${number.toLocaleString()} ${plural}`;
+  return number === 1 ? `${number.toLocaleString()} ${singular}` : `${number.toLocaleString()} ${plural}`;
 }
 
 function createMediaStatsHtml(entity, eventNames, tags, searchLinkGenerator, showTitle) {
@@ -486,7 +486,7 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
   ops.push({
     descr: 'equals',
     matches(field, op, values, media) {
-      return performGenericOp(field, media, values[0], (input, value) => input != null && input == value);
+      return performGenericOp(field, media, values[0], (input, value) => input != null && input === value);
     },
     placeholder: [placeholderText],
     numValues: 1,
@@ -497,7 +497,7 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
   ops.push({
     descr: 'not equals',
     matches(field, op, values, media) {
-      return performGenericOp(field, media, values[0], (input, value) => input == null || input != value);
+      return performGenericOp(field, media, values[0], (input, value) => input == null || input !== value);
     },
     placeholder: [placeholderText],
     numValues: 1,
