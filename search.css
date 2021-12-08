@@ -182,6 +182,21 @@ a {
 	image-orientation: from-image;
 }
 
+#close {
+	position: fixed;
+	top: 15px;
+	right: 20px;
+	color: lightgray;
+	font-size: 24px;
+	font-weight: bold;
+	text-decoration: none;
+}
+
+#close:hover {
+	color: darkgray;
+	cursor: pointer;
+}
+
 #description {
 	position: fixed;
 	left: 50%;

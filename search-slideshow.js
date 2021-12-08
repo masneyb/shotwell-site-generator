@@ -158,6 +158,7 @@ function checkForPhotoFrameMode() {
 
   inPhotoFrameMode = true;
   document.body.style.cursor = 'none';
+  document.querySelector('#close').style.display = 'none';
   startSlideshow();
 }
 
