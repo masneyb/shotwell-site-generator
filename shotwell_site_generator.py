@@ -71,8 +71,8 @@ def process_photos(options):
                     os.path.join(options.dest_directory, "search.css"))
     shutil.copyfile(__get_assets_path(options, "search.html"),
                     os.path.join(options.dest_directory, "search.html"))
-    shutil.copyfile(__get_assets_path(options, "search.js"),
-                    os.path.join(options.dest_directory, "search.js"))
+    shutil.copyfile(__get_assets_path(options, "search-engine.js"),
+                    os.path.join(options.dest_directory, "search-engine.js"))
     shutil.copyfile(__get_assets_path(options, "swiped-events.js"),
                     os.path.join(options.dest_directory, "swiped-events.js"))
 
