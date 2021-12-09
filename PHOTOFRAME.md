@@ -1,7 +1,5 @@
 # Photo Frame
 
-![Photo Frame](screenshots/photoframe-front.jpg?raw=1)
-
 My photo frame has the following hardware components:
 
 - Raspberry Pi 4
