@@ -20,15 +20,24 @@ function setFullscreenDescriptionShown(shown) {
   descrEle.style.display = shown ? 'block' : 'none';
 }
 
-function doShowFullscreenImage() {
+function doShowFullscreenImage(manuallyInvoked) {
   const descrEle = document.querySelector('#description');
   descrEle.innerHTML = "<div class='loading'>Loading</div>";
+
+  let hideDescr = false;
+  if (manuallyInvoked && descrEle.style.display === 'none') {
+    descrEle.style.display = 'block';
+    hideDescr = true;
+  }
 
   const imageEle = document.querySelector('#fullimage');
   const searchLinkGenerator = function (field, op, val) {
     return `href="#" onclick="exitImageFullscreen(); searchPageLinkGenerator(event, [['${field}', '${op}', '${val}']]);"`;
   };
   imageEle.onload = () => {
+    if (hideDescr) {
+      descrEle.style.display = 'none';
+    }
     descrEle.innerHTML = createMediaStatsHtml(allMedia[allMediaFullscreenIndex], eventNames, tags, searchLinkGenerator, true);
   };
 
@@ -52,11 +61,11 @@ function isImageFullscreen() {
   return fullImageEle.style.display !== 'none';
 }
 
-function showNextImageFullscreen(event) {
+function showNextImageFullscreen(event, manuallyInvoked) {
   if (isImageFullscreen()) {
     const fullImageEle = document.querySelector('#fullimage');
     allMediaFullscreenIndex = allMediaFullscreenIndex >= allMedia.length - 1 ? 0 : allMediaFullscreenIndex + 1;
-    doShowFullscreenImage();
+    doShowFullscreenImage(manuallyInvoked);
   }
 }
 
@@ -64,7 +73,7 @@ function showPreviousImageFullscreen(event) {
   if (isImageFullscreen()) {
     const fullImageEle = document.querySelector('#fullimage');
     allMediaFullscreenIndex = allMediaFullscreenIndex === 0 ? allMedia.length - 1 : allMediaFullscreenIndex - 1;
-    doShowFullscreenImage();
+    doShowFullscreenImage(true);
   }
 }
 
@@ -80,7 +89,7 @@ function toggleSlideshowTimers() {
       clearInterval(fullscreenReinstateSlideshowTimer);
       fullscreenReinstateSlideshowTimer = null;
     }
-    fullscreenPhotoUpdateTimer = setInterval(showNextImageFullscreen, fullScreenPhotoUpdateSecs * 1000);
+    fullscreenPhotoUpdateTimer = setInterval((e) => { showNextImageFullscreen(e, false) }, fullScreenPhotoUpdateSecs * 1000);
   } else {
     setFullscreenDescriptionShown(true);
 
@@ -132,7 +141,7 @@ function startSlideshow() {
   fullscreenReinstateSlideshowSecs = getIntQueryParameter('reinstate_slideshow_secs', 300);
   setFullImageDisplay(true);
   allMediaFullscreenIndex = 0;
-  doShowFullscreenImage();
+  doShowFullscreenImage(false);
   toggleSlideshowTimers();
 }
 
@@ -200,5 +209,5 @@ function enterSlideshowMode(allMediaIndex) {
   allMediaFullscreenIndex = allMediaIndex;
 
   setFullImageDisplay(true);
-  doShowFullscreenImage();
+  doShowFullscreenImage(false);
 }

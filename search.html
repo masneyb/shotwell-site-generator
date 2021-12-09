@@ -596,7 +596,7 @@
         if (event.key === 'ArrowLeft') {
           showPreviousImageFullscreen(event);
         } else if (event.key === 'ArrowRight') {
-          showNextImageFullscreen(event);
+          showNextImageFullscreen(event, true);
         } else if (event.key === 'Escape') {
           exitImageFullscreen();
         } else if (event.key === ' ') {
@@ -608,7 +608,7 @@
           exitImageFullscreen();
         }
       };
-      document.addEventListener('swiped-left', showNextImageFullscreen);
+      document.addEventListener('swiped-left', (e) => { showNextImageFullscreen(e, true); });
       document.addEventListener('swiped-right', showPreviousImageFullscreen);
       document.addEventListener('swiped-down', (e) => {
         if (!inPhotoFrameMode) {
