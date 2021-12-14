@@ -640,12 +640,17 @@
         windowScrolled();
       }
 
+      function clearPreviousMedia(allMediaEle) {
+        removeAllChildren(allMediaEle);
+        lastSmallMediaItems = [];
+        window.scrollTo(0, 0);
+      }
+
       function showMedia() {
         const allMediaEle = document.querySelector('#all_media');
-        lastSmallMediaItems = [];
 
+        clearPreviousMedia(allMediaEle);
         if (allMedia == null) {
-          removeAllChildren(allMediaEle);
           return;
         }
 
@@ -658,13 +663,9 @@
           return;
         }
 
-        removeAllChildren(allMediaEle);
-        window.scrollTo(0, 0);
-
         window.setTimeout(() => {
-          // In case there are duplicate timeouts, remove the children again.
-          removeAllChildren(allMediaEle);
-          window.scrollTo(0, 0);
+          // In case an event was in flight before the JSON was processed
+          clearPreviousMedia(allMediaEle);
 
           doShowMedia(1);
 
