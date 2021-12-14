@@ -23,7 +23,6 @@
     <span class="summary_stats"></span>
     <span class="header_links" style="display: none">
       <a class="header_link" id="toggle_fullscreen" href="#" onClick="toggleFullscreen();">Fullscreen</a>
-      <a class="header_link" id="toggle_size" href="#" onClick="toggleImageSize();"></a>
       <a class="header_link" id="toggle_metadata" href="#" onClick="toggleMetadata();"></a>
       <a class="header_link" id="toggle_animations" href="#" onClick="toggleAnimations();"></a>
       <a class="header_link" href="#" onClick="slideshowClicked();">Slideshow</a>
@@ -62,8 +61,16 @@
         <option value="createdZA">Sort added Z-A</option>
         <option value="random">Sort random</option>
       </select>
-      <input type="button" onClick="updateSearchCriteria();" value="Search"></input>
-      <input type="button" onClick="clearSearchCriteria();" value="Clear"></input>
+      <select id="icon_size" onChange="updateSearchCriteria();">
+        <option value="default">Default Icons</option>
+        <option value="small">Small Icons</option>
+        <option value="medium">Medium Icons</option>
+        <option value="small_medium">Small/Medium Icons</option>
+        <option value="large">Large Icons</option>
+        <option value="regular">Regular Icons</option>
+      </select>
+      <input class="button" type="button" onClick="updateSearchCriteria();" value="Search"></input>
+      <input class="button" type="button" onClick="clearSearchCriteria();" value="Clear"></input>
     </span>
 
     <div id="all_media"><div class='loading'>Loading</div></div>
@@ -102,34 +109,22 @@
       let metadataDisplay = 'block';
       let alwaysShowAnimations = false;
       let isMobileView = showMobileView();
-      let showSmallIcons = isMobileView;
       let currentYearView = null;
       let lastSmallMediaItems = null;
+      let preferLargeIcons = false;
 
       function jsonLoadError() {
         const allMediaEle = document.querySelector('#all_media');
         allMediaEle.innerHTML = "<div class='error'>Error loading media</div>";
       }
 
-      function getMetadataDisplay() {
-        return showSmallIcons ? 'none' : metadataDisplay;
-      }
-
       function updateSettingsText() {
         document.querySelector('#toggle_animations').innerText = alwaysShowAnimations ? 'Stop Animations' : 'Show Animations';
-
-        if (showSmallIcons) {
-          document.querySelector('#toggle_size').innerText = 'Large Icons';
-          document.querySelector('#toggle_metadata').style.display = 'none';
-        } else {
-          document.querySelector('#toggle_size').innerText = 'Small Icons';
-          document.querySelector('#toggle_metadata').style.display = 'inline-block';
-        }
 
         document.querySelector('#toggle_metadata').innerText = metadataDisplay === 'none' ? 'Show Metadata' : 'Hide Metadata';
         for (const name of ['.media_metadata', '.media_title', '.media_comment']) {
           for (const ele of document.querySelectorAll(name)) {
-            ele.style.display = getMetadataDisplay();
+            ele.style.display = metadataDisplay;
           }
         }
       }
@@ -141,12 +136,6 @@
 
       function toggleAnimations() {
         alwaysShowAnimations = !alwaysShowAnimations;
-        updateSettingsText();
-        showMedia();
-      }
-
-      function toggleImageSize() {
-        showSmallIcons = !showSmallIcons;
         updateSettingsText();
         showMedia();
       }
@@ -255,7 +244,8 @@
           parts.push(criteria.join(','));
         }
 
-        const search = generateSearchUrl(parts, matchPolicy);
+        const iconSize = getQueryParameter('icon_size', 'default');
+        const search = generateSearchUrl(parts, matchPolicy, iconSize);
 
         // Check to see if the user control clicked the URL to request it be opened in a new tab.
         if (event.ctrlKey || event.which === 2 || event.which === 3) {
@@ -307,8 +297,10 @@
 
         // Search criteria can be chained in any order. Get the distinct types and order below.
         let eventTitle = null;
+        let eventPreferLargeIcons = false;
         let yearTitle = null;
         let tagTitle = null;
+        let tagPreferLargeIcons = false;
         let searchTag;
 
         const allCriteria = getSearchCriteria();
@@ -321,22 +313,28 @@
             currentYearView = criteria.searchValues[0];
           } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'events') {
             eventTitle = `${mediaTitle}: All Events`;
+            eventPreferLargeIcons = true;
           } else if (criteria.field.title === 'Event ID' && criteria.op.descr === 'equals') {
             let eventName = eventNames[criteria.searchValues[0]];
             if (eventName === undefined) {
               eventName = 'Unknown event';
             }
             eventTitle = `${mediaTitle}: ${eventName}`;
+            eventPreferLargeIcons = false;
           } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'tags') {
             tagTitle = `${mediaTitle}: All Tags`;
+            tagPreferLargeIcons = true;
           } else if (criteria.field.title === 'Tag ID' && criteria.op.descr === 'equals') {
             searchTag = tags[criteria.searchValues[0]];
             tagTitle = `${mediaTitle}: ${searchTag !== undefined ? searchTag.title : 'Unknown tag'}`;
+            tagPreferLargeIcons = false;
           }
         }
 
-        const titles = [[eventTitle, 'events_link'], [yearTitle, 'years_link'],
-                        [tagTitle, 'tags_link'], [`${mediaTitle}: Search`, null]];
+        const titles = [[eventTitle, 'events_link', eventPreferLargeIcons],
+                        [yearTitle, 'years_link', true],
+                        [tagTitle, 'tags_link', tagPreferLargeIcons],
+                        [`${mediaTitle}: Search`, null, false]];
         const preferredTitle = titles.find((ent) => ent[0] !== null);
 
         document.title = preferredTitle[0];
@@ -353,6 +351,8 @@
             document.querySelector(`#${tagName}`).classList.remove('main_view_selected');
           }
         }
+
+        preferLargeIcons = preferredTitle[2];
 
         showParentTags(searchTag);
       }
@@ -444,11 +444,33 @@
         }
       }
 
-      function showLargerIconInMixedMode(media) {
-        return media.rating === 5 || (media.type !== 'photo' && media.type !== 'video');
+      function getPageIconSize() {
+        const validIconSizes = ['small', 'medium', 'small_medium', 'large', 'regular'];
+        const iconSize = getQueryParameter('icon_size', 'default');
+        if (validIconSizes.includes(iconSize)) {
+          return iconSize;
+        }
+
+        if (isMobileView) {
+          return preferLargeIcons ? 'large' : 'small_medium';
+        }
+
+        return 'regular';
       }
 
-      function createMediaElement(index, media) {
+      function getMediaIconSize(pageIconSize, media) {
+        if (pageIconSize === 'small_medium') {
+          if (media.rating === 5 || (media.type !== 'photo' && media.type !== 'video')) {
+            return 'medium';
+          }
+
+          return 'small';
+        }
+
+        return pageIconSize;
+      }
+
+      function createMediaElement(index, media, iconSize) {
         const mediaEle = document.createElement('span');
         mediaEle.className = 'media_dyn';
 
@@ -464,15 +486,13 @@
         media = populateMediaAnchorTag(anchor, media, index);
 
         if (alwaysShowAnimations && media.motion_photo) {
-          if (showSmallIcons) {
-            if (showLargerIconInMixedMode(media)) {
-              img.src = media.motion_photo.medium_gif;
-              mediaEle.className = 'media_medium';
-            } else {
-              img.src = media.motion_photo.small_gif;
-              mediaEle.className = 'media_small';
-            }
-          } else if (isMobileView) {
+          if (iconSize === 'small') {
+            img.src = media.motion_photo.small_gif;
+            mediaEle.className = 'media_small';
+          } else if (iconSize === 'medium') {
+            img.src = media.motion_photo.medium_gif;
+            mediaEle.className = 'media_medium';
+          } else if (iconSize === 'large') {
             img.src = media.motion_photo.sq_gif;
             mediaEle.className = 'media';
           } else {
@@ -480,27 +500,25 @@
             mediaEle.style.width = `${media.thumbnail.reg_width}px`;
           }
         } else {
-          if (showSmallIcons) {
-            if (showLargerIconInMixedMode(media)) {
-              img.src = media.thumbnail.medium;
-              if (media.motion_photo) {
-                img.onmouseover = () => { img.src = media.motion_photo.medium_gif; };
-                img.onmouseleave = () => { img.src = media.thumbnail.medium; };
-                img.ontouchstart = () => { img.src = media.motion_photo.medium_gif; };
-                img.ontouchend = () => { img.src = media.thumbnail.medium; };
-              }
-              mediaEle.className = 'media_medium';
-            } else {
-              img.src = media.thumbnail.small;
-              if (media.motion_photo) {
-                img.onmouseover = () => { img.src = media.motion_photo.small_gif; };
-                img.onmouseleave = () => { img.src = media.thumbnail.small; };
-                img.ontouchstart = () => { img.src = media.motion_photo.small_gif; };
-                img.ontouchend = () => { img.src = media.thumbnail.small; };
-              }
-              mediaEle.className = 'media_small';
+          if (iconSize === 'small') {
+            img.src = media.thumbnail.small;
+            if (media.motion_photo) {
+              img.onmouseover = () => { img.src = media.motion_photo.small_gif; };
+              img.onmouseleave = () => { img.src = media.thumbnail.small; };
+              img.ontouchstart = () => { img.src = media.motion_photo.small_gif; };
+              img.ontouchend = () => { img.src = media.thumbnail.small; };
             }
-          } else if (isMobileView || !('reg' in media.thumbnail)) {
+            mediaEle.className = 'media_small';
+          } else if (iconSize === 'medium') {
+            img.src = media.thumbnail.medium;
+            if (media.motion_photo) {
+              img.onmouseover = () => { img.src = media.motion_photo.medium_gif; };
+              img.onmouseleave = () => { img.src = media.thumbnail.medium; };
+              img.ontouchstart = () => { img.src = media.motion_photo.medium_gif; };
+              img.ontouchend = () => { img.src = media.thumbnail.medium; };
+            }
+            mediaEle.className = 'media_medium';
+          } else if (iconSize === 'large' || !('reg' in media.thumbnail)) {
             img.src = media.thumbnail.sq;
             if (media.motion_photo) {
               img.onmouseover = () => { img.src = media.motion_photo.sq_gif; };
@@ -521,12 +539,12 @@
           }
         }
 
-        if (!showSmallIcons) {
+        if (iconSize !== 'small' && iconSize !== 'medium') {
           if (media.title) {
             const name = `title${media.type}${media.id}`;
             const title = document.createElement('span');
             title.className = 'media_title';
-            title.style.display = getMetadataDisplay();
+            title.style.display = metadataDisplay;
             if (media.title_prefix) {
               title.appendChild(getExpandableString(name, media.title_prefix + media.title));
             } else {
@@ -539,14 +557,14 @@
             const name = `comment${media.type}${media.id}`;
             const comment = document.createElement('span');
             comment.className = 'media_comment';
-            comment.style.display = getMetadataDisplay();
+            comment.style.display = metadataDisplay;
             comment.appendChild(getExpandableString(name, media.comment));
             mediaEle.appendChild(comment);
           }
 
           const metadata = document.createElement('span');
           metadata.className = 'media_metadata';
-          metadata.style.display = getMetadataDisplay();
+          metadata.style.display = metadataDisplay;
           mediaEle.appendChild(metadata);
 
           const searchLinkGenerator = function (field, op, val) {
@@ -561,13 +579,13 @@
       function createMediaSmallContainer() {
         const ele = document.createElement('span');
         ele.className = 'media_small_container';
-        ele.appendChild(createMediaElement(lastSmallMediaItems[0][0], lastSmallMediaItems[0][1]));
+        ele.appendChild(createMediaElement(lastSmallMediaItems[0][0], lastSmallMediaItems[0][1], 'small'));
         if (lastSmallMediaItems.length >= 2) {
-          ele.appendChild(createMediaElement(lastSmallMediaItems[1][0], lastSmallMediaItems[1][1]));
+          ele.appendChild(createMediaElement(lastSmallMediaItems[1][0], lastSmallMediaItems[1][1], 'small'));
           if (lastSmallMediaItems.length >= 3) {
-            ele.appendChild(createMediaElement(lastSmallMediaItems[2][0], lastSmallMediaItems[2][1]));
+            ele.appendChild(createMediaElement(lastSmallMediaItems[2][0], lastSmallMediaItems[2][1], 'small'));
             if (lastSmallMediaItems.length >= 4) {
-              ele.appendChild(createMediaElement(lastSmallMediaItems[3][0], lastSmallMediaItems[3][1]));
+              ele.appendChild(createMediaElement(lastSmallMediaItems[3][0], lastSmallMediaItems[3][1], 'small'));
             }
           }
         }
@@ -575,7 +593,17 @@
       }
 
       function doShowMedia(pageNumber) {
-        const pageSize = showSmallIcons ? 48 : 12;
+        const pageIconSize = getPageIconSize();
+
+        let pageSize;
+        if (pageIconSize === 'small' || pageIconSize === 'medium' || pageIconSize === 'small_medium') {
+          pageSize = 48;
+          document.querySelector('#toggle_metadata').style.display = 'none';
+        } else {
+          pageSize = 12;
+          document.querySelector('#toggle_metadata').style.display = 'inline-block';
+        }
+
         const lastPageNumber = Math.ceil(allMedia.length / pageSize);
         if (pageNumber > lastPageNumber) {
           return;
@@ -586,9 +614,10 @@
         const startIdx = (pageNumber - 1) * pageSize;
 
         for (let [index, media] of allMedia.slice(startIdx, startIdx + pageSize).entries()) {
-          if (showSmallIcons) {
-            if (showLargerIconInMixedMode(media)) {
-              allMediaEle.appendChild(createMediaElement(startIdx + index, media));
+          const mediaIconSize = getMediaIconSize(pageIconSize, media);
+          if (pageIconSize === 'small_medium') {
+            if (mediaIconSize === 'medium') {
+              allMediaEle.appendChild(createMediaElement(startIdx + index, media, mediaIconSize));
             } else {
               lastSmallMediaItems.push([startIdx + index, media]);
               if (lastSmallMediaItems.length === 4) {
@@ -597,7 +626,7 @@
               }
             }
           } else {
-            allMediaEle.appendChild(createMediaElement(startIdx + index, media));
+            allMediaEle.appendChild(createMediaElement(startIdx + index, media, mediaIconSize));
           }
         }
 

@@ -223,3 +223,7 @@ a {
 	z-index: 4;
 	padding: 4px;
 }
+
+input.button {
+	margin-top: 2px;
+}

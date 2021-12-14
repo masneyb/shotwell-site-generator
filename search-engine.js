@@ -134,13 +134,16 @@ function createMediaStatsHtml(entity, eventNames, tags, searchLinkGenerator, sho
   return ret.join(' ');
 }
 
-function generateSearchUrl(criterias, matchPolicy) {
+function generateSearchUrl(criterias, matchPolicy, iconSize) {
   const qs = [];
   for (const criteria of criterias) {
     qs.push(`search=${encodeURI(criteria)}`);
   }
   if (matchPolicy !== 'all') {
     qs.push(`match_policy=${matchPolicy}`);
+  }
+  if (iconSize !== 'default') {
+    qs.push(`icon_size=${iconSize}`);
   }
   return `search.html?${qs.join('&')}#`;
 }
