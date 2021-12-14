@@ -50,7 +50,7 @@ a {
 	display: inline-block;
 }
 
-.media, .media_small, .media_dyn {
+.media, .media_small, .media_medium, .media_dyn, .media_small_container {
 	display: inline-block;
 	vertical-align: text-top;
 }
@@ -64,9 +64,23 @@ a {
 	padding: 2px;
 }
 
+.media_medium {
+	width: 184px;
+	height: 184px;
+	padding: 2px;
+}
+
+.media_small_container {
+	width: 188px;
+	height: 188px;
+	padding: 0px;
+	text-align: left;
+}
+
 .media_small {
 	width: 90px;
-	padding: 0px;
+	height: 90px;
+	padding: 2px;
 }
 
 .media_thumb {

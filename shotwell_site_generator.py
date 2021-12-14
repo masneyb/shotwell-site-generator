@@ -21,15 +21,20 @@ def process_photos(options):
 
     icons = media_fetcher.Icons(__get_image_path(options, "panorama-icon.png"),
                                 __get_image_path(options, "panorama-icon-small.png"),
+                                __get_image_path(options, "panorama-icon-medium.png"),
                                 __get_image_path(options, "play-icon.png"),
                                 __get_image_path(options, "play-icon-small.png"),
+                                __get_image_path(options, "play-icon-medium.png"),
                                 __get_image_path(options, "raw-icon.png"),
                                 __get_image_path(options, "raw-icon-small.png"),
+                                __get_image_path(options, "raw-icon-medium.png"),
                                 __get_image_path(options, "motion-photo.png"),
-                                __get_image_path(options, "motion-photo-small.png"))
+                                __get_image_path(options, "motion-photo-small.png"),
+                                __get_image_path(options, "motion-photo-medium.png"))
 
     thumbnailer = media_thumbnailer.Thumbnailer(options.thumbnail_size,
                                                 options.small_thumbnail_size,
+                                                options.medium_thumbnail_size,
                                                 options.dest_directory,
                                                 options.remove_stale_artifacts,
                                                 options.imagemagick_command,
@@ -39,7 +44,8 @@ def process_photos(options):
                                                 options.exiv2_command,
                                                 options.skip_metadata_text_if_exists,
                                                 icons.play,
-                                                icons.play_small)
+                                                icons.play_small,
+                                                icons.play_medium)
 
     fetcher = media_fetcher.Database(conn, options.input_media_path,
                                      options.input_thumbs_directory, options.dest_directory,
@@ -130,6 +136,7 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--title", required=True)
     ARGPARSER.add_argument("--thumbnail-size", default="390x390")
     ARGPARSER.add_argument("--small-thumbnail-size", default="90x90")
+    ARGPARSER.add_argument("--medium-thumbnail-size", default="184x184")
     ARGPARSER.add_argument("--years-prior-are-approximate", default="2000")
     ARGPARSER.add_argument("--max-media-per-page", type=int, default=24)
     ARGPARSER.add_argument("--tags-to-skip", nargs="+", default=[])

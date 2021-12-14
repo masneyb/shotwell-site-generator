@@ -23,9 +23,9 @@
     <span class="summary_stats"></span>
     <span class="header_links" style="display: none">
       <a class="header_link" id="toggle_fullscreen" href="#" onClick="toggleFullscreen();">Fullscreen</a>
-      <a class="header_link" id="toggle_size" href="#" onClick="toggleImageSize();">Small Icons</a>
-      <a class="header_link" id="toggle_metadata" href="#" onClick="toggleMetadata();">Hide Metadata</a>
-      <a class="header_link" id="toggle_animations" href="#" onClick="toggleAnimations();">Show Animations</a>
+      <a class="header_link" id="toggle_size" href="#" onClick="toggleImageSize();"></a>
+      <a class="header_link" id="toggle_metadata" href="#" onClick="toggleMetadata();"></a>
+      <a class="header_link" id="toggle_animations" href="#" onClick="toggleAnimations();"></a>
       <a class="header_link" href="#" onClick="slideshowClicked();">Slideshow</a>
       <a class="header_link" href="#" id="csv_link">CSV</a>
     </span>
@@ -82,15 +82,6 @@
       <div id="description"></div>
     </div>
 
-    <template id="media_template">
-      <span class="media_dyn">
-        <a><span class="media_thumb"><img></img></span></a>
-        <span class="media_title"></span>
-        <span class="media_comment"></span>
-        <span class="media_metadata"></span>
-      </span>
-    </template>
-
     <template id="search_criteria_row">
       <span class="search_criteria">
         <select class="search_field"></select>
@@ -110,9 +101,10 @@
       let dateRange = null;
       let metadataDisplay = 'block';
       let alwaysShowAnimations = false;
-      let showSmallIcons = false;
       let isMobileView = showMobileView();
+      let showSmallIcons = isMobileView;
       let currentYearView = null;
+      let lastSmallMediaItems = null;
 
       function jsonLoadError() {
         const allMediaEle = document.querySelector('#all_media');
@@ -123,24 +115,9 @@
         return showSmallIcons ? 'none' : metadataDisplay;
       }
 
-      function toggleMetadata() {
-        metadataDisplay = metadataDisplay === 'none' ? 'block' : 'none';
-        document.querySelector('#toggle_metadata').innerText = metadataDisplay === 'none' ? 'Show Metadata' : 'Hide Metadata';
-        for (const name of ['.media_metadata', '.media_title', '.media_comment']) {
-          for (const ele of document.querySelectorAll(name)) {
-            ele.style.display = getMetadataDisplay();
-          }
-        }
-      }
-
-      function toggleAnimations() {
-        alwaysShowAnimations = !alwaysShowAnimations;
+      function updateSettingsText() {
         document.querySelector('#toggle_animations').innerText = alwaysShowAnimations ? 'Stop Animations' : 'Show Animations';
-        showMedia();
-      }
 
-      function toggleImageSize() {
-        showSmallIcons = !showSmallIcons;
         if (showSmallIcons) {
           document.querySelector('#toggle_size').innerText = 'Large Icons';
           document.querySelector('#toggle_metadata').style.display = 'none';
@@ -149,6 +126,28 @@
           document.querySelector('#toggle_metadata').style.display = 'inline-block';
         }
 
+        document.querySelector('#toggle_metadata').innerText = metadataDisplay === 'none' ? 'Show Metadata' : 'Hide Metadata';
+        for (const name of ['.media_metadata', '.media_title', '.media_comment']) {
+          for (const ele of document.querySelectorAll(name)) {
+            ele.style.display = getMetadataDisplay();
+          }
+        }
+      }
+
+      function toggleMetadata() {
+        metadataDisplay = metadataDisplay === 'none' ? 'block' : 'none';
+        updateSettingsText();
+      }
+
+      function toggleAnimations() {
+        alwaysShowAnimations = !alwaysShowAnimations;
+        updateSettingsText();
+        showMedia();
+      }
+
+      function toggleImageSize() {
+        showSmallIcons = !showSmallIcons;
+        updateSettingsText();
         showMedia();
       }
 
@@ -445,45 +444,53 @@
         }
       }
 
-      function doShowMedia(pageNumber) {
-        const pageSize = 12;
-        const lastPageNumber = Math.ceil(allMedia.length / pageSize);
-        if (pageNumber > lastPageNumber) {
-          return;
-        }
+      function showLargerIconInMixedMode(media) {
+        return media.rating === 5 || (media.type !== 'photo' && media.type !== 'video');
+      }
 
-        const allMediaEle = document.querySelector('#all_media');
+      function createMediaElement(index, media) {
+        const mediaEle = document.createElement('span');
+        mediaEle.className = 'media_dyn';
 
-        const template = document.querySelector('#media_template');
-        const startIdx = (pageNumber - 1) * pageSize;
-        const searchLinkGenerator = function (field, op, val) {
-          return `href="#" onclick="searchPageLinkGenerator(event, [['${field}', '${op}', '${val}']]);"`;
-        };
+        const anchor = document.createElement('a');
+        const mediaThumbSpan = document.createElement('span');
+        mediaThumbSpan.className = 'media_thumb';
+        const img = document.createElement('img');
+        mediaThumbSpan.appendChild(img);
+        anchor.appendChild(mediaThumbSpan);
+        mediaEle.appendChild(anchor);
 
-        for (let [index, media] of allMedia.slice(startIdx, startIdx + pageSize).entries()) {
-          const clone = template.content.cloneNode(true);
-          const mediaEle = clone.querySelector('.media_dyn');
+        // See the comment above for why the media element can be overridden for the event search.
+        media = populateMediaAnchorTag(anchor, media, index);
 
-          const anchor = clone.querySelector('a');
-
-          // See the comment above for why the media element can be overridden for the event search.
-          media = populateMediaAnchorTag(anchor, media, startIdx + index);
-
-          if (alwaysShowAnimations && media.motion_photo) {
-            const img = clone.querySelector('img');
-            if (showSmallIcons) {
+        if (alwaysShowAnimations && media.motion_photo) {
+          if (showSmallIcons) {
+            if (showLargerIconInMixedMode(media)) {
+              img.src = media.motion_photo.medium_gif;
+              mediaEle.className = 'media_medium';
+            } else {
               img.src = media.motion_photo.small_gif;
               mediaEle.className = 'media_small';
-            } else if (isMobileView) {
-              img.src = media.motion_photo.sq_gif;
-              mediaEle.className = 'media';
-            } else {
-              img.src = media.motion_photo.reg_gif;
-              mediaEle.style.width = `${media.thumbnail.reg_width}px`;
             }
+          } else if (isMobileView) {
+            img.src = media.motion_photo.sq_gif;
+            mediaEle.className = 'media';
           } else {
-            const img = clone.querySelector('img');
-            if (showSmallIcons) {
+            img.src = media.motion_photo.reg_gif;
+            mediaEle.style.width = `${media.thumbnail.reg_width}px`;
+          }
+        } else {
+          if (showSmallIcons) {
+            if (showLargerIconInMixedMode(media)) {
+              img.src = media.thumbnail.medium;
+              if (media.motion_photo) {
+                img.onmouseover = () => { img.src = media.motion_photo.medium_gif; };
+                img.onmouseleave = () => { img.src = media.thumbnail.medium; };
+                img.ontouchstart = () => { img.src = media.motion_photo.medium_gif; };
+                img.ontouchend = () => { img.src = media.thumbnail.medium; };
+              }
+              mediaEle.className = 'media_medium';
+            } else {
               img.src = media.thumbnail.small;
               if (media.motion_photo) {
                 img.onmouseover = () => { img.src = media.motion_photo.small_gif; };
@@ -492,53 +499,113 @@
                 img.ontouchend = () => { img.src = media.thumbnail.small; };
               }
               mediaEle.className = 'media_small';
-            } else if (isMobileView || !('reg' in media.thumbnail)) {
-              img.src = media.thumbnail.sq;
-              if (media.motion_photo) {
-                img.onmouseover = () => { img.src = media.motion_photo.sq_gif; };
-                img.onmouseleave = () => { img.src = media.thumbnail.sq; };
-                img.ontouchstart = () => { img.src = media.motion_photo.sq_gif; };
-                img.ontouchend = () => { img.src = media.thumbnail.sq; };
-              }
-              mediaEle.className = 'media';
-            } else {
-              img.src = media.thumbnail.reg;
-              if (media.motion_photo) {
-                img.onmouseover = () => { img.src = media.motion_photo.reg_gif; };
-                img.onmouseleave = () => { img.src = media.thumbnail.reg; };
-                img.ontouchstart = () => { img.src = media.motion_photo.reg_gif; };
-                img.ontouchend = () => { img.src = media.thumbnail.reg; };
-              }
-              mediaEle.style.width = `${media.thumbnail.reg_width}px`;
             }
+          } else if (isMobileView || !('reg' in media.thumbnail)) {
+            img.src = media.thumbnail.sq;
+            if (media.motion_photo) {
+              img.onmouseover = () => { img.src = media.motion_photo.sq_gif; };
+              img.onmouseleave = () => { img.src = media.thumbnail.sq; };
+              img.ontouchstart = () => { img.src = media.motion_photo.sq_gif; };
+              img.ontouchend = () => { img.src = media.thumbnail.sq; };
+            }
+            mediaEle.className = 'media';
+          } else {
+            img.src = media.thumbnail.reg;
+            if (media.motion_photo) {
+              img.onmouseover = () => { img.src = media.motion_photo.reg_gif; };
+              img.onmouseleave = () => { img.src = media.thumbnail.reg; };
+              img.ontouchstart = () => { img.src = media.motion_photo.reg_gif; };
+              img.ontouchend = () => { img.src = media.thumbnail.reg; };
+            }
+            mediaEle.style.width = `${media.thumbnail.reg_width}px`;
           }
+        }
 
+        if (!showSmallIcons) {
           if (media.title) {
             const name = `title${media.type}${media.id}`;
-            const title = clone.querySelector('.media_title');
+            const title = document.createElement('span');
+            title.className = 'media_title';
             title.style.display = getMetadataDisplay();
             if (media.title_prefix) {
               title.appendChild(getExpandableString(name, media.title_prefix + media.title));
             } else {
               title.appendChild(getExpandableString(name, media.title));
             }
+            mediaEle.appendChild(title);
           }
 
           if (media.comment) {
             const name = `comment${media.type}${media.id}`;
-            const comment = clone.querySelector('.media_comment');
+            const comment = document.createElement('span');
+            comment.className = 'media_comment';
             comment.style.display = getMetadataDisplay();
             comment.appendChild(getExpandableString(name, media.comment));
+            mediaEle.appendChild(comment);
           }
 
-          const metadata = clone.querySelector('.media_metadata');
+          const metadata = document.createElement('span');
+          metadata.className = 'media_metadata';
           metadata.style.display = getMetadataDisplay();
-          metadata.innerHTML = createMediaStatsHtml(media, eventNames, tags, searchLinkGenerator, false);
+          mediaEle.appendChild(metadata);
 
-          allMediaEle.appendChild(clone);
+          const searchLinkGenerator = function (field, op, val) {
+            return `href="#" onclick="searchPageLinkGenerator(event, [['${field}', '${op}', '${val}']]);"`;
+          };
+          metadata.innerHTML = createMediaStatsHtml(media, eventNames, tags, searchLinkGenerator, false);
+        }
+
+        return mediaEle
+      }
+
+      function createMediaSmallContainer() {
+        const ele = document.createElement('span');
+        ele.className = 'media_small_container';
+        ele.appendChild(createMediaElement(lastSmallMediaItems[0][0], lastSmallMediaItems[0][1]));
+        if (lastSmallMediaItems.length >= 2) {
+          ele.appendChild(createMediaElement(lastSmallMediaItems[1][0], lastSmallMediaItems[1][1]));
+          if (lastSmallMediaItems.length >= 3) {
+            ele.appendChild(createMediaElement(lastSmallMediaItems[2][0], lastSmallMediaItems[2][1]));
+            if (lastSmallMediaItems.length >= 4) {
+              ele.appendChild(createMediaElement(lastSmallMediaItems[3][0], lastSmallMediaItems[3][1]));
+            }
+          }
+        }
+        return ele;
+      }
+
+      function doShowMedia(pageNumber) {
+        const pageSize = showSmallIcons ? 48 : 12;
+        const lastPageNumber = Math.ceil(allMedia.length / pageSize);
+        if (pageNumber > lastPageNumber) {
+          return;
+        }
+
+        const allMediaEle = document.querySelector('#all_media');
+
+        const startIdx = (pageNumber - 1) * pageSize;
+
+        for (let [index, media] of allMedia.slice(startIdx, startIdx + pageSize).entries()) {
+          if (showSmallIcons) {
+            if (showLargerIconInMixedMode(media)) {
+              allMediaEle.appendChild(createMediaElement(startIdx + index, media));
+            } else {
+              lastSmallMediaItems.push([startIdx + index, media]);
+              if (lastSmallMediaItems.length === 4) {
+                allMediaEle.appendChild(createMediaSmallContainer());
+                lastSmallMediaItems = [];
+              }
+            }
+          } else {
+            allMediaEle.appendChild(createMediaElement(startIdx + index, media));
+          }
         }
 
         currentPageNumber = pageNumber;
+        if (pageNumber === lastPageNumber && lastSmallMediaItems != null && lastSmallMediaItems.length > 0) {
+          allMediaEle.appendChild(createMediaSmallContainer());
+          lastSmallMediaItems = [];
+        }
 
         // Ensure that the viewport is filled with media for higher screen resolutions.
         windowScrolled();
@@ -546,6 +613,7 @@
 
       function showMedia() {
         const allMediaEle = document.querySelector('#all_media');
+        lastSmallMediaItems = [];
 
         if (allMedia == null) {
           removeAllChildren(allMediaEle);
@@ -586,6 +654,7 @@
         processJson(populateMedia);
       }
 
+      updateSettingsText();
       window.onscroll = windowScrolled;
       window.onresize = windowSizeChanged;
 

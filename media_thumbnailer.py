@@ -15,17 +15,20 @@ COMPOSITE_FRAME_SIZE = 4
 class ThumbnailType(enum.Enum):
     SMALL_SQ = 1
     MEDIUM_SQ = 2
-    REGULAR = 3
+    LARGE_ROUND = 3
+    REGULAR = 4
 
 class Thumbnailer:
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, thumbnail_size, small_thumbnail_size, dest_directory, remove_stale_artifacts,
-                 imagemagick_command, ffmpeg_command, ffprobe_command, video_convert_command,
-                 exiv2_command, skip_metadata_text_if_exists, play_icon, play_icon_small):
+    def __init__(self, thumbnail_size, small_thumbnail_size, medium_thumbnail_size, dest_directory,
+                 remove_stale_artifacts, imagemagick_command, ffmpeg_command, ffprobe_command,
+                 video_convert_command, exiv2_command, skip_metadata_text_if_exists, play_icon,
+                 play_icon_small, play_icon_medium):
         # pylint: disable=too-many-arguments
         self.thumbnail_size = thumbnail_size
         self.small_thumbnail_size = small_thumbnail_size
+        self.medium_thumbnail_size = medium_thumbnail_size
         self.dest_thumbs_directory = os.path.join(dest_directory, "thumbnails")
         self.transformed_origs_directory = os.path.join(dest_directory, "transformed")
         self.motion_photo_directory = os.path.join(self.dest_thumbs_directory, "motion_photo")
@@ -39,6 +42,7 @@ class Thumbnailer:
         self.skip_metadata_text_if_exists = skip_metadata_text_if_exists
         self.play_icon = play_icon
         self.play_icon_small = play_icon_small
+        self.play_icon_medium = play_icon_medium
         self.generated_artifacts = set([])
 
     def _do_run_command(self, cmd, capture_output):
@@ -252,25 +256,29 @@ class Thumbnailer:
         if is_video:
             source_image += "[1]"
 
-        if thumbnail_type == ThumbnailType.MEDIUM_SQ:
+        if thumbnail_type == ThumbnailType.LARGE_ROUND:
             tn_size = f'{self.thumbnail_size}^'
         elif thumbnail_type == ThumbnailType.SMALL_SQ:
             tn_size = f'{self.small_thumbnail_size}^'
+        elif thumbnail_type == ThumbnailType.MEDIUM_SQ:
+            tn_size = f'{self.medium_thumbnail_size}^'
         else:
             tn_size = 'x' + (self.thumbnail_size.split('x')[1])
 
         resize_cmd = [self.imagemagick_command, source_image, "-strip", "-rotate", str(rotate),
                       "-thumbnail", tn_size]
 
-        if thumbnail_type == ThumbnailType.MEDIUM_SQ:
+        if thumbnail_type == ThumbnailType.LARGE_ROUND:
             resize_cmd += ["-gravity", "center", "-extent", self.thumbnail_size]
         elif thumbnail_type == ThumbnailType.SMALL_SQ:
             resize_cmd += ["-gravity", "center", "-extent", self.small_thumbnail_size]
+        elif thumbnail_type == ThumbnailType.MEDIUM_SQ:
+            resize_cmd += ["-gravity", "center", "-extent", self.medium_thumbnail_size]
 
         if overlay_icon:
             resize_cmd += [overlay_icon, "-gravity", "southeast", "-composite"]
 
-        if thumbnail_type == ThumbnailType.MEDIUM_SQ:
+        if thumbnail_type == ThumbnailType.LARGE_ROUND:
             resize_cmd += ["(", "+clone", "-alpha", "extract",
                            "-draw", "fill black polygon 0,0 0,15 15,0 fill white circle 15,15 15,0",
                            "(", "+clone", "-flip", ")",
@@ -324,6 +332,8 @@ class Thumbnailer:
 
         if thumbnail_type == ThumbnailType.SMALL_SQ:
             (width, height) = [int(x) for x in self.small_thumbnail_size.split("x")]
+        elif thumbnail_type == ThumbnailType.MEDIUM_SQ:
+            (width, height) = [int(x) for x in self.medium_thumbnail_size.split("x")]
         else:
             (width, height) = [int(x) for x in self.thumbnail_size.split("x")]
 
@@ -333,6 +343,8 @@ class Thumbnailer:
         if num_frames:
             if thumbnail_type == ThumbnailType.SMALL_SQ:
                 cmd += ["-i", self.play_icon_small]
+            elif thumbnail_type == ThumbnailType.MEDIUM_SQ:
+                cmd += ["-i", self.play_icon_medium]
             else:
                 cmd += ["-i", self.play_icon]
 
@@ -362,12 +374,13 @@ class Thumbnailer:
             complex_filter += (f"select=not(mod(n-1\\,{select_frames}))[skip];"
                                f"[skip]setpts=N/({pts}*TB)[fps];[fps]")
 
-        if thumbnail_type in (ThumbnailType.MEDIUM_SQ, ThumbnailType.SMALL_SQ):
+        if thumbnail_type in (ThumbnailType.LARGE_ROUND, ThumbnailType.SMALL_SQ,
+                              ThumbnailType.MEDIUM_SQ):
             complex_filter += f"scale='if(gt(iw,ih),-1,{height})':'if(gt(iw,ih),{width},-1)'"
         else:
             complex_filter += f"scale='-1:{height}'"
 
-        if thumbnail_type == ThumbnailType.MEDIUM_SQ:
+        if thumbnail_type == ThumbnailType.LARGE_ROUND:
             complex_filter += \
                 (f"[scale];[scale]crop={width}:{height}[crop];"
                  "[crop]geq=lum='p(X,Y)':"
@@ -376,12 +389,14 @@ class Thumbnailer:
                  "[rounded];"
                  f"color=white@0.0:size={width}x{height},format=rgba[bg];"
                  "[bg][rounded]overlay=x=0:y=0:shortest=1")
-        elif thumbnail_type == ThumbnailType.SMALL_SQ:
+        elif thumbnail_type in (ThumbnailType.SMALL_SQ, ThumbnailType.MEDIUM_SQ):
             complex_filter += f"[scale];[scale]crop={width}:{height}"
 
         if num_frames:
             if thumbnail_type == ThumbnailType.SMALL_SQ:
                 complex_filter += "[combined];[combined][1]overlay=x=main_w-16:y=main_h-16"
+            elif thumbnail_type == ThumbnailType.MEDIUM_SQ:
+                complex_filter += "[combined];[combined][1]overlay=x=main_w-30:y=main_h-30"
             else:
                 complex_filter += "[combined];[combined][1]overlay=x=main_w-60:y=main_h-60"
 
@@ -414,6 +429,8 @@ class Thumbnailer:
         if thumbnail_type == ThumbnailType.SMALL_SQ:
             path_part = "small"
         elif thumbnail_type == ThumbnailType.MEDIUM_SQ:
+            path_part = "medium"
+        elif thumbnail_type == ThumbnailType.LARGE_ROUND:
             path_part = "squared"
         else:
             path_part = "regular"
