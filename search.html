@@ -492,7 +492,7 @@
           } else if (iconSize === 'medium') {
             img.src = media.motion_photo.medium_gif;
             mediaEle.className = 'media_medium';
-          } else if (iconSize === 'large') {
+          } else if (iconSize === 'large' || !('reg_gif' in media.motion_photo)) {
             img.src = media.motion_photo.sq_gif;
             mediaEle.className = 'media';
           } else {
