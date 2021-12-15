@@ -34,7 +34,7 @@ function updateSearchCriteria() {
     const matchPolicy = document.querySelector('#match_policy').value;
     const sortby = document.querySelector('#sortby').value;
     const iconSize = document.querySelector('#icon_size').value;
-    window.history.pushState({}, '', `search.html?${searchArgs.join('&')}&match_policy=${matchPolicy}&sortby=${sortby}&icon_size=${iconSize}`);
+    window.history.pushState({}, '', `search.html?${searchArgs.join('&')}&match_policy=${matchPolicy}&sortby=${sortby}&icon_size=${iconSize}#`);
     processJson(populateMedia);
   }, 0);
 }
@@ -213,6 +213,6 @@ function populateSearchValuesFromUrl() {
 }
 
 function clearSearchCriteria() {
-  window.history.pushState({}, '', 'search.html');
+  window.history.pushState({}, '', 'search.html?#');
   processJson(populateMedia);
 }
