@@ -89,7 +89,7 @@ function toggleSlideshowTimers() {
       clearInterval(fullscreenReinstateSlideshowTimer);
       fullscreenReinstateSlideshowTimer = null;
     }
-    fullscreenPhotoUpdateTimer = setInterval((e) => { showNextImageFullscreen(e, false) }, fullScreenPhotoUpdateSecs * 1000);
+    fullscreenPhotoUpdateTimer = setInterval((e) => { showNextImageFullscreen(e, false); }, fullScreenPhotoUpdateSecs * 1000);
   } else {
     setFullscreenDescriptionShown(true);
 

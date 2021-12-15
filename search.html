@@ -503,44 +503,42 @@
             img.src = media.motion_photo.reg_gif;
             mediaEle.style.width = `${media.thumbnail.reg_width}px`;
           }
-        } else {
-          if (iconSize === 'small') {
-            img.src = media.thumbnail.small;
-            if (media.motion_photo) {
-              img.onmouseover = () => { img.src = media.motion_photo.small_gif; };
-              img.onmouseleave = () => { img.src = media.thumbnail.small; };
-              img.ontouchstart = () => { img.src = media.motion_photo.small_gif; };
-              img.ontouchend = () => { img.src = media.thumbnail.small; };
-            }
-            mediaEle.className = 'media_small';
-          } else if (iconSize === 'medium') {
-            img.src = media.thumbnail.medium;
-            if (media.motion_photo) {
-              img.onmouseover = () => { img.src = media.motion_photo.medium_gif; };
-              img.onmouseleave = () => { img.src = media.thumbnail.medium; };
-              img.ontouchstart = () => { img.src = media.motion_photo.medium_gif; };
-              img.ontouchend = () => { img.src = media.thumbnail.medium; };
-            }
-            mediaEle.className = 'media_medium';
-          } else if (iconSize === 'large' || !('reg' in media.thumbnail)) {
-            img.src = media.thumbnail.sq;
-            if (media.motion_photo) {
-              img.onmouseover = () => { img.src = media.motion_photo.sq_gif; };
-              img.onmouseleave = () => { img.src = media.thumbnail.sq; };
-              img.ontouchstart = () => { img.src = media.motion_photo.sq_gif; };
-              img.ontouchend = () => { img.src = media.thumbnail.sq; };
-            }
-            mediaEle.className = 'media';
-          } else {
-            img.src = media.thumbnail.reg;
-            if (media.motion_photo) {
-              img.onmouseover = () => { img.src = media.motion_photo.reg_gif; };
-              img.onmouseleave = () => { img.src = media.thumbnail.reg; };
-              img.ontouchstart = () => { img.src = media.motion_photo.reg_gif; };
-              img.ontouchend = () => { img.src = media.thumbnail.reg; };
-            }
-            mediaEle.style.width = `${media.thumbnail.reg_width}px`;
+        } else if (iconSize === 'small') {
+          img.src = media.thumbnail.small;
+          if (media.motion_photo) {
+            img.onmouseover = () => { img.src = media.motion_photo.small_gif; };
+            img.onmouseleave = () => { img.src = media.thumbnail.small; };
+            img.ontouchstart = () => { img.src = media.motion_photo.small_gif; };
+            img.ontouchend = () => { img.src = media.thumbnail.small; };
           }
+          mediaEle.className = 'media_small';
+        } else if (iconSize === 'medium') {
+          img.src = media.thumbnail.medium;
+          if (media.motion_photo) {
+            img.onmouseover = () => { img.src = media.motion_photo.medium_gif; };
+            img.onmouseleave = () => { img.src = media.thumbnail.medium; };
+            img.ontouchstart = () => { img.src = media.motion_photo.medium_gif; };
+            img.ontouchend = () => { img.src = media.thumbnail.medium; };
+          }
+          mediaEle.className = 'media_medium';
+        } else if (iconSize === 'large' || !('reg' in media.thumbnail)) {
+          img.src = media.thumbnail.sq;
+          if (media.motion_photo) {
+            img.onmouseover = () => { img.src = media.motion_photo.sq_gif; };
+            img.onmouseleave = () => { img.src = media.thumbnail.sq; };
+            img.ontouchstart = () => { img.src = media.motion_photo.sq_gif; };
+            img.ontouchend = () => { img.src = media.thumbnail.sq; };
+          }
+          mediaEle.className = 'media';
+        } else {
+          img.src = media.thumbnail.reg;
+          if (media.motion_photo) {
+            img.onmouseover = () => { img.src = media.motion_photo.reg_gif; };
+            img.onmouseleave = () => { img.src = media.thumbnail.reg; };
+            img.ontouchstart = () => { img.src = media.motion_photo.reg_gif; };
+            img.ontouchend = () => { img.src = media.thumbnail.reg; };
+          }
+          mediaEle.style.width = `${media.thumbnail.reg_width}px`;
         }
 
         if (iconSize !== 'small' && iconSize !== 'medium') {
@@ -577,7 +575,7 @@
           metadata.innerHTML = createMediaStatsHtml(media, eventNames, tags, searchLinkGenerator, false);
         }
 
-        return mediaEle
+        return mediaEle;
       }
 
       function createMediaSmallContainer() {
@@ -617,7 +615,7 @@
 
         const startIdx = (pageNumber - 1) * pageSize;
 
-        for (let [index, media] of allMedia.slice(startIdx, startIdx + pageSize).entries()) {
+        for (const [index, media] of allMedia.slice(startIdx, startIdx + pageSize).entries()) {
           const mediaIconSize = getMediaIconSize(pageIconSize, media);
           if (pageIconSize === 'small_medium') {
             if (mediaIconSize === 'medium') {
