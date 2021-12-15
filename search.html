@@ -432,7 +432,11 @@
         } else {
           anchor.href = '#';
           const link = media.link;
-          anchor.onclick = () => { enterSlideshowMode(allMediaIndex); };
+          anchor.onclick = (event) => {
+            enterSlideshowMode(allMediaIndex);
+            event.stopPropagation();
+            return false;
+          };
         }
 
         return media;
