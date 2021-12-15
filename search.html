@@ -683,8 +683,7 @@
       window.onscroll = windowScrolled;
       window.onresize = windowSizeChanged;
 
-      const fullImageEle = document.querySelector('#fullimage');
-      fullImageEle.onclick = toggleFullscreenDescription;
+      document.querySelector('#fullimage').onclick = toggleFullscreenDescription;
 
       document.onkeydown = (event) => {
         if (event.key === 'ArrowLeft') {
