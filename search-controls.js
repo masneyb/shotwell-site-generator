@@ -211,3 +211,8 @@ function populateSearchValuesFromUrl() {
     addSearchInputRow();
   }
 }
+
+function clearSearchCriteria() {
+  window.history.pushState({}, '', 'search.html');
+  processJson(populateMedia);
+}

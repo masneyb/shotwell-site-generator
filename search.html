@@ -679,11 +679,6 @@
         }, 0);
       }
 
-      function clearSearchCriteria() {
-        window.history.pushState({}, '', 'search.html');
-        processJson(populateMedia);
-      }
-
       updateSettingsText();
       window.onscroll = windowScrolled;
       window.onresize = windowSizeChanged;
