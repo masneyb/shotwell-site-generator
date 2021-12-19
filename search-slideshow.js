@@ -16,7 +16,6 @@ let fullscreenReinstateSlideshowTimer = null;
 
 function setFullscreenDescriptionShown(shown) {
   const descrEle = document.querySelector('#description');
-  document.body.style.cursor = shown ? 'auto' : 'none';
   descrEle.style.display = shown ? 'block' : 'none';
 }
 
