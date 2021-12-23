@@ -218,8 +218,9 @@ class Database:
                 video_json = self.thumbnailer.write_video_json(video, media_id)
                 media = self.__add_media(all_media, row, media_id, video, video, None, 0,
                                          self.icons.play, self.icons.play, self.icons.play_small,
-                                         self.icons.play_medium, reg_short_mp_path, sq_short_mp_path,
-                                         small_short_mp_path, medium_short_mp_path, video_json)
+                                         self.icons.play_medium, reg_short_mp_path,
+                                         sq_short_mp_path, small_short_mp_path,
+                                         medium_short_mp_path, video_json)
                 media["clip_duration"] = row["clip_duration"]
 
     def __process_photo_row(self, all_media, row, download_source, is_raw):
