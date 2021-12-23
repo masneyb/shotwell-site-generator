@@ -3,7 +3,6 @@
  * Copyright (C) 2020-2021 Brian Masney <masneyb@onstation.org>
  */
 
-let wasPreviouslyFullscreen = false;
 let preFullscreenScrollX = -1;
 let preFullscreenScrollY = -1;
 let allMediaFullscreenIndex = -1;
@@ -110,16 +109,6 @@ function toggleSlideshowTimers() {
   }
 }
 
-function isFullscreen() {
-  return document.fullscreenElement != null || document.webkitIsFullScreen || document.mozFullScreen || document.msFullscreenElement != null;
-}
-
-function doExitFullscreen() {
-  if (isFullscreen()) {
-    document.exitFullscreen();
-  }
-}
-
 function setFullImageDisplay(shown) {
   document.querySelector('#description').style.display = 'none';
 
@@ -130,17 +119,8 @@ function setFullImageDisplay(shown) {
   }
 
   if (shown) {
-    wasPreviouslyFullscreen = isFullscreen();
-    if (!wasPreviouslyFullscreen) {
-      document.documentElement.requestFullscreen();
-    }
-
     document.body.style.overflow = 'hidden';
   } else {
-    if (!wasPreviouslyFullscreen) {
-      doExitFullscreen();
-    }
-
     document.body.style.overflow = 'auto';
     const ele = document.querySelector('#fullimage');
     ele.src = '';
@@ -184,7 +164,7 @@ function checkForPhotoFrameMode() {
 
 function toggleFullscreen() {
   if (document.fullscreenElement !== null) {
-    doExitFullscreen();
+    document.exitFullscreen();
   } else {
     document.documentElement.requestFullscreen();
   }
