@@ -5,6 +5,7 @@
 # Exports a static HTML view of your shotwell photo/video library.
 
 import argparse
+import json
 import logging
 import os
 import shutil
@@ -14,6 +15,24 @@ import media_fetcher
 import media_thumbnailer
 import media_writer_html
 import media_writer_json
+
+def write_manifest_json(options):
+    vals = {}
+    vals["name"] = options.title
+    vals["short_name"] = options.title
+    vals["description"] = options.title
+    vals["start_url"] = "search.html"
+    vals["display"] = "fullscreen"
+    vals["background_color"] = "#fff"
+
+    if options.manifest_icon_src:
+        vals["icons"] = [{"src": options.manifest_icon_src,
+                          "sizes": options.manifest_icon_size,
+                          "type": "image/png"}]
+
+    with open(os.path.join(options.dest_directory, "manifest.json"), "w") as outfile:
+        outfile.write(json.dumps(vals, indent="\t"))
+
 
 def process_photos(options):
     conn = sqlite3.connect(options.input_database)
@@ -71,9 +90,6 @@ def process_photos(options):
     logging.info("Copying other support files")
     write_redirect(os.path.join(options.dest_directory, "index.html"), "search.html")
     write_redirect(os.path.join(options.dest_directory, "static-site.html"), "media/index.html")
-
-    thumbnailer.remove_thumbnails()
-
     shutil.copyfile(__get_assets_path(options, "search.css"),
                     os.path.join(options.dest_directory, "search.css"))
     shutil.copyfile(__get_assets_path(options, "search.html"),
@@ -88,6 +104,8 @@ def process_photos(options):
                     os.path.join(options.dest_directory, "search-slideshow.js"))
     shutil.copyfile(__get_assets_path(options, "swiped-events.js"),
                     os.path.join(options.dest_directory, "swiped-events.js"))
+    thumbnailer.remove_thumbnails()
+    write_manifest_json(options)
 
     if not options.skip_original_symlink:
         media_symlink = os.path.join(options.dest_directory, "original")
@@ -159,6 +177,9 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--extra-header-link-descr",
                            help="Label for the URL in --extra-header-link")
     ARGPARSER.add_argument("--add-path-to-overall-diskspace", nargs="+", default=[])
+    ARGPARSER.add_argument("--manifest-icon-src",
+                           help="PNG file for the Progress Web App manifest file")
+    ARGPARSER.add_argument("--manifest-icon-size")
     ARGPARSER.add_argument("--debug", action="store_true", default=False)
     ARGS = ARGPARSER.parse_args(sys.argv[1:])
     logging.basicConfig(format="%(asctime)s %(message)s",
