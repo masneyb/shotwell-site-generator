@@ -198,10 +198,10 @@ a {
 
 #close {
 	position: fixed;
-	top: 15px;
-	right: 20px;
+	top: 3px;
+	right: 10px;
 	color: lightgray;
-	font-size: 24px;
+	font-size: 36px;
 	font-weight: bold;
 	text-decoration: none;
 }
