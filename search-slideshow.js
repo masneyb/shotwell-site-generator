@@ -76,6 +76,8 @@ function doShowFullscreenImage(manuallyInvoked) {
     if (fullscreenPhotoUpdateTimer != null) {
       enableFullscreenPhotoUpdateTimer();
     }
+  } else {
+    setFullscreenDescriptionShown(false);
   }
 
   const imageEle = document.querySelector('#fullimage');
