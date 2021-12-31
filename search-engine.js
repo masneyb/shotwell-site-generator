@@ -88,10 +88,6 @@ function createMediaStatsHtml(entity, eventNames, tags, searchLinkGenerator, sho
     ret = ret.concat(entity.exif);
   }
 
-  if ('metadata_text' in entity) {
-    ret.push(`<a target="_new" href="${entity.metadata_text}">Metadata</a>`);
-  }
-
   if (entity.event_id && entity.type !== 'events') {
     const anchorOpts = searchLinkGenerator('Event ID', 'equals', entity.event_id);
     ret.push(`Event: <a ${anchorOpts}>${eventNames[entity.event_id]}</a>`);
@@ -118,8 +114,16 @@ function createMediaStatsHtml(entity, eventNames, tags, searchLinkGenerator, sho
     ret.push(`<a ${anchorOpts}>GPS ${entity.lat},${entity.lon}</a>`);
   }
 
+  if ('metadata_text' in entity) {
+    ret.push(`<a target="_new" href="${entity.metadata_text}">Metadata</a>`);
+  }
+
   if ('motion_photo' in entity && 'mp4' in entity.motion_photo) {
     ret.push(`<a target="_new" href="${entity.motion_photo.mp4}">Motion Photo</a>`);
+  }
+
+  if (entity.type === 'video' || entity.type == 'photo') {
+    ret.push(`<a target="_new" href="${entity.link}">Download</a>`);
   }
 
   if ('rating' in entity) {
