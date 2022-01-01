@@ -122,7 +122,7 @@ function createMediaStatsHtml(entity, eventNames, tags, searchLinkGenerator, sho
     ret.push(`<a target="_new" href="${entity.motion_photo.mp4}">Motion Photo</a>`);
   }
 
-  if (entity.type === 'video' || entity.type == 'photo') {
+  if (entity.type === 'video' || entity.type === 'photo') {
     ret.push(`<a target="_new" href="${entity.link}">Download</a>`);
   }
 

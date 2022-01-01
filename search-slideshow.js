@@ -12,7 +12,7 @@ let fullScreenPhotoUpdateSecs = 0;
 let fullscreenPhotoUpdateTimer = null;
 let fullscreenReinstateSlideshowSecs = 0;
 let fullscreenReinstateSlideshowTimer = null;
-let cachedImages = new Set();
+const cachedImages = new Set();
 let numCachedImages = 0;
 
 function setFullscreenDescriptionShown(shown) {
@@ -37,12 +37,14 @@ function getPreviousImageIndex() {
 
 function getFullscreenImageUrl(index) {
   if (allMedia[index].type === 'photo') {
-    return allMedia[index].link
-  } else if ('reg' in allMedia[index].thumbnail) {
-    return allMedia[index].thumbnail.reg;
-  } else {
-    return allMedia[index].thumbnail.sq;
+    return allMedia[index].link;
   }
+
+  if ('reg' in allMedia[index].thumbnail) {
+    return allMedia[index].thumbnail.reg;
+  }
+
+  return allMedia[index].thumbnail.sq;
 }
 
 function recordImageUrlAsCached(imageUrl) {
@@ -100,7 +102,7 @@ function doShowFullscreenImage(manuallyInvoked) {
   if (allMedia[allMediaFullscreenIndex].type === 'photo') {
     fullscreenImageLink = null;
   } else if (allMedia[allMediaFullscreenIndex].type === 'video') {
-     // FIXME - links to events, tags, and years don't work at the moment
+    // FIXME - links to events, tags, and years don't work at the moment
     fullscreenImageLink = allMedia[allMediaFullscreenIndex].link;
   }
 }
