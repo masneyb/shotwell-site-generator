@@ -114,7 +114,6 @@ function isImageFullscreen() {
 
 function showNextImageFullscreen(event, manuallyInvoked) {
   if (isImageFullscreen()) {
-    const fullImageEle = document.querySelector('#fullimage');
     allMediaFullscreenIndex = getNextImageIndex();
     doShowFullscreenImage(manuallyInvoked);
   }
@@ -122,7 +121,6 @@ function showNextImageFullscreen(event, manuallyInvoked) {
 
 function showPreviousImageFullscreen(event) {
   if (isImageFullscreen()) {
-    const fullImageEle = document.querySelector('#fullimage');
     allMediaFullscreenIndex = getPreviousImageIndex();
     doShowFullscreenImage(true);
   }

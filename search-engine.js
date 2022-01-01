@@ -30,6 +30,7 @@ function getPrettyFileSize(size) {
 }
 
 function getNumberString(number, singular, plural) {
+  /* eslint eqeqeq: 0 */
   return number == 1 ? `${number.toLocaleString()} ${singular}` : `${number.toLocaleString()} ${plural}`;
 }
 
@@ -493,6 +494,7 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
   ops.push({
     descr: 'equals',
     matches(field, op, values, media) {
+      /* eslint eqeqeq: 0 */
       return performGenericOp(field, media, values[0], (input, value) => input != null && input == value);
     },
     placeholder: [placeholderText],
@@ -504,6 +506,7 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
   ops.push({
     descr: 'not equals',
     matches(field, op, values, media) {
+      /* eslint eqeqeq: 0 */
       return performGenericOp(field, media, values[0], (input, value) => input == null || input != value);
     },
     placeholder: [placeholderText],
@@ -886,7 +889,7 @@ function shortenPrettyDate(input) {
   return `${parts[1]} ${parts[2]} ${parts[3]}`;
 }
 
-function performSearch(allItems, eventNames, tags) {
+function performSearch(allItems) {
   const allCriteria = getSearchCriteria();
   const matchPolicy = getQueryParameter('match_policy', 'all'); // any,none,all
   let minDate;
@@ -1039,6 +1042,6 @@ function processJson(readyFunc) {
     }
   }
 
-  const searchResults = performSearch(processedMedia, eventNames, tags);
+  const searchResults = performSearch(processedMedia);
   readyFunc(searchResults[0], extraHeader, mainTitle, searchResults[1]);
 }

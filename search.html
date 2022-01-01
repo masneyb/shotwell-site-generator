@@ -320,6 +320,7 @@
           }
         }
 
+        /* eslint indent: 0 */
         const titles = [[eventTitle, 'events_link', eventPreferLargeIcons],
                         [yearTitle, 'years_link', true],
                         [tagTitle, 'tags_link', tagPreferLargeIcons],
@@ -420,7 +421,6 @@
           anchor.target = '_new';
         } else {
           anchor.href = '#';
-          const link = media.link;
           anchor.onclick = (event) => {
             enterSlideshowMode(allMediaIndex);
             event.stopPropagation();

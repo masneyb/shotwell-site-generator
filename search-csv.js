@@ -19,6 +19,7 @@ function writeCsvRow(cols) {
 function getCsvUriData() {
   let ret = 'data:text/csv;charset=utf-8,';
 
+  /* eslint indent: 0 */
   ret += writeCsvRow(['ID', 'Type', 'Path', 'Original Size', 'Original Size w/ Artifacts',
                       'Rating', 'Width', 'Height', 'Exposure Time', 'Event ID', 'Latitude',
                       'Longitude', 'Title', 'Camera', 'Camera Settings']);
