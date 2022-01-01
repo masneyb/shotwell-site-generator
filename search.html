@@ -24,7 +24,6 @@
     <span class="summary_stats"></span>
     <span class="header_links" style="display: none">
       <a class="header_link" id="toggle_fullscreen" href="#" onClick="toggleFullscreen();">Fullscreen</a>
-      <a class="header_link" id="toggle_metadata" href="#" onClick="toggleMetadata();"></a>
       <a class="header_link" id="toggle_animations" href="#" onClick="toggleAnimations();"></a>
       <a class="header_link" href="#" onClick="slideshowClicked();">Slideshow</a>
       <a class="header_link" href="#" id="csv_link">CSV</a>
@@ -68,7 +67,9 @@
         <option value="medium">Medium Icons</option>
         <option value="small_medium">Small/Medium Icons</option>
         <option value="large">Large Icons</option>
+        <option value="large_no_meta">Large Icons (No Metadata)</option>
         <option value="regular">Regular Icons</option>
+        <option value="regular_no_meta">Regular Icons (No Metadata)</option>
       </select>
       <input class="button" type="button" onClick="updateSearchCriteria();" value="Search"></input>
       <input class="button" type="button" onClick="clearSearchCriteria();" value="Clear"></input>
@@ -107,7 +108,6 @@
       let currentPageNumber = 1;
       let allMedia = null;
       let dateRange = null;
-      let metadataDisplay = 'block';
       let alwaysShowAnimations = false;
       let isMobileView = showMobileView();
       let currentYearView = null;
@@ -119,25 +119,13 @@
         allMediaEle.innerHTML = "<div class='error'>Error loading media</div>";
       }
 
-      function updateSettingsText() {
+      function updateAnimationsText() {
         document.querySelector('#toggle_animations').innerText = alwaysShowAnimations ? 'Stop Animations' : 'Show Animations';
-
-        document.querySelector('#toggle_metadata').innerText = metadataDisplay === 'none' ? 'Show Metadata' : 'Hide Metadata';
-        for (const name of ['.media_metadata', '.media_title', '.media_comment']) {
-          for (const ele of document.querySelectorAll(name)) {
-            ele.style.display = metadataDisplay;
-          }
-        }
-      }
-
-      function toggleMetadata() {
-        metadataDisplay = metadataDisplay === 'none' ? 'block' : 'none';
-        updateSettingsText();
       }
 
       function toggleAnimations() {
         alwaysShowAnimations = !alwaysShowAnimations;
-        updateSettingsText();
+        updateAnimationsText();
         showMedia();
       }
 
@@ -450,7 +438,7 @@
       }
 
       function getPageIconSize() {
-        const validIconSizes = ['small', 'medium', 'small_medium', 'large', 'regular'];
+        const validIconSizes = ['small', 'medium', 'small_medium', 'large', 'large_no_meta', 'regular', 'regular_no_meta'];
         const iconSize = getQueryParameter('icon_size', 'default');
         if (validIconSizes.includes(iconSize)) {
           return iconSize;
@@ -497,7 +485,7 @@
           } else if (iconSize === 'medium') {
             img.src = media.motion_photo.medium_gif;
             mediaEle.className = 'media_medium';
-          } else if (iconSize === 'large' || !('reg_gif' in media.motion_photo)) {
+          } else if (['large', 'large_no_meta'].includes(iconSize) || !('reg_gif' in media.motion_photo)) {
             img.src = media.motion_photo.sq_gif;
             mediaEle.className = 'media';
           } else {
@@ -522,7 +510,7 @@
             img.ontouchend = () => { img.src = media.thumbnail.medium; };
           }
           mediaEle.className = 'media_medium';
-        } else if (iconSize === 'large' || !('reg' in media.thumbnail)) {
+        } else if (['large', 'large_no_meta'].includes(iconSize) || !('reg' in media.thumbnail)) {
           img.src = media.thumbnail.sq;
           if (media.motion_photo) {
             img.onmouseover = () => { img.src = media.motion_photo.sq_gif; };
@@ -542,12 +530,11 @@
           mediaEle.style.width = `${media.thumbnail.reg_width}px`;
         }
 
-        if (iconSize !== 'small' && iconSize !== 'medium') {
+        if (['large', 'regular'].includes(iconSize)) {
           if (media.title) {
             const name = `title${media.type}${media.id}`;
             const title = document.createElement('span');
             title.className = 'media_title';
-            title.style.display = metadataDisplay;
             if (media.title_prefix) {
               title.appendChild(getExpandableString(name, media.title_prefix + media.title));
             } else {
@@ -560,14 +547,12 @@
             const name = `comment${media.type}${media.id}`;
             const comment = document.createElement('span');
             comment.className = 'media_comment';
-            comment.style.display = metadataDisplay;
             comment.appendChild(getExpandableString(name, media.comment));
             mediaEle.appendChild(comment);
           }
 
           const metadata = document.createElement('span');
           metadata.className = 'media_metadata';
-          metadata.style.display = metadataDisplay;
           mediaEle.appendChild(metadata);
 
           const searchLinkGenerator = function (field, op, val) {
@@ -601,10 +586,8 @@
         let pageSize;
         if (pageIconSize === 'small' || pageIconSize === 'medium' || pageIconSize === 'small_medium') {
           pageSize = 48;
-          document.querySelector('#toggle_metadata').style.display = 'none';
         } else {
           pageSize = 12;
-          document.querySelector('#toggle_metadata').style.display = 'inline-block';
         }
 
         const lastPageNumber = Math.ceil(allMedia.length / pageSize);
@@ -682,7 +665,7 @@
         }, 0);
       }
 
-      updateSettingsText();
+      updateAnimationsText();
       window.onscroll = windowScrolled;
       window.onresize = windowSizeChanged;
 
