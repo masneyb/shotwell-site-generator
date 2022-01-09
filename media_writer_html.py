@@ -523,7 +523,7 @@ class Html(CommonWriter):
         tag_links = []
         for tag in tag_counts[0:150]:
             tag_links.append("<a href='../tag/%d.html'><span class='header_link'>" % (tag[0]) +
-                             "Tag: %s" % (html.escape(tag[1])) +
+                             html.escape(tag[1]) +
                              "</span></a>")
 
         return self.__get_expandable_header_links("Popular Tags", tag_links)
@@ -557,7 +557,7 @@ class Html(CommonWriter):
         event_links = []
         for event in events:
             event_links.append("<a href='../event/%d.html'>" % (event["id"]) + \
-                               "<span class='header_link'>Event: %s (%s)" % \
+                               "<span class='header_link'>%s (%s)" % \
                                (html.escape(common.cleanup_event_title(event)),
                                 self._get_date_range(event["stats"]["min_date"],
                                                      event["stats"]["max_date"])) + \

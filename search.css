@@ -48,6 +48,7 @@ a {
 	padding: 2px;
 	white-space: nowrap;
 	display: inline-block;
+	text-decoration: underline;
 }
 
 .media, .media_small, .media_medium, .media_dyn, .media_small_container {
