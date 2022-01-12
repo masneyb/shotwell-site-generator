@@ -86,7 +86,7 @@
 
     <div id="fullimage_background" style="display: none;"></div>
     <div id="fullimage_container" style="display: none;">
-      <a id="close" href="#" onclick="exitImageFullscreen();">&times;</a>
+      <a id="close" href="#" onclick="exitImageFullscreen(event);">&times;</a>
       <img id="fullimage"></img>
       <div id="description"></div>
     </div>
@@ -677,21 +677,21 @@
         } else if (event.key === 'ArrowRight') {
           showNextImageFullscreen(event, true);
         } else if (event.key === 'Escape') {
-          exitImageFullscreen();
+          exitImageFullscreen(event);
         } else if (event.key === ' ') {
           toggleFullscreenDescription();
         }
       };
-      document.onfullscreenchange = (evt) => {
+      document.onfullscreenchange = (event) => {
         if (!isFullscreen()) {
-          exitImageFullscreen();
+          exitImageFullscreen(event);
         }
       };
-      document.addEventListener('swiped-left', (e) => { showNextImageFullscreen(e, true); });
+      document.addEventListener('swiped-left', (event) => { showNextImageFullscreen(event, true); });
       document.addEventListener('swiped-right', showPreviousImageFullscreen);
-      document.addEventListener('swiped-down', (e) => {
+      document.addEventListener('swiped-down', (event) => {
         if (!inPhotoFrameMode) {
-          exitImageFullscreen();
+          exitImageFullscreen(event);
         }
       });
 

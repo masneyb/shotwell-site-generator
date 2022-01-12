@@ -84,7 +84,7 @@ function doShowFullscreenImage(manuallyInvoked) {
 
   const imageEle = document.querySelector('#fullimage');
   const searchLinkGenerator = function (field, op, val) {
-    return `href="#" onclick="exitImageFullscreen(); searchPageLinkGenerator(event, [['${field}', '${op}', '${val}']]);"`;
+    return `href="#" onclick="exitImageFullscreen(event); searchPageLinkGenerator(event, [['${field}', '${op}', '${val}']]);"`;
   };
   imageEle.onload = () => {
     if (hideDescr) {
@@ -209,8 +209,11 @@ function toggleFullscreen() {
   }
 }
 
-function exitImageFullscreen() {
+function exitImageFullscreen(event) {
   if (isImageFullscreen()) {
+    event.preventDefault();
+    event.stopPropagation();
+
     fullScreenPhotoUpdateSecs = 0;
     fullscreenReinstateSlideshowSecs = 0;
     document.body.style.cursor = 'auto';
