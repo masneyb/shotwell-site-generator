@@ -67,7 +67,7 @@ function prefetchImage(index) {
 
 function doShowFullscreenImage(manuallyInvoked) {
   const descrEle = document.querySelector('#description');
-  descrEle.innerHTML = "<div class='loading'>Loading</div>";
+  addStatusMessage(descrEle, 'Loading');
 
   let hideDescr = false;
   if (manuallyInvoked) {

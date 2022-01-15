@@ -8,12 +8,16 @@ let nextSearchInput = 0;
 function createOptionNode(text, value) {
   const option = document.createElement('option');
   option.value = value;
+  /*
+   * Can't use 'option.appendChild(document.createTextNode(text));' since the value can contain
+   * HTML entities (like &starf;) in the Rating field.
+   */
   option.innerHTML = text;
   return option;
 }
 
 function updateSearchCriteria() {
-  document.querySelector('#all_media').innerHTML = "<div class='loading'>Searching</div>";
+  updateOverallStatusMessage('Searching');
   hideResultsInfo();
 
   setFullImageDisplay(false);

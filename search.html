@@ -75,7 +75,7 @@
       <input class="button" type="button" onClick="clearSearchCriteria();" value="Clear"></input>
     </span>
 
-    <div id="all_media"><div class='loading'>Loading</div></div>
+    <div id="all_media"><div class='status'>Loading</div></div>
 
     <span class="generated_at">Site generated from
       <a href="https://wiki.gnome.org/Apps/Shotwell">Shotwell</a> library
@@ -114,9 +114,20 @@
       let lastSmallMediaItems = null;
       let preferLargeIcons = false;
 
+      function addStatusMessage(parentEle, text) {
+        removeAllChildren(parentEle);
+        const msgEle = document.createElement('div');
+        msgEle.className = 'status';
+        msgEle.appendChild(document.createTextNode(text));
+        parentEle.appendChild(msgEle);
+      }
+
+      function updateOverallStatusMessage(text) {
+        addStatusMessage(document.querySelector('#all_media'), text);
+      }
+
       function jsonLoadError() {
-        const allMediaEle = document.querySelector('#all_media');
-        allMediaEle.innerHTML = "<div class='error'>Error loading media</div>";
+        updateOverallStatusMessage('Error loading media');
       }
 
       function updateAnimationsText() {
@@ -644,7 +655,7 @@
         document.querySelector('#search_criterias').style.display = 'block';
 
         if (allMedia.length === 0) {
-          allMediaEle.innerHTML = "<div class='notfound'>No results found</div>";
+          updateOverallStatusMessage('No results found');
           hideResultsInfo();
           return;
         }
