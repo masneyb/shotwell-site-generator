@@ -34,64 +34,87 @@ function getNumberString(number, singular, plural) {
   return number == 1 ? `${number.toLocaleString()} ${singular}` : `${number.toLocaleString()} ${plural}`;
 }
 
-function createMediaStatsHtml(entity, eventNames, tags, searchLinkGenerator, showTitle) {
-  let ret = [];
-  if (showTitle && 'title' in entity && entity.title) {
-    if (entity.title_prefix) {
-      ret.push(entity.title_prefix + entity.title);
-    } else {
-      ret.push(entity.title);
+function createMediaStat(child) {
+  const ret = document.createElement('span');
+  ret.className = 'media_stat';
+  ret.appendChild(child);
+  return ret;
+}
+
+function createTextMediaStat(text) {
+  return createMediaStat(document.createTextNode(text));
+}
+
+function createSearchLink(label, field, op, val, extraOnClick) {
+  const anchor = document.createElement('a');
+  anchor.href = '#';
+  anchor.onclick = (event) => {
+    if (extraOnClick) {
+      extraOnClick(event);
     }
+    searchPageLinkGenerator(event, [[field, op, val]]);
+  };
+  anchor.innerText = label;
+  return createMediaStat(anchor);
+}
+
+function createOpenInNewTabLink(label, link) {
+  const anchor = document.createElement('a');
+  anchor.target = '_new';
+  anchor.href = link;
+  anchor.innerText = label;
+  return createMediaStat(anchor);
+}
+
+function createMediaStatsHtml(entity, eventNames, tags, showTitle, extraOnClick) {
+  const stats = [];
+  if (showTitle && 'title' in entity && entity.title) {
+    const title = entity.title_prefix ? entity.title_prefix + entity.title : entity.title;
+    stats.push(createTextMediaStat(entity.title_prefix + entity.title));
   }
 
   if (entity.num_photos > 0) {
-    ret.push(getNumberString(entity.num_photos, 'photo', 'photos'));
+    stats.push(createTextMediaStat(getNumberString(entity.num_photos, 'photo', 'photos')));
   }
 
   if (entity.num_videos > 0) {
-    ret.push(getNumberString(entity.num_videos, 'video', 'videos'));
+    stats.push(createTextMediaStat(getNumberString(entity.num_videos, 'video', 'videos')));
   }
 
   if ('num_events' in entity && entity.num_events > 1) {
-    ret.push(`${entity.num_events.toLocaleString()} events`);
+    stats.push(createTextMediaStat(`${entity.num_events.toLocaleString()} events`));
   }
 
   if ('exposure_time_pretty' in entity) {
-    ret.push(entity.exposure_time_pretty);
+    stats.push(createTextMediaStat(entity.exposure_time_pretty));
   }
 
   if (entity.date_range) {
-    ret.push(entity.date_range);
+    stats.push(createTextMediaStat(entity.date_range));
   }
 
   if (entity.megapixels) {
-    ret.push(`${entity.megapixels}MP`);
+    stats.push(createTextMediaStat(`${entity.megapixels}MP`));
   }
 
   if (entity.filesize) {
-    ret.push(getPrettyFileSize(entity.filesize));
+    stats.push(createTextMediaStat(getPrettyFileSize(entity.filesize)));
   }
 
   if (entity.width) {
-    ret.push(`${entity.width}x${entity.height}`);
+    stats.push(createTextMediaStat(`${entity.width}x${entity.height}`));
   }
 
   if (entity.clip_duration) {
-    ret.push(entity.clip_duration);
+    stats.push(createTextMediaStat(entity.clip_duration));
   }
 
   if ('camera' in entity) {
-    const anchorOpts = searchLinkGenerator('Camera', 'equals', entity.camera);
-    ret.push(`<a ${anchorOpts}>${entity.camera}</a>`);
-  }
-
-  if ('exif' in entity) {
-    ret = ret.concat(entity.exif);
+    stats.push(createSearchLink(entity.camera, 'Camera', 'equals', entity.camera, extraOnClick));
   }
 
   if (entity.event_id && entity.type !== 'events') {
-    const anchorOpts = searchLinkGenerator('Event ID', 'equals', entity.event_id);
-    ret.push(`Event: <a ${anchorOpts}>${eventNames[entity.event_id]}</a>`);
+    stats.push(createSearchLink(`Event: ${eventNames[entity.event_id]}`, 'Event ID', 'equals', entity.event_id, extraOnClick));
   }
 
   if (entity.tags && entity.type !== 'tags') {
@@ -104,39 +127,40 @@ function createMediaStatsHtml(entity, eventNames, tags, searchLinkGenerator, sho
 
     for (const tagId of entity.tags) {
       if (!parentTags.has(tagId)) {
-        const anchorOpts = searchLinkGenerator('Tag ID', 'equals', tagId);
-        ret.push(`Tag: <a ${anchorOpts}>${tags[tagId].title}</a>`);
+        stats.push(createSearchLink(`Tag: ${tags[tagId].title}`, 'Tag ID', 'equals', tagId, extraOnClick));
       }
     }
   }
 
   if ('lat' in entity) {
-    const anchorOpts = searchLinkGenerator('GPS Coordinate', 'is within', `${entity.lat},${entity.lon},0.01`);
-    ret.push(`<a ${anchorOpts}>GPS ${entity.lat},${entity.lon}</a>`);
+    stats.push(createSearchLink(`GPS ${entity.lat},${entity.lon}`, 'GPS Coordinate', 'is within', `${entity.lat},${entity.lon},0.01`, extraOnClick));
   }
 
   if ('metadata_text' in entity) {
-    ret.push(`<a target="_new" href="${entity.metadata_text}">Metadata</a>`);
+    stats.push(createOpenInNewTabLink('Metadata', entity.metadata_text));
   }
 
   if ('motion_photo' in entity && 'mp4' in entity.motion_photo) {
-    ret.push(`<a target="_new" href="${entity.motion_photo.mp4}">Motion Photo</a>`);
+    stats.push(createOpenInNewTabLink('Motion Photo', entity.motion_photo.mp4));
   }
 
   if (entity.type === 'video' || entity.type === 'photo') {
-    ret.push(`<a target="_new" href="${entity.link}">Download</a>`);
+    stats.push(createOpenInNewTabLink('Download', entity.link));
   }
 
   if ('rating' in entity) {
-    const anchorOpts = searchLinkGenerator('Rating', 'is at least', entity.rating);
-    const stars = '&starf;'.repeat(entity.rating) + '&star;'.repeat(5 - entity.rating);
-    ret.push(`<a ${anchorOpts}>${stars}</a>`);
+    const stars = '★'.repeat(entity.rating) + '☆'.repeat(5 - entity.rating);
+    stats.push(createSearchLink(stars, 'Rating', 'is at least', entity.rating, extraOnClick));
   }
 
-  for (let i = 0; i < ret.length; i += 1) {
-    ret[i] = `<span class="media_stat">${ret[i]}</span>`;
+  const ret = document.createElement('span');
+  for (let i = 0; i < stats.length; i += 1) {
+    if (i > 0) {
+      ret.appendChild(document.createTextNode(' '));
+    }
+    ret.appendChild(stats[i]);
   }
-  return ret.join(' ');
+  return ret;
 }
 
 function generateSearchUrl(criterias, matchPolicy, iconSize) {
@@ -676,9 +700,7 @@ const searchFields = [
     title: 'Rating',
     search: createNumberSearch(null, true, false),
     searchFields: ['rating'],
-    validValues: [['Unrated', '0'], ['&starf;', '1'], ['&starf;&starf;', '2'],
-      ['&starf;&starf;&starf;', '3'], ['&starf;&starf;&starf;&starf;', '4'],
-      ['&starf;&starf;&starf;&starf;&starf;', '5']],
+    validValues: [['Unrated', '0'], ['★', '1'], ['★★', '2'], ['★★★', '3'], ['★★★★', '4'], ['★★★★★', '5']],
   },
   {
     title: 'Tag ID',

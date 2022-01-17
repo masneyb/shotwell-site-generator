@@ -90,7 +90,10 @@ function doShowFullscreenImage(manuallyInvoked) {
     if (hideDescr) {
       descrEle.style.display = 'none';
     }
-    descrEle.innerHTML = createMediaStatsHtml(allMedia[allMediaFullscreenIndex], eventNames, tags, searchLinkGenerator, true);
+    removeAllChildren(descrEle);
+    descrEle.appendChild(createMediaStatsHtml(allMedia[allMediaFullscreenIndex], eventNames, tags, true, (event) => {
+      exitImageFullscreen(event);
+    }));
 
     // Cache the nearby images to make the page faster
     prefetchImage(getNextImageIndex());

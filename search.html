@@ -562,14 +562,9 @@
             mediaEle.appendChild(comment);
           }
 
-          const metadata = document.createElement('span');
+          const metadata = createMediaStatsHtml(media, eventNames, tags, false, null);
           metadata.className = 'media_metadata';
           mediaEle.appendChild(metadata);
-
-          const searchLinkGenerator = function (field, op, val) {
-            return `href="#" onclick="searchPageLinkGenerator(event, [['${field}', '${op}', '${val}']]);"`;
-          };
-          metadata.innerHTML = createMediaStatsHtml(media, eventNames, tags, searchLinkGenerator, false);
         }
 
         return mediaEle;
