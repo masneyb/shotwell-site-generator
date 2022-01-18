@@ -107,11 +107,11 @@ function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMeta
   }
 
   if (entity.megapixels) {
-    extStats.push(createTextMediaStat(`${entity.megapixels}MP`));
+    stats.push(createTextMediaStat(`${entity.megapixels}MP`));
   }
 
   if (entity.filesize) {
-    extStats.push(createTextMediaStat(getPrettyFileSize(entity.filesize)));
+    stats.push(createTextMediaStat(getPrettyFileSize(entity.filesize)));
   }
 
   if (entity.width) {
@@ -167,8 +167,12 @@ function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMeta
   }
 
   const ret = document.createElement('span');
-
   ret.appendChild(createStatsSpan(stats));
+
+  if (extStats.length == 0) {
+    return ret;
+  }
+
   ret.appendChild(document.createTextNode(' '));
 
   const extStatsEle = createStatsSpan(extStats);
