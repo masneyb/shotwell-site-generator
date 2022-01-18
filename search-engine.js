@@ -83,35 +83,49 @@ function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMeta
 
   if (showTitle && 'title' in entity && entity.title) {
     const title = entity.title_prefix ? entity.title_prefix + entity.title : entity.title;
-    stats.push(createTextMediaStat(entity.title_prefix + entity.title));
+    const val = entity.title_prefix + entity.title;
+    stats.push(createTextMediaStat(val));
+    extStats.push(createTextMediaStat(val));
   }
 
   if (entity.num_photos > 0) {
-    stats.push(createTextMediaStat(getNumberString(entity.num_photos, 'photo', 'photos')));
+    const val = getNumberString(entity.num_photos, 'photo', 'photos');
+    stats.push(createTextMediaStat(val));
+    extStats.push(createTextMediaStat(val));
   }
 
   if (entity.num_videos > 0) {
-    stats.push(createTextMediaStat(getNumberString(entity.num_videos, 'video', 'videos')));
+    const val = getNumberString(entity.num_videos, 'video', 'videos');
+    stats.push(createTextMediaStat(val));
+    extStats.push(createTextMediaStat(val));
   }
 
   if ('num_events' in entity && entity.num_events > 1) {
-    stats.push(createTextMediaStat(`${entity.num_events.toLocaleString()} events`));
+    const val = `${entity.num_events.toLocaleString()} events`;
+    stats.push(createTextMediaStat(val));
+    extStats.push(createTextMediaStat(val));
   }
 
   if ('exposure_time_pretty' in entity) {
     stats.push(createTextMediaStat(entity.exposure_time_pretty));
+    extStats.push(createTextMediaStat(entity.exposure_time_pretty));
   }
 
   if (entity.date_range) {
     stats.push(createTextMediaStat(entity.date_range));
+    extStats.push(createTextMediaStat(entity.date_range));
   }
 
   if (entity.megapixels) {
-    stats.push(createTextMediaStat(`${entity.megapixels}MP`));
+    const val = `${entity.megapixels}MP`;
+    stats.push(createTextMediaStat(val));
+    extStats.push(createTextMediaStat(val));
   }
 
   if (entity.filesize) {
-    stats.push(createTextMediaStat(getPrettyFileSize(entity.filesize)));
+    const val = getPrettyFileSize(entity.filesize);
+    stats.push(createTextMediaStat(val));
+    extStats.push(createTextMediaStat(val));
   }
 
   if (entity.width) {
@@ -166,37 +180,25 @@ function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMeta
     extStats.push(createSearchLink(stars, 'Rating', 'is at least', entity.rating, extraOnClick));
   }
 
+  if (extStats.length == stats.length) {
+    return createStatsSpan(stats);
+  } else if (!showBriefMetadata) {
+    return createStatsSpan(extStats);
+  }
+
   const ret = document.createElement('span');
-  ret.appendChild(createStatsSpan(stats));
 
-  if (extStats.length == 0) {
-    return ret;
-  }
-
-  ret.appendChild(document.createTextNode(' '));
-
+  const shortStatsEle = createStatsSpan(stats);
   const extStatsEle = createStatsSpan(extStats);
-  extStatsEle.style.display = showBriefMetadata ? 'none' : 'inline-block';
+
+  shortStatsEle.appendChild(document.createTextNode(' '));
+  shortStatsEle.appendChild(createMoreLessAnchor('More', shortStatsEle, extStatsEle));
+  ret.append(shortStatsEle);
+
+  extStatsEle.appendChild(document.createTextNode(' '));
+  extStatsEle.appendChild(createMoreLessAnchor('Less', shortStatsEle, extStatsEle));
+  extStatsEle.style.display = 'none';
   ret.appendChild(extStatsEle);
-
-  ret.appendChild(document.createTextNode(' '));
-
-  if (showBriefMetadata) {
-    const anchor = document.createElement('a');
-    anchor.className = 'more_less';
-    anchor.innerText = showBriefMetadata ? 'More' : 'Less';
-    anchor.href = '#';
-    anchor.onclick = (event) => {
-      if (extStatsEle.style.display === 'none') {
-        extStatsEle.style.display = 'inline-block';
-        anchor.innerText = 'Less';
-      } else {
-        extStatsEle.style.display = 'none';
-        anchor.innerText = 'More';
-      }
-    };
-    ret.appendChild(anchor);
-  }
 
   return ret;
 }
