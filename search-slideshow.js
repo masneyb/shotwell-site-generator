@@ -91,7 +91,7 @@ function doShowFullscreenImage(manuallyInvoked) {
       descrEle.style.display = 'none';
     }
     removeAllChildren(descrEle);
-    descrEle.appendChild(createMediaStatsHtml(allMedia[allMediaFullscreenIndex], eventNames, tags, true, (event) => {
+    descrEle.appendChild(createMediaStatsHtml(allMedia[allMediaFullscreenIndex], eventNames, tags, true, false, (event) => {
       exitImageFullscreen(event);
     }));
 

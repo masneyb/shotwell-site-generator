@@ -67,8 +67,10 @@
         <option value="medium">Medium Icons</option>
         <option value="small_medium">Small/Medium Icons</option>
         <option value="large">Large Icons</option>
+        <option value="large_full_meta">Large Icons (Full Metadata)</option>
         <option value="large_no_meta">Large Icons (No Metadata)</option>
         <option value="regular">Regular Icons</option>
+        <option value="regular_full_meta">Regular Icons (Full Metadata)</option>
         <option value="regular_no_meta">Regular Icons (No Metadata)</option>
       </select>
       <input class="button" type="button" onClick="updateSearchCriteria();" value="Search"></input>
@@ -449,7 +451,9 @@
       }
 
       function getPageIconSize() {
-        const validIconSizes = ['small', 'medium', 'small_medium', 'large', 'large_no_meta', 'regular', 'regular_no_meta'];
+        const validIconSizes = ['small', 'medium', 'small_medium',
+                                'large', 'large_full_meta', 'large_no_meta',
+                                'regular', 'regular_full_meta', 'regular_no_meta'];
         const iconSize = getQueryParameter('icon_size', 'default');
         if (validIconSizes.includes(iconSize)) {
           return iconSize;
@@ -496,7 +500,7 @@
           } else if (iconSize === 'medium') {
             img.src = media.motion_photo.medium_gif;
             mediaEle.className = 'media_medium';
-          } else if (['large', 'large_no_meta'].includes(iconSize) || !('reg_gif' in media.motion_photo)) {
+          } else if (['large', 'large_full_meta', 'large_no_meta'].includes(iconSize) || !('reg_gif' in media.motion_photo)) {
             img.src = media.motion_photo.sq_gif;
             mediaEle.className = 'media';
           } else {
@@ -521,7 +525,7 @@
             img.ontouchend = () => { img.src = media.thumbnail.medium; };
           }
           mediaEle.className = 'media_medium';
-        } else if (['large', 'large_no_meta'].includes(iconSize) || !('reg' in media.thumbnail)) {
+        } else if (['large', 'large_full_meta', 'large_no_meta'].includes(iconSize) || !('reg' in media.thumbnail)) {
           img.src = media.thumbnail.sq;
           if (media.motion_photo) {
             img.onmouseover = () => { img.src = media.motion_photo.sq_gif; };
@@ -541,7 +545,7 @@
           mediaEle.style.width = `${media.thumbnail.reg_width}px`;
         }
 
-        if (['large', 'regular'].includes(iconSize)) {
+        if (['large', 'large_full_meta', 'regular', 'regular_full_meta'].includes(iconSize)) {
           if (media.title) {
             const name = `title${media.type}${media.id}`;
             const title = document.createElement('span');
@@ -562,7 +566,8 @@
             mediaEle.appendChild(comment);
           }
 
-          const metadata = createMediaStatsHtml(media, eventNames, tags, false, null);
+          const showBriefMeta = ['large', 'regular'].includes(iconSize);
+          const metadata = createMediaStatsHtml(media, eventNames, tags, false, showBriefMeta, null);
           metadata.className = 'media_metadata';
           mediaEle.appendChild(metadata);
         }
