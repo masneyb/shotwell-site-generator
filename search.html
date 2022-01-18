@@ -198,9 +198,23 @@
         return ret.join(' ');
       }
 
-      function jsHideShow(hideElement, showElement) {
-        document.getElementById(showElement).style.display = 'block';
-        document.getElementById(hideElement).style.display = 'none';
+      function createMoreLessAnchor(label, shortEle, longEle) {
+        const anchor = document.createElement('a');
+        anchor.className = 'more_less';
+        anchor.innerText = label;
+        anchor.href = '#';
+        anchor.onclick = (event) => {
+          if (shortEle.style.display === 'none') {
+            longEle.style.display = 'none';
+            shortEle.style.display = 'inline-block';
+          } else {
+            shortEle.style.display = 'none';
+            longEle.style.display = 'inline-block';
+          }
+          event.preventDefault();
+          event.stopPropagation();
+        };
+        return anchor;
       }
 
       function getExpandableString(name, value) {
@@ -209,23 +223,23 @@
           return document.createTextNode(trimmedValue);
         }
 
-        const shortId = `${name}_short`;
-        const longId = `${name}_long`;
-
         const parentEle = document.createElement('span');
 
-        let ele = document.createElement('span');
-        ele.id = shortId;
-        ele.style.display = 'block';
-        ele.innerHTML = `${trimmedValue.substring(0, 140).trim()}... <span class='more_less' onClick='jsHideShow("${shortId}", "${longId}");'>More</span>`;
-        parentEle.appendChild(ele);
+        const longEle = document.createElement('span');
+        longEle.style.display = 'none';
 
-        ele = document.createElement('span');
-        ele.id = longId;
-        ele.style.display = 'none';
-        const longValEscaped = trimmedValue.replace(/</g, '&lt;').replace(/>/g, '&gt').replace(/\n/g, '<br/>');
-        ele.innerHTML = `${longValEscaped} <span class='more_less' onClick='jsHideShow("${longId}", "${shortId}");'>Less</span>`;
-        parentEle.appendChild(ele);
+        const shortEle = document.createElement('span');
+        shortEle.style.display = 'block';
+
+        shortEle.appendChild(document.createTextNode(`${trimmedValue.substring(0, 140).trim().replaceAll('\r', ' ').replaceAll('\n', ' ')}... `));
+        shortEle.appendChild(createMoreLessAnchor('More', shortEle, longEle));
+        parentEle.appendChild(shortEle);
+
+        const longText = document.createElement('span');
+        longText.innerText = `${trimmedValue} `;
+        longEle.appendChild(longText);
+        longEle.appendChild(createMoreLessAnchor('Less', shortEle, longEle));
+        parentEle.appendChild(longEle);
 
         return parentEle;
       }
