@@ -142,6 +142,21 @@
         showMedia();
       }
 
+      function createAllStatsSpan(stats) {
+        const ret = document.createElement('span');
+        for (let i = 0; i < stats.length; i += 1) {
+          if (i > 0) {
+            ret.appendChild(document.createTextNode(' '));
+          }
+
+          const span = document.createElement('span');
+          span.className = 'stat';
+          span.innerText = stats[i];
+          ret.appendChild(span);
+        }
+        return ret;
+      }
+
       function createAllStatsHtml() {
         const totalsByTypes = {};
         let artifactSize = 0;
@@ -168,34 +183,34 @@
           }
         }
 
-        const ret = [];
+        const stats = [];
         if ('photo' in totalsByTypes) {
-          ret.push(`<span class="stat">${getNumberString(totalsByTypes.photo, 'photo', 'photos')}</span>`);
+          stats.push(getNumberString(totalsByTypes.photo, 'photo', 'photos'));
         }
         if ('video' in totalsByTypes) {
-          ret.push(`<span class="stat">${getNumberString(totalsByTypes.video, 'video', 'videos')}</span>`);
+          stats.push(getNumberString(totalsByTypes.video, 'video', 'videos'));
         }
         if ('events' in totalsByTypes && totalsByTypes.events > 1) {
-          ret.push(`<span class="stat">${totalsByTypes.events.toLocaleString()} events</span>`);
+          stats.push(`${totalsByTypes.events.toLocaleString()} events`);
         }
         if ('years' in totalsByTypes && totalsByTypes.years > 1) {
-          ret.push(`<span class="stat">${totalsByTypes.years.toLocaleString()} years</span>`);
+          stats.push(`${totalsByTypes.years.toLocaleString()} years`);
         }
         if ('tags' in totalsByTypes && totalsByTypes.tags > 1) {
-          ret.push(`<span class="stat">${totalsByTypes.tags.toLocaleString()} tags</span>`);
+          stats.push(`${totalsByTypes.tags.toLocaleString()} tags`);
         }
 
         if (artifactSize > 0) {
-          ret.push(`<span class="stat">${getPrettyFileSize(artifactSize)}</span>`);
+          stats.push(getPrettyFileSize(artifactSize));
         } else if (groupSize > 0) {
-          ret.push(`<span class="stat">${getPrettyFileSize(groupSize)}</span>`);
+          stats.push(getPrettyFileSize(groupSize));
         }
 
         if (dateRange) {
-          ret.push(`<span class="stat">${dateRange}</span>`);
+          stats.push(dateRange);
         }
 
-        return ret.join(' ');
+        return createAllStatsSpan(stats);
       }
 
       function createMoreLessAnchor(label, shortEle, longEle) {
@@ -686,7 +701,7 @@
 
           document.querySelector('#csv_link').onclick = (event) => { downloadCsv(event); };
 
-          document.querySelector('.summary_stats').innerHTML = createAllStatsHtml();
+          document.querySelector('.summary_stats').replaceChildren(createAllStatsHtml());
         }, 0);
       }
 
