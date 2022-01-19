@@ -117,11 +117,10 @@
       let preferLargeIcons = false;
 
       function addStatusMessage(parentEle, text) {
-        removeAllChildren(parentEle);
         const msgEle = document.createElement('div');
         msgEle.className = 'status';
         msgEle.appendChild(document.createTextNode(text));
-        parentEle.appendChild(msgEle);
+        parentEle.replaceChildren(msgEle);
       }
 
       function updateOverallStatusMessage(text) {
@@ -395,8 +394,6 @@
 
         if (extraHeader) {
           const extraHeaderEle = document.querySelector('#extra_header');
-          removeAllChildren(extraHeaderEle);
-
           const outerSpan = document.createElement('span');
           const anchor = document.createElement('a');
           anchor.href = extraHeader.link;
@@ -406,7 +403,7 @@
 
           anchor.appendChild(innerSpan);
           outerSpan.appendChild(anchor);
-          extraHeaderEle.appendChild(outerSpan);
+          extraHeaderEle.replaceChildren(outerSpan);
         }
 
         setPageTitle(mediaTitle);
