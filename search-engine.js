@@ -182,7 +182,9 @@ function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMeta
 
   if (extStats.length == stats.length) {
     return createStatsSpan(stats);
-  } else if (!showBriefMetadata) {
+  }
+
+  if (!showBriefMetadata) {
     return createStatsSpan(extStats);
   }
 
