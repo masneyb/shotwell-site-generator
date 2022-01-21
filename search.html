@@ -785,11 +785,6 @@
       };
       document.addEventListener('swiped-left', (event) => { showNextImageFullscreen(event, true); });
       document.addEventListener('swiped-right', showPreviousImageFullscreen);
-      document.addEventListener('swiped-down', (event) => {
-        if (!inPhotoFrameMode) {
-          exitImageFullscreen(event);
-        }
-      });
 
       window.onpopstate = function () {
         processJson(populateMedia);
