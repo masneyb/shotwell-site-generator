@@ -51,6 +51,19 @@ a {
 	text-decoration: underline;
 }
 
+.media_group {
+	display: block;
+	padding: 5px;
+}
+
+.media_group_title {
+	text-align: center;
+	font-size: 110%;
+	font-weight: bold;
+	padding-left: 10px;
+	padding-bottom: 2px;
+}
+
 .media, .media_small, .media_medium, .media_dyn, .media_small_container {
 	display: inline-block;
 	vertical-align: text-top;
@@ -74,6 +87,13 @@ a {
 .media_small_container {
 	width: 188px;
 	height: 188px;
+	padding: 0px;
+	text-align: left;
+}
+
+.media_mini_container {
+	width: 188px;
+	height: 94px;
 	padding: 0px;
 	text-align: left;
 }

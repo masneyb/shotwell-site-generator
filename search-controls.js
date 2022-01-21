@@ -34,7 +34,8 @@ function updateSearchCriteria() {
     const matchPolicy = document.querySelector('#match_policy').value;
     const sortby = document.querySelector('#sortby').value;
     const iconSize = document.querySelector('#icon_size').value;
-    window.history.pushState({}, '', `search.html?${searchArgs.join('&')}&match_policy=${matchPolicy}&sortby=${sortby}&icon_size=${iconSize}#`);
+    const groupBy = document.querySelector('#group_by').value;
+    window.history.pushState({}, '', `search.html?${searchArgs.join('&')}&match_policy=${matchPolicy}&sortby=${sortby}&icon_size=${iconSize}&group_by=${groupBy}#`);
     processJson(populateMedia);
   }, 0);
 }
@@ -206,6 +207,9 @@ function populateSearchValuesFromUrl() {
 
   const iconSize = getQueryParameter('icon_size', 'default');
   document.querySelector('#icon_size').value = iconSize;
+
+  const groupBy = getQueryParameter('group_by', 'none');
+  document.querySelector('#group_by').value = groupBy;
 
   if (nextSearchInput === 0) {
     addSearchInputRow();

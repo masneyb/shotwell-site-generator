@@ -205,7 +205,7 @@ function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMeta
   return ret;
 }
 
-function generateSearchUrl(criterias, matchPolicy, iconSize) {
+function generateSearchUrl(criterias, matchPolicy, iconSize, groupBy) {
   const qs = [];
   for (const criteria of criterias) {
     qs.push(`search=${encodeURI(criteria)}`);
@@ -215,6 +215,9 @@ function generateSearchUrl(criterias, matchPolicy, iconSize) {
   }
   if (iconSize !== 'default') {
     qs.push(`icon_size=${iconSize}`);
+  }
+  if (groupBy !== 'none') {
+    qs.push(`group_by=${groupBy}`);
   }
   return `search.html?${qs.join('&')}#`;
 }

@@ -8,6 +8,7 @@ plugins:
 parserOptions:
   ecmaVersion: 12
 rules: {
+  "arrow-body-style": 0,
   "no-restricted-syntax": 0,
   "func-names": 0,
   "max-len": 0,

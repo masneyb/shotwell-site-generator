@@ -73,7 +73,12 @@
         <option value="regular_full_meta">Regular Icons (Full Metadata)</option>
         <option value="regular_no_meta">Regular Icons (No Metadata)</option>
       </select>
-      <input class="button" type="button" onClick="updateSearchCriteria();" value="Search"></input>
+      <select id="group_by" onChange="updateSearchCriteria();">
+        <option value="none">No grouping</option>
+        <option value="day">Group by day</option>
+        <option value="month">Group by month</option>
+        <option value="year">Group by year</option>
+      </select>
       <input class="button" type="button" onClick="clearSearchCriteria();" value="Clear"></input>
     </span>
 
@@ -115,6 +120,8 @@
       let currentYearView = null;
       let lastSmallMediaItems = null;
       let preferLargeIcons = false;
+      let currentGroupName = null;
+      let currentGroupEle = null;
 
       function addStatusMessage(parentEle, text) {
         const msgEle = document.createElement('div');
@@ -275,7 +282,8 @@
         }
 
         const iconSize = getQueryParameter('icon_size', 'default');
-        const search = generateSearchUrl(parts, matchPolicy, iconSize);
+        const groupBy = getQueryParameter('group_by', 'none');
+        const search = generateSearchUrl(parts, matchPolicy, iconSize, groupBy);
 
         // Check to see if the user control clicked the URL to request it be opened in a new tab.
         if (event.ctrlKey || event.which === 2 || event.which === 3) {
@@ -603,7 +611,7 @@
 
       function createMediaSmallContainer() {
         const ele = document.createElement('span');
-        ele.className = 'media_small_container';
+        ele.className = lastSmallMediaItems.length <= 2 ? 'media_mini_container' : 'media_small_container';
         ele.appendChild(createMediaElement(lastSmallMediaItems[0][0], lastSmallMediaItems[0][1], 'small'));
         if (lastSmallMediaItems.length >= 2) {
           ele.appendChild(createMediaElement(lastSmallMediaItems[1][0], lastSmallMediaItems[1][1], 'small'));
@@ -615,6 +623,33 @@
           }
         }
         return ele;
+      }
+
+      function getMediaGroupByFunc() {
+        const groupBy = getQueryParameter('group_by', 'none');
+
+        if (groupBy === 'year') {
+          return (input) => {
+            const parts = input.split(' ');
+            return parts.length === 1 ? parts[0] : parts[3];
+          };
+        }
+
+        if (groupBy === 'month') {
+          return (input) => {
+            const parts = input.split(' ');
+            return parts.length === 1 ? parts[0] : `${parts[1]} ${parts[3]}`;
+          };
+        }
+
+        if (groupBy === 'day') {
+          return (input) => {
+            const parts = input.split(' ');
+            return parts.length === 1 ? parts[0] : `${parts[0]} ${parts[1]} ${parts[2]} ${parts[3]}`;
+          };
+        }
+
+        return (input) => { return null; };
       }
 
       function doShowMedia(pageNumber) {
@@ -633,29 +668,53 @@
         }
 
         const allMediaEle = document.querySelector('#all_media');
+        const groupBy = getMediaGroupByFunc();
+        if (currentGroupEle == null) {
+          currentGroupEle = allMediaEle;
+        }
 
         const startIdx = (pageNumber - 1) * pageSize;
 
         for (const [index, media] of allMedia.slice(startIdx, startIdx + pageSize).entries()) {
+          const thisGroupName = 'exposure_time_pretty' in media ? groupBy(media.exposure_time_pretty) : null;
+          if (thisGroupName !== currentGroupName) {
+            currentGroupName = thisGroupName;
+
+            if (lastSmallMediaItems != null && lastSmallMediaItems.length > 0) {
+              currentGroupEle.appendChild(createMediaSmallContainer());
+              lastSmallMediaItems = [];
+            }
+
+            currentGroupEle = document.createElement('div');
+            currentGroupEle.className = 'media_group';
+
+            const titleEle = document.createElement('div');
+            titleEle.className = 'media_group_title';
+            titleEle.innerText = thisGroupName;
+            currentGroupEle.appendChild(titleEle);
+
+            allMediaEle.appendChild(currentGroupEle);
+          }
+
           const mediaIconSize = getMediaIconSize(pageIconSize, media);
           if (pageIconSize === 'small_medium') {
             if (mediaIconSize === 'medium') {
-              allMediaEle.appendChild(createMediaElement(startIdx + index, media, mediaIconSize));
+              currentGroupEle.appendChild(createMediaElement(startIdx + index, media, mediaIconSize));
             } else {
               lastSmallMediaItems.push([startIdx + index, media]);
               if (lastSmallMediaItems.length === 4) {
-                allMediaEle.appendChild(createMediaSmallContainer());
+                currentGroupEle.appendChild(createMediaSmallContainer());
                 lastSmallMediaItems = [];
               }
             }
           } else {
-            allMediaEle.appendChild(createMediaElement(startIdx + index, media, mediaIconSize));
+            currentGroupEle.appendChild(createMediaElement(startIdx + index, media, mediaIconSize));
           }
         }
 
         currentPageNumber = pageNumber;
         if (pageNumber === lastPageNumber && lastSmallMediaItems != null && lastSmallMediaItems.length > 0) {
-          allMediaEle.appendChild(createMediaSmallContainer());
+          currentGroupEle.appendChild(createMediaSmallContainer());
           lastSmallMediaItems = [];
         }
 
