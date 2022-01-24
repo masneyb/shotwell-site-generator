@@ -223,6 +223,7 @@ a {
 	font-weight: bold;
 	text-decoration: none;
 	padding: 5px;
+	z-index: 5;
 }
 
 #close:hover {

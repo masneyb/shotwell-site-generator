@@ -6,7 +6,6 @@
 let preFullscreenScrollX = -1;
 let preFullscreenScrollY = -1;
 let allMediaFullscreenIndex = -1;
-let fullscreenImageLink = null;
 let inPhotoFrameMode = false;
 let fullScreenPhotoUpdateSecs = 0;
 let fullscreenPhotoUpdateTimer = null;
@@ -36,7 +35,7 @@ function getPreviousImageIndex() {
 }
 
 function getFullscreenImageUrl(index) {
-  if (allMedia[index].type === 'photo') {
+  if (allMedia[index].type === 'photo' || allMedia[index].type === 'video') {
     return allMedia[index].link;
   }
 
@@ -82,31 +81,41 @@ function doShowFullscreenImage(manuallyInvoked) {
     setFullscreenDescriptionShown(false);
   }
 
-  const imageEle = document.querySelector('#fullimage');
-  const searchLinkGenerator = function (field, op, val) {
-    return `href="#" onclick="exitImageFullscreen(event); searchPageLinkGenerator(event, [['${field}', '${op}', '${val}']]);"`;
-  };
-  imageEle.onload = () => {
-    if (hideDescr) {
-      descrEle.style.display = 'none';
-    }
-    descrEle.replaceChildren(createMediaStatsHtml(allMedia[allMediaFullscreenIndex], eventNames, tags, true, false, (event) => {
-      exitImageFullscreen(event);
-    }));
+  if (allMedia[allMediaFullscreenIndex].type === 'video') {
+    descrEle.style.display = 'none';
 
-    // Cache the nearby images to make the page faster
-    prefetchImage(getNextImageIndex());
-    prefetchImage(getPreviousImageIndex());
-  };
-  imageEle.src = getFullscreenImageUrl(allMediaFullscreenIndex);
-  recordImageUrlAsCached(imageEle.src);
+    const imageEle = document.querySelector('#fullimage');
+    imageEle.removeAttribute('src');
+    imageEle.style.display = 'none';
 
-  if (allMedia[allMediaFullscreenIndex].type === 'photo') {
-    fullscreenImageLink = null;
-  } else if (allMedia[allMediaFullscreenIndex].type === 'video') {
-    // FIXME - links to events, tags, and years don't work at the moment
-    fullscreenImageLink = allMedia[allMediaFullscreenIndex].link;
+    const videoEle = document.querySelector('#fullvideo');
+    videoEle.src = allMedia[allMediaFullscreenIndex].link;
+    videoEle.style.display = 'block';
+    recordImageUrlAsCached(videoEle.src);
+  } else if (allMedia[allMediaFullscreenIndex].type === 'photo') {
+    const videoEle = document.querySelector('#fullvideo');
+    videoEle.pause();
+    videoEle.removeAttribute('src');
+    videoEle.style.display = 'none';
+
+    const imageEle = document.querySelector('#fullimage');
+    imageEle.onload = () => {
+      if (hideDescr) {
+        descrEle.style.display = 'none';
+      }
+      descrEle.replaceChildren(createMediaStatsHtml(allMedia[allMediaFullscreenIndex], eventNames, tags, true, false, (event) => {
+        exitImageFullscreen(event);
+      }));
+    };
+    imageEle.style.display = 'block';
+    imageEle.src = getFullscreenImageUrl(allMediaFullscreenIndex);
+    recordImageUrlAsCached(imageEle.src);
   }
+  // FIXME - links to events, tags, and years don't work at the moment
+
+  // Cache the nearby images to make the page faster
+  prefetchImage(getNextImageIndex());
+  prefetchImage(getPreviousImageIndex());
 }
 
 function isImageFullscreen() {
@@ -163,8 +172,11 @@ function setFullImageDisplay(shown) {
     document.body.style.overflow = 'hidden';
   } else {
     document.body.style.overflow = 'auto';
-    const ele = document.querySelector('#fullimage');
-    ele.src = '';
+    document.querySelector('#fullimage').removeAttribute('src');
+
+    const videoEle = document.querySelector('#fullvideo');
+    videoEle.pause();
+    videoEle.removeAttribute('src');
   }
 }
 
@@ -228,12 +240,10 @@ function toggleFullscreenDescription() {
   if (isImageFullscreen()) {
     if (inPhotoFrameMode) {
       toggleSlideshowTimers();
-    } else if (fullscreenImageLink === null) {
+    } else {
       const descrEle = document.querySelector('#description');
       const shown = descrEle.style.display !== 'none';
       setFullscreenDescriptionShown(!shown);
-    } else {
-      window.open(fullscreenImageLink, '_blank');
     }
   }
 }
