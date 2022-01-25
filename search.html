@@ -55,6 +55,12 @@
         <option value="all">Match All</option>
         <option value="none">Match None</option>
       </select>
+      <select id="group_by" onChange="updateSearchCriteria();">
+        <option value="none">No grouping</option>
+        <option value="day">Group by day</option>
+        <option value="month">Group by month</option>
+        <option value="year">Group by year</option>
+      </select>
       <select id="sortby" onChange="updateSearchCriteria();">
         <option value="takenZA">Sort taken Z-A</option>
         <option value="takenAZ">Sort taken A-Z</option>
@@ -72,12 +78,6 @@
         <option value="regular">Regular Icons</option>
         <option value="regular_full_meta">Regular Icons (Full Metadata)</option>
         <option value="regular_no_meta">Regular Icons (No Metadata)</option>
-      </select>
-      <select id="group_by" onChange="updateSearchCriteria();">
-        <option value="none">No grouping</option>
-        <option value="day">Group by day</option>
-        <option value="month">Group by month</option>
-        <option value="year">Group by year</option>
       </select>
       <input class="button" type="button" onClick="clearSearchCriteria();" value="Clear"></input>
     </span>
