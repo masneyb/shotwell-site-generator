@@ -203,16 +203,16 @@ class Database:
             for row in cursor.execute(qry):
                 media_id = "video-%016x" % (row["id"])
                 reg_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
-                                                                         None,
+                                                                         0, None,
                                                                          ThumbnailType.REGULAR)
                 sq_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
-                                                                        None,
+                                                                        0, None,
                                                                         ThumbnailType.LARGE_ROUND)
                 small_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"],
-                                                                           media_id, None,
+                                                                           media_id, 0, None,
                                                                            ThumbnailType.SMALL_SQ)
                 medium_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"],
-                                                                            media_id, None,
+                                                                            media_id, 0, None,
                                                                             ThumbnailType.MEDIUM_SQ)
                 video = self.__transform_video(row["filename"])
                 video_json = self.thumbnailer.write_video_json(video, media_id)
@@ -257,16 +257,16 @@ class Database:
         (metadata_text, exif_metadata) = self.thumbnailer.write_exif_txt(row["filename"], media_id)
 
         reg_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
-                                                                 exif_metadata,
+                                                                 rotate, exif_metadata,
                                                                  ThumbnailType.REGULAR)
         sq_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
-                                                                exif_metadata,
+                                                                rotate, exif_metadata,
                                                                 ThumbnailType.LARGE_ROUND)
         small_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
-                                                                   exif_metadata,
+                                                                   rotate, exif_metadata,
                                                                    ThumbnailType.SMALL_SQ)
         medium_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
-                                                                    exif_metadata,
+                                                                    rotate, exif_metadata,
                                                                     ThumbnailType.MEDIUM_SQ)
 
         if is_raw:

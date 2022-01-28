@@ -318,7 +318,9 @@ class Thumbnailer:
         return int(result.stdout) if result.stdout else None
 
     def _get_ffmpeg_animated_gif_cmd(self, src_filename, is_video, thumbnail_type,
-                                     gif_dest_filename):
+                                     rotate, gif_dest_filename):
+        # pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
+
         max_frames = 100
         if is_video:
             num_frames = self._get_num_video_frames(src_filename)
@@ -374,6 +376,13 @@ class Thumbnailer:
             complex_filter += (f"select=not(mod(n-1\\,{select_frames}))[skip];"
                                f"[skip]setpts=N/({pts}*TB)[fps];[fps]")
 
+        if rotate == 90:
+            complex_filter += "transpose=1[rotate];[rotate]"
+        elif rotate == 180:
+            complex_filter += "transpose=1,transpose=1[rotate];[rotate]"
+        elif rotate == 270:
+            complex_filter += "transpose=2[rotate];[rotate]"
+
         if thumbnail_type in (ThumbnailType.LARGE_ROUND, ThumbnailType.SMALL_SQ,
                               ThumbnailType.MEDIUM_SQ):
             complex_filter += f"scale='if(gt(iw,ih),-1,{height})':'if(gt(iw,ih),{width},-1)'"
@@ -425,7 +434,8 @@ class Thumbnailer:
 
         return (mp4_dest_filename, mp4_short_path)
 
-    def create_animated_gif(self, src_filename, media_id, photo_metadata, thumbnail_type):
+    def create_animated_gif(self, src_filename, media_id, rotate, photo_metadata, thumbnail_type):
+        # pylint: disable=too-many-arguments
         if thumbnail_type == ThumbnailType.SMALL_SQ:
             path_part = "small"
         elif thumbnail_type == ThumbnailType.MEDIUM_SQ:
@@ -453,7 +463,7 @@ class Thumbnailer:
         if not os.path.exists(gif_dest_filename):
             cmd = self._get_ffmpeg_animated_gif_cmd(src_filename,
                                                     photo_metadata is None,
-                                                    thumbnail_type, gif_dest_filename)
+                                                    thumbnail_type, rotate, gif_dest_filename)
             if not cmd:
                 return None
 
