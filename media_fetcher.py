@@ -224,6 +224,7 @@ class Database:
                 media["clip_duration"] = row["clip_duration"]
 
     def __process_photo_row(self, all_media, row, download_source, is_raw):
+        # pylint: disable=too-many-locals
         if row["orientation"] == 6:
             rotate = 90
         elif row["orientation"] == 3:
@@ -398,6 +399,7 @@ class Database:
                 "medium_thumbnail_path": medium_thumbnail_path, "stats": stats}
 
     def __fetch_tags(self, all_media):
+        # pylint: disable=too-many-locals
         tags_by_name = {}
 
         qry = "SELECT id, name, photo_id_list FROM TagTable WHERE photo_id_list != '' " + \
@@ -682,6 +684,7 @@ class Database:
         return ret
 
     def __parse_photo_exiv2_metadata(self, exiv2_metadata):
+        # pylint: disable=too-many-branches
         ret = {}
         ret["exif"] = []
 

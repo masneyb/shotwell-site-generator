@@ -238,7 +238,7 @@ class Thumbnailer:
 
     def create_thumbnail(self, source_image, is_video, rotate, resized_image, overlay_icon,
                          thumbnail_type):
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-arguments,too-many-branches
         if not os.path.isfile(source_image):
             logging.warning("Cannot find filename %s", source_image)
             return
