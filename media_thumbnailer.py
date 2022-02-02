@@ -339,7 +339,7 @@ class Thumbnailer:
         else:
             (width, height) = [int(x) for x in self.thumbnail_size.split("x")]
 
-        cmd = [self.ffmpeg_command, "-hide_banner", "-loglevel", "error",
+        cmd = [self.ffmpeg_command, "-hide_banner", "-loglevel", "error", "-noautorotate",
                "-i", src_filename]
 
         if num_frames:
