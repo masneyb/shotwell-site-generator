@@ -339,8 +339,11 @@ class Thumbnailer:
         else:
             (width, height) = [int(x) for x in self.thumbnail_size.split("x")]
 
-        cmd = [self.ffmpeg_command, "-hide_banner", "-loglevel", "error", "-noautorotate",
-               "-i", src_filename]
+        cmd = [self.ffmpeg_command, "-hide_banner", "-loglevel", "error"]
+        if rotate != 0:
+            cmd += ["-noautorotate"]
+
+        cmd += ["-i", src_filename]
 
         if num_frames:
             if thumbnail_type == ThumbnailType.SMALL_SQ:
