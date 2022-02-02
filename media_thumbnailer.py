@@ -490,7 +490,6 @@ class Thumbnailer:
         self.generated_artifacts.add(exif_filename)
 
         if self.skip_metadata_text_if_exists and os.path.exists(exif_filename):
-            logging.debug("Reading file %s", exif_filename)
             with open(exif_filename, 'r') as infile:
                 return (short_path, self._read_exif_txt(infile))
 
