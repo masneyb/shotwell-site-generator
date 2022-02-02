@@ -206,7 +206,7 @@ class Html(CommonWriter):
             output.write("<span><a href='../%s'><span class='main_view'>%s</span></a></span>" % \
                          (self.extra_header[1], self.extra_header[0]))
 
-        output.write("<span><a href='../search.html#'>" + \
+        output.write("<span><a href='../index.html#'>" + \
                      "<span class='main_view'>Search</span>" + \
                      "</a></span>")
 
@@ -280,7 +280,7 @@ class Html(CommonWriter):
             detailed.append("%sx%s" % (media["width"], media["height"]))
 
         if "camera" in media:
-            detailed.append("<a href='../search.html?search=%s'>%s</a>" % \
+            detailed.append("<a href='../index.html?search=%s'>%s</a>" % \
                             (urllib.parse.quote("Camera,equals,%s" % (media["camera"])),
                              media["camera"]))
 
@@ -303,7 +303,7 @@ class Html(CommonWriter):
         if "lat" in media:
             search = "%s,%s,%.5f,%.5f,0.1" % \
                      ("GPS Coordinate", "is within", media["lat"], media["lon"])
-            detailed.append("<a href='../search.html?search=%s'>GPS %.5f,%.5f</a>" % \
+            detailed.append("<a href='../index.html?search=%s'>GPS %.5f,%.5f</a>" % \
                             (urllib.parse.quote(search), media["lat"], media["lon"]))
 
         if "sq_motion_photo" in media and media["sq_motion_photo"] and media["sq_motion_photo"][0]:
@@ -429,7 +429,7 @@ class Html(CommonWriter):
 
     def __get_search_element(self, search_field, search_val):
         search = html.escape("%s,equals,%s" % (search_field, search_val))
-        return "<a href='../search.html?search=%s'>" % (search) + \
+        return "<a href='../index.html?search=%s'>" % (search) + \
                "<span class='header_link'>Search</span>" + \
                "</a>"
 

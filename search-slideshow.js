@@ -191,7 +191,7 @@ function startSlideshow() {
 
 function slideshowClicked() {
   const params = window.location.search.startsWith('?') ? window.location.search : '?';
-  let search = `search.html${params}`;
+  let search = `index.html${params}`;
   if (!search.includes('photo_frame=')) {
     search += '&photo_frame=1';
   }

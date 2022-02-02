@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+  <!--
+      SPDX-License-Identifier: Apache-2.0
+      Copyright (C) 2020-2021 Brian Masney <masneyb@onstation.org>
+  -->
+
+  <head>
+    <meta name="viewport" content="width=device-width"/>
+    <meta charset="UTF-8"/>
+    <title>Search</title>
+    <link rel="stylesheet" type="text/css" href="search.css"/>
+    <link rel="manifest" href="manifest.json" crossorigin="use-credentials"/>
+    <script type="text/javascript" src="search-controls.js"></script>
+    <script type="text/javascript" src="search-csv.js"></script>
+    <script type="text/javascript" src="search-engine.js"></script>
+    <script type="text/javascript" src="search-slideshow.js"></script>
+    <script type="text/javascript" src="swiped-events.js"></script>
+    <script type="text/javascript" src="media.js" defer="defer" onLoad="processJson(populateMedia); checkForPhotoFrameMode();" onError="jsonLoadError();"></script>
+  </head>
+
+  <body>
+    <span id="title" class="page_title">Search</span>
+    <span class="summary_stats"></span>
+    <span class="header_links" style="display: none">
+      <a class="header_link" id="toggle_fullscreen" href="#" onClick="toggleFullscreen();">Fullscreen</a>
+      <a class="header_link" id="toggle_animations" href="#" onClick="toggleAnimations();"></a>
+      <a class="header_link" href="#" onClick="slideshowClicked();">Slideshow</a>
+      <a class="header_link" href="#" id="csv_link">CSV</a>
+    </span>
+    <span id="tag_parents" style="display: none;"></span>
+
+    <span class="main_views">
+      <span>
+        <a href="#" onclick="searchPageLinkGenerator(event, []);"><span class="main_view">Date</span></a>
+      </span>
+      <span>
+        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'events']]);"><span id="events_link" class="main_view">Event</span></a>
+      </span>
+      <span>
+        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'years']]);"><span id="years_link" class="main_view">Year</span></a>
+      </span>
+      <span>
+        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set']]);"><span id="tags_link" class="main_view">Tag</span></a>
+      </span>
+      <span id="extra_header"></span>
+    </span>
+
+    <span id="search_criterias" style="display: none"></span>
+
+    <span class="search_controls" style="display: none">
+      <input type="button" onClick="addSearchInputRow();" value="+"></input>
+      <select id="match_policy" onChange="updateSearchCriteria();">
+        <option value="any">Match Any</option>
+        <option value="all">Match All</option>
+        <option value="none">Match None</option>
+      </select>
+      <select id="group_by" onChange="updateSearchCriteria();">
+        <option value="none">No grouping</option>
+        <option value="day">Group by day</option>
+        <option value="month">Group by month</option>
+        <option value="year">Group by year</option>
+      </select>
+      <select id="sortby" onChange="updateSearchCriteria();">
+        <option value="takenZA">Sort taken Z-A</option>
+        <option value="takenAZ">Sort taken A-Z</option>
+        <option value="createdZA">Sort added Z-A</option>
+        <option value="random">Sort random</option>
+      </select>
+      <select id="icon_size" onChange="updateSearchCriteria();">
+        <option value="default">Default Icons</option>
+        <option value="small">Small Icons</option>
+        <option value="medium">Medium Icons</option>
+        <option value="small_medium">Small/Medium Icons</option>
+        <option value="large">Large Icons</option>
+        <option value="large_full_meta">Large Icons (Full Metadata)</option>
+        <option value="large_no_meta">Large Icons (No Metadata)</option>
+        <option value="regular">Regular Icons</option>
+        <option value="regular_full_meta">Regular Icons (Full Metadata)</option>
+        <option value="regular_no_meta">Regular Icons (No Metadata)</option>
+      </select>
+      <input class="button" type="button" onClick="clearSearchCriteria();" value="Clear"></input>
+    </span>
+
+    <div id="all_media"><div class='status'>Loading</div></div>
+
+    <span class="generated_at">Site generated from
+      <a href="https://wiki.gnome.org/Apps/Shotwell">Shotwell</a> library
+      <span id="generated_timestamp"></span> by
+      <a href="https://github.com/masneyb/shotwell-site-generator">shotwell-site-generator</a>
+      <span id="app_version"></span>.
+    </span>
+
+    <div id="fullimage_background" style="display: none;"></div>
+    <div id="fullimage_container" style="display: none;">
+      <a id="close" href="#" onclick="exitImageFullscreen(event);">&times;</a>
+      <img id="fullimage"></img>
+      <video id="fullvideo" width="100%" height="100%" autoplay="true" loop="false" controls></video>
+      <div id="description"></div>
+    </div>
+
+    <template id="search_criteria_row">
+      <span class="search_criteria">
+        <select class="search_field"></select>
+        <select class="search_op"></select>
+        <span class="search_values"></span>
+        <input class="search_delete_row" type="button" value="X"></input>
+      </span>
+    </template>
+
+    <script type="text/javascript">
+      function showMobileView() {
+        return window.innerWidth < 900;
+      }
+
+      let currentPageNumber = 1;
+      let allMedia = null;
+      let dateRange = null;
+      let alwaysShowAnimations = false;
+      let isMobileView = showMobileView();
+      let currentYearView = null;
+      let lastSmallMediaItems = null;
+      let preferLargeIcons = false;
+      let currentGroupName = null;
+      let currentGroupEle = null;
+
+      function addStatusMessage(parentEle, text) {
+        const msgEle = document.createElement('div');
+        msgEle.className = 'status';
+        msgEle.appendChild(document.createTextNode(text));
+        parentEle.replaceChildren(msgEle);
+      }
+
+      function updateOverallStatusMessage(text) {
+        addStatusMessage(document.querySelector('#all_media'), text);
+      }
+
+      function jsonLoadError() {
+        updateOverallStatusMessage('Error loading media');
+      }
+
+      function updateAnimationsText() {
+        document.querySelector('#toggle_animations').innerText = alwaysShowAnimations ? 'Stop Animations' : 'Show Animations';
+      }
+
+      function toggleAnimations() {
+        alwaysShowAnimations = !alwaysShowAnimations;
+        updateAnimationsText();
+        showMedia();
+      }
+
+      function createAllStatsSpan(stats) {
+        const ret = document.createElement('span');
+        for (let i = 0; i < stats.length; i += 1) {
+          if (i > 0) {
+            ret.appendChild(document.createTextNode(' '));
+          }
+
+          const span = document.createElement('span');
+          span.className = 'stat';
+          span.innerText = stats[i];
+          ret.appendChild(span);
+        }
+        return ret;
+      }
+
+      function createAllStatsHtml() {
+        const totalsByTypes = {};
+        let artifactSize = 0;
+        let groupSize = 0;
+
+        for (const media of allMedia) {
+          let type = null;
+          if (media.type === 'raw_photo' || media.type === 'motion_photo') {
+            type = 'photo';
+          } else {
+            type = media.type;
+          }
+
+          if (!(type in totalsByTypes)) {
+            totalsByTypes[type] = 1;
+          } else {
+            totalsByTypes[type] += 1;
+          }
+
+          if ('artifact_filesize' in media) {
+            artifactSize += media.artifact_filesize;
+          } else if ('filesize' in media && type !== 'tags') {
+            groupSize += media.filesize;
+          }
+        }
+
+        const stats = [];
+        if ('photo' in totalsByTypes) {
+          stats.push(getNumberString(totalsByTypes.photo, 'photo', 'photos'));
+        }
+        if ('video' in totalsByTypes) {
+          stats.push(getNumberString(totalsByTypes.video, 'video', 'videos'));
+        }
+        if ('events' in totalsByTypes && totalsByTypes.events > 1) {
+          stats.push(`${totalsByTypes.events.toLocaleString()} events`);
+        }
+        if ('years' in totalsByTypes && totalsByTypes.years > 1) {
+          stats.push(`${totalsByTypes.years.toLocaleString()} years`);
+        }
+        if ('tags' in totalsByTypes && totalsByTypes.tags > 1) {
+          stats.push(`${totalsByTypes.tags.toLocaleString()} tags`);
+        }
+
+        if (artifactSize > 0) {
+          stats.push(getPrettyFileSize(artifactSize));
+        } else if (groupSize > 0) {
+          stats.push(getPrettyFileSize(groupSize));
+        }
+
+        if (dateRange) {
+          stats.push(dateRange);
+        }
+
+        return createAllStatsSpan(stats);
+      }
+
+      function createMoreLessAnchor(label, shortEle, longEle) {
+        const anchor = document.createElement('a');
+        anchor.className = 'more_less';
+        anchor.innerText = label;
+        anchor.href = '#';
+        anchor.onclick = (event) => {
+          if (shortEle.style.display === 'none') {
+            longEle.style.display = 'none';
+            shortEle.style.display = 'inline-block';
+          } else {
+            shortEle.style.display = 'none';
+            longEle.style.display = 'inline-block';
+          }
+          event.preventDefault();
+          event.stopPropagation();
+        };
+        return anchor;
+      }
+
+      function getExpandableString(name, value) {
+        const trimmedValue = value.trim();
+        if (trimmedValue.length < 150 && !trimmedValue.includes('\n')) {
+          return document.createTextNode(trimmedValue);
+        }
+
+        const parentEle = document.createElement('span');
+
+        const longEle = document.createElement('span');
+        longEle.style.display = 'none';
+
+        const shortEle = document.createElement('span');
+        shortEle.style.display = 'block';
+
+        shortEle.appendChild(document.createTextNode(`${trimmedValue.substring(0, 140).trim().replaceAll('\r', ' ').replaceAll('\n', ' ')}... `));
+        shortEle.appendChild(createMoreLessAnchor('More', shortEle, longEle));
+        parentEle.appendChild(shortEle);
+
+        const longText = document.createElement('span');
+        longText.innerText = `${trimmedValue} `;
+        longEle.appendChild(longText);
+        longEle.appendChild(createMoreLessAnchor('Less', shortEle, longEle));
+        parentEle.appendChild(longEle);
+
+        return parentEle;
+      }
+
+      function hideResultsInfo() {
+        removeAllChildren(document.querySelector('.summary_stats'));
+        for (const search of ['.header_links']) {
+          for (const ele of document.querySelectorAll(search)) {
+            ele.style.display = 'none';
+          }
+        }
+      }
+
+      function searchPageLinkGenerator(event, criterias, matchPolicy = 'all') {
+        const parts = [];
+        for (criteria of criterias) {
+          // field,op,value
+          parts.push(criteria.join(','));
+        }
+
+        const iconSize = getQueryParameter('icon_size', 'default');
+        const groupBy = getQueryParameter('group_by', 'none');
+        const search = generateSearchUrl(parts, matchPolicy, iconSize, groupBy);
+
+        // Check to see if the user control clicked the URL to request it be opened in a new tab.
+        if (event.ctrlKey || event.which === 2 || event.which === 3) {
+          event.preventDefault();
+          event.stopPropagation();
+          window.open(search, '_blank');
+        } else {
+          window.history.pushState({}, '', search);
+          processJson(populateMedia);
+        }
+      }
+
+      function showParentTags(searchTag) {
+        const tagParentsEle = document.querySelector('#tag_parents');
+        removeAllChildren(tagParentsEle);
+
+        if (searchTag !== undefined) {
+          let parentTag = searchTag.parent_tag_id;
+          let firstChild = true;
+          while (parentTag !== null) {
+            const tag = tags[parentTag];
+
+            const span = document.createElement('span');
+            span.className = 'header_link';
+
+            if (firstChild) {
+              span.appendChild(document.createTextNode('Parent Tag: '));
+              firstChild = false;
+            }
+
+            const anchor = document.createElement('a');
+            anchor.innerText = tag.title;
+            anchor.href = '#';
+            anchor.onclick = (event) => { searchPageLinkGenerator(event, [['Tag ID', 'equals', tag.id]]); };
+            span.appendChild(anchor);
+
+            tagParentsEle.appendChild(span);
+
+            parentTag = tag.parent_tag_id;
+          }
+          tagParentsEle.style.display = 'block';
+        } else {
+          tagParentsEle.style.display = 'none';
+        }
+      }
+
+      function setPageTitle(mediaTitle) {
+        currentYearView = null;
+
+        // Search criteria can be chained in any order. Get the distinct types and order below.
+        let eventTitle = null;
+        let eventPreferLargeIcons = false;
+        let yearTitle = null;
+        let tagTitle = null;
+        let tagPreferLargeIcons = false;
+        let searchTag;
+
+        const allCriteria = getSearchCriteria();
+        for (const criteria of allCriteria) {
+          if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'years') {
+            yearTitle = `${mediaTitle}: All Years`;
+          } else if (criteria.field.title === 'Year' && criteria.op.descr === 'equals') {
+            yearTitle = `${mediaTitle}: Year ${criteria.searchValues[0]}`;
+            // Used for generating search links when searching for events.
+            currentYearView = criteria.searchValues[0];
+          } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'events') {
+            eventTitle = `${mediaTitle}: All Events`;
+            eventPreferLargeIcons = true;
+          } else if (criteria.field.title === 'Event ID' && criteria.op.descr === 'equals') {
+            let eventName = eventNames[criteria.searchValues[0]];
+            if (eventName === undefined) {
+              eventName = 'Unknown event';
+            }
+            eventTitle = `${mediaTitle}: ${eventName}`;
+            eventPreferLargeIcons = false;
+          } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'tags') {
+            tagTitle = `${mediaTitle}: All Tags`;
+            tagPreferLargeIcons = true;
+          } else if (criteria.field.title === 'Tag ID' && criteria.op.descr === 'equals') {
+            searchTag = tags[criteria.searchValues[0]];
+            tagTitle = `${mediaTitle}: ${searchTag !== undefined ? searchTag.title : 'Unknown tag'}`;
+            tagPreferLargeIcons = false;
+          }
+        }
+
+        /* eslint indent: 0 */
+        const titles = [[eventTitle, 'events_link', eventPreferLargeIcons],
+                        [yearTitle, 'years_link', true],
+                        [tagTitle, 'tags_link', tagPreferLargeIcons],
+                        [`${mediaTitle}: Search`, null, false]];
+        const preferredTitle = titles.find((ent) => ent[0] !== null);
+
+        document.title = preferredTitle[0];
+        const ele = document.querySelector('#title');
+        if (ele) {
+          ele.innerText = document.title;
+        }
+
+        if (preferredTitle[1] !== null) {
+          document.querySelector(`#${preferredTitle[1]}`).classList.add('main_view_selected');
+        }
+        for (const tagName of ['years_link', 'events_link', 'tags_link']) {
+          if (tagName !== preferredTitle[1]) {
+            document.querySelector(`#${tagName}`).classList.remove('main_view_selected');
+          }
+        }
+
+        preferLargeIcons = preferredTitle[2];
+
+        showParentTags(searchTag);
+      }
+
+      function populateMedia(newAllMedia, extraHeader, mediaTitle, newDateRange) {
+        allMedia = newAllMedia;
+        dateRange = newDateRange;
+
+        if (extraHeader) {
+          const extraHeaderEle = document.querySelector('#extra_header');
+          const outerSpan = document.createElement('span');
+          const anchor = document.createElement('a');
+          anchor.href = extraHeader.link;
+          const innerSpan = document.createElement('span');
+          innerSpan.className = 'main_view';
+          innerSpan.innerText = extraHeader.description;
+
+          anchor.appendChild(innerSpan);
+          outerSpan.appendChild(anchor);
+          extraHeaderEle.replaceChildren(outerSpan);
+        }
+
+        setPageTitle(mediaTitle);
+        showMedia();
+        populateSearchValuesFromUrl();
+      }
+
+      function windowSizeChanged() {
+        const prevMobileView = isMobileView;
+        isMobileView = showMobileView();
+        if (prevMobileView !== isMobileView) {
+          showMedia();
+        }
+      }
+
+      function populateMediaAnchorTag(anchor, media, allMediaIndex) {
+        if (media.type === 'events') {
+          anchor.href = '#';
+          const search = [['Event ID', 'equals', media.event_id]];
+
+          /*
+           * When searching for events by year, check to see if the JSON contains an entry
+           * for the current year. If so, use that since thumbnails and stats are generated
+           * for each year that the event spans.
+           */
+          if (currentYearView !== null) {
+            search.push(['Year', 'equals', currentYearView]);
+            if ('years' in media) {
+              for (const yearBlock of media.years) {
+                if (yearBlock.year === currentYearView) {
+                  yearBlock.title = media.title;
+                  if ('comment' in media) {
+                    yearBlock.comment = media.comment;
+                  }
+
+                  media = yearBlock;
+                }
+              }
+            }
+          }
+
+          search.push(['Type', 'is not a', 'events']);
+          anchor.onclick = (event) => { searchPageLinkGenerator(event, search); };
+        } else if (media.type === 'years') {
+          anchor.href = '#';
+          const search = [['Year', 'equals', media.id]];
+          anchor.onclick = (event) => { searchPageLinkGenerator(event, search); };
+        } else if (media.type === 'tags') {
+          anchor.href = '#';
+          const search = [['Tag ID', 'equals', media.id]];
+          anchor.onclick = (event) => { searchPageLinkGenerator(event, search); };
+        } else {
+          anchor.href = '#';
+          anchor.onclick = (event) => {
+            enterSlideshowMode(allMediaIndex);
+            event.stopPropagation();
+            return false;
+          };
+        }
+
+        return media;
+      }
+
+      function windowScrolled() {
+        if (window.innerHeight + window.scrollY >= (document.body.offsetHeight * 0.85)) {
+          doShowMedia(currentPageNumber + 1);
+        }
+      }
+
+      function getPageIconSize() {
+        const validIconSizes = ['small', 'medium', 'small_medium',
+                                'large', 'large_full_meta', 'large_no_meta',
+                                'regular', 'regular_full_meta', 'regular_no_meta'];
+        const iconSize = getQueryParameter('icon_size', 'default');
+        if (validIconSizes.includes(iconSize)) {
+          return iconSize;
+        }
+
+        if (isMobileView) {
+          return preferLargeIcons ? 'large' : 'small_medium';
+        }
+
+        return 'regular';
+      }
+
+      function getMediaIconSize(pageIconSize, media) {
+        if (pageIconSize === 'small_medium') {
+          if (media.rating === 5 || (media.type !== 'photo' && media.type !== 'video')) {
+            return 'medium';
+          }
+
+          return 'small';
+        }
+
+        return pageIconSize;
+      }
+
+      function createMediaElement(index, media, iconSize) {
+        const mediaEle = document.createElement('span');
+        mediaEle.className = 'media_dyn';
+
+        const anchor = document.createElement('a');
+        const mediaThumbSpan = document.createElement('span');
+        mediaThumbSpan.className = 'media_thumb';
+        const img = document.createElement('img');
+        mediaThumbSpan.appendChild(img);
+        anchor.appendChild(mediaThumbSpan);
+        mediaEle.appendChild(anchor);
+
+        // See the comment above for why the media element can be overridden for the event search.
+        media = populateMediaAnchorTag(anchor, media, index);
+
+        if (alwaysShowAnimations && media.motion_photo) {
+          if (iconSize === 'small') {
+            img.src = media.motion_photo.small_gif;
+            mediaEle.className = 'media_small';
+          } else if (iconSize === 'medium') {
+            img.src = media.motion_photo.medium_gif;
+            mediaEle.className = 'media_medium';
+          } else if (['large', 'large_full_meta', 'large_no_meta'].includes(iconSize) || !('reg_gif' in media.motion_photo)) {
+            img.src = media.motion_photo.sq_gif;
+            mediaEle.className = 'media';
+          } else {
+            img.src = media.motion_photo.reg_gif;
+            mediaEle.style.width = `${media.thumbnail.reg_width}px`;
+          }
+        } else if (iconSize === 'small') {
+          img.src = media.thumbnail.small;
+          if (media.motion_photo) {
+            img.onmouseover = () => { img.src = media.motion_photo.small_gif; };
+            img.onmouseleave = () => { img.src = media.thumbnail.small; };
+            img.ontouchstart = () => { img.src = media.motion_photo.small_gif; };
+            img.ontouchend = () => { img.src = media.thumbnail.small; };
+          }
+          mediaEle.className = 'media_small';
+        } else if (iconSize === 'medium') {
+          img.src = media.thumbnail.medium;
+          if (media.motion_photo) {
+            img.onmouseover = () => { img.src = media.motion_photo.medium_gif; };
+            img.onmouseleave = () => { img.src = media.thumbnail.medium; };
+            img.ontouchstart = () => { img.src = media.motion_photo.medium_gif; };
+            img.ontouchend = () => { img.src = media.thumbnail.medium; };
+          }
+          mediaEle.className = 'media_medium';
+        } else if (['large', 'large_full_meta', 'large_no_meta'].includes(iconSize) || !('reg' in media.thumbnail)) {
+          img.src = media.thumbnail.sq;
+          if (media.motion_photo) {
+            img.onmouseover = () => { img.src = media.motion_photo.sq_gif; };
+            img.onmouseleave = () => { img.src = media.thumbnail.sq; };
+            img.ontouchstart = () => { img.src = media.motion_photo.sq_gif; };
+            img.ontouchend = () => { img.src = media.thumbnail.sq; };
+          }
+          mediaEle.className = 'media';
+        } else {
+          img.src = media.thumbnail.reg;
+          if (media.motion_photo) {
+            img.onmouseover = () => { img.src = media.motion_photo.reg_gif; };
+            img.onmouseleave = () => { img.src = media.thumbnail.reg; };
+            img.ontouchstart = () => { img.src = media.motion_photo.reg_gif; };
+            img.ontouchend = () => { img.src = media.thumbnail.reg; };
+          }
+          mediaEle.style.width = `${media.thumbnail.reg_width}px`;
+        }
+
+        if (['large', 'large_full_meta', 'regular', 'regular_full_meta'].includes(iconSize)) {
+          if (media.title) {
+            const name = `title${media.type}${media.id}`;
+            const title = document.createElement('span');
+            title.className = 'media_title';
+            if (media.title_prefix) {
+              title.appendChild(getExpandableString(name, media.title_prefix + media.title));
+            } else {
+              title.appendChild(getExpandableString(name, media.title));
+            }
+            mediaEle.appendChild(title);
+          }
+
+          if (media.comment) {
+            const name = `comment${media.type}${media.id}`;
+            const comment = document.createElement('span');
+            comment.className = 'media_comment';
+            comment.appendChild(getExpandableString(name, media.comment));
+            mediaEle.appendChild(comment);
+          }
+
+          const showBriefMeta = ['large', 'regular'].includes(iconSize);
+          const metadata = createMediaStatsHtml(media, eventNames, tags, false, showBriefMeta, null);
+          metadata.className = 'media_metadata';
+          mediaEle.appendChild(metadata);
+        }
+
+        return mediaEle;
+      }
+
+      function createMediaSmallContainer() {
+        const ele = document.createElement('span');
+        ele.className = lastSmallMediaItems.length <= 2 ? 'media_mini_container' : 'media_small_container';
+        ele.appendChild(createMediaElement(lastSmallMediaItems[0][0], lastSmallMediaItems[0][1], 'small'));
+        if (lastSmallMediaItems.length >= 2) {
+          ele.appendChild(createMediaElement(lastSmallMediaItems[1][0], lastSmallMediaItems[1][1], 'small'));
+          if (lastSmallMediaItems.length >= 3) {
+            ele.appendChild(createMediaElement(lastSmallMediaItems[2][0], lastSmallMediaItems[2][1], 'small'));
+            if (lastSmallMediaItems.length >= 4) {
+              ele.appendChild(createMediaElement(lastSmallMediaItems[3][0], lastSmallMediaItems[3][1], 'small'));
+            }
+          }
+        }
+        return ele;
+      }
+
+      function getMediaGroupByFunc() {
+        const groupBy = getQueryParameter('group_by', 'none');
+
+        if (groupBy === 'year') {
+          return (input) => {
+            const parts = input.split(' ');
+            return parts.length === 1 ? parts[0] : parts[3];
+          };
+        }
+
+        if (groupBy === 'month') {
+          return (input) => {
+            const parts = input.split(' ');
+            return parts.length === 1 ? parts[0] : `${parts[1]} ${parts[3]}`;
+          };
+        }
+
+        if (groupBy === 'day') {
+          return (input) => {
+            const parts = input.split(' ');
+            return parts.length === 1 ? parts[0] : `${parts[0]} ${parts[1]} ${parts[2]} ${parts[3]}`;
+          };
+        }
+
+        return (input) => { return null; };
+      }
+
+      function doShowMedia(pageNumber) {
+        const pageIconSize = getPageIconSize();
+
+        let pageSize;
+        if (pageIconSize === 'small' || pageIconSize === 'medium' || pageIconSize === 'small_medium') {
+          pageSize = 48;
+        } else {
+          pageSize = 12;
+        }
+
+        const lastPageNumber = Math.ceil(allMedia.length / pageSize);
+        if (pageNumber > lastPageNumber) {
+          return;
+        }
+
+        const allMediaEle = document.querySelector('#all_media');
+        const groupBy = getMediaGroupByFunc();
+        if (currentGroupEle == null) {
+          currentGroupEle = allMediaEle;
+        }
+
+        const startIdx = (pageNumber - 1) * pageSize;
+
+        for (const [index, media] of allMedia.slice(startIdx, startIdx + pageSize).entries()) {
+          const thisGroupName = 'exposure_time_pretty' in media ? groupBy(media.exposure_time_pretty) : null;
+          if (thisGroupName !== currentGroupName) {
+            currentGroupName = thisGroupName;
+
+            if (lastSmallMediaItems != null && lastSmallMediaItems.length > 0) {
+              currentGroupEle.appendChild(createMediaSmallContainer());
+              lastSmallMediaItems = [];
+            }
+
+            currentGroupEle = document.createElement('div');
+            currentGroupEle.className = 'media_group';
+
+            const titleEle = document.createElement('div');
+            titleEle.className = 'media_group_title';
+            titleEle.innerText = thisGroupName;
+            currentGroupEle.appendChild(titleEle);
+
+            allMediaEle.appendChild(currentGroupEle);
+          }
+
+          const mediaIconSize = getMediaIconSize(pageIconSize, media);
+          if (pageIconSize === 'small_medium') {
+            if (mediaIconSize === 'medium') {
+              currentGroupEle.appendChild(createMediaElement(startIdx + index, media, mediaIconSize));
+            } else {
+              lastSmallMediaItems.push([startIdx + index, media]);
+              if (lastSmallMediaItems.length === 4) {
+                currentGroupEle.appendChild(createMediaSmallContainer());
+                lastSmallMediaItems = [];
+              }
+            }
+          } else {
+            currentGroupEle.appendChild(createMediaElement(startIdx + index, media, mediaIconSize));
+          }
+        }
+
+        currentPageNumber = pageNumber;
+        if (pageNumber === lastPageNumber && lastSmallMediaItems != null && lastSmallMediaItems.length > 0) {
+          currentGroupEle.appendChild(createMediaSmallContainer());
+          lastSmallMediaItems = [];
+        }
+
+        // Ensure that the viewport is filled with media for higher screen resolutions.
+        windowScrolled();
+      }
+
+      function clearPreviousMedia(allMediaEle) {
+        removeAllChildren(allMediaEle);
+        lastSmallMediaItems = [];
+        window.scrollTo(0, 0);
+      }
+
+      function showMedia() {
+        const allMediaEle = document.querySelector('#all_media');
+
+        clearPreviousMedia(allMediaEle);
+        if (allMedia == null) {
+          return;
+        }
+
+        document.querySelector('.search_controls').style.display = 'block';
+        document.querySelector('#search_criterias').style.display = 'block';
+
+        if (allMedia.length === 0) {
+          updateOverallStatusMessage('No results found');
+          hideResultsInfo();
+          return;
+        }
+
+        window.setTimeout(() => {
+          // In case an event was in flight before the JSON was processed
+          clearPreviousMedia(allMediaEle);
+
+          doShowMedia(1);
+
+          for (const ele of document.querySelectorAll('.header_links')) {
+            ele.style.display = 'block';
+          }
+
+          document.querySelector('#csv_link').onclick = (event) => { downloadCsv(event); };
+
+          document.querySelector('.summary_stats').replaceChildren(createAllStatsHtml());
+        }, 0);
+      }
+
+      updateAnimationsText();
+      window.onscroll = windowScrolled;
+      window.onresize = windowSizeChanged;
+
+      document.querySelector('#fullimage').onclick = toggleFullscreenDescription;
+
+      document.onkeydown = (event) => {
+        if (event.key === 'ArrowLeft') {
+          showPreviousImageFullscreen(event);
+        } else if (event.key === 'ArrowRight') {
+          showNextImageFullscreen(event, true);
+        } else if (event.key === 'Escape') {
+          exitImageFullscreen(event);
+        } else if (event.key === ' ') {
+          toggleFullscreenDescription();
+        }
+      };
+      document.onfullscreenchange = (event) => {
+        if (!isFullscreen()) {
+          exitImageFullscreen(event);
+        }
+      };
+      document.addEventListener('swiped-left', (event) => { showNextImageFullscreen(event, true); });
+      document.addEventListener('swiped-right', showPreviousImageFullscreen);
+
+      window.onpopstate = function () {
+        processJson(populateMedia);
+      };
+    </script>
+  </body>
+</html>

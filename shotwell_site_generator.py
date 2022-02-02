@@ -21,7 +21,7 @@ def write_manifest_json(options):
     vals["name"] = options.title
     vals["short_name"] = options.title
     vals["description"] = options.title
-    vals["start_url"] = "search.html"
+    vals["start_url"] = "index.html"
     vals["display"] = "fullscreen"
     vals["background_color"] = "#fff"
 
@@ -88,8 +88,9 @@ def process_photos(options):
     json_writer.write()
 
     logging.info("Copying other support files")
-    write_redirect(os.path.join(options.dest_directory, "index.html"), "search.html")
     write_redirect(os.path.join(options.dest_directory, "static-site.html"), "media/index.html")
+    shutil.copyfile(__get_assets_path(options, "index.html"),
+                    os.path.join(options.dest_directory, "index.html"))
     shutil.copyfile(__get_assets_path(options, "search.css"),
                     os.path.join(options.dest_directory, "search.css"))
     shutil.copyfile(__get_assets_path(options, "search.html"),

@@ -219,7 +219,7 @@ function generateSearchUrl(criterias, matchPolicy, iconSize, groupBy) {
   if (groupBy !== 'none') {
     qs.push(`group_by=${groupBy}`);
   }
-  return `search.html?${qs.join('&')}#`;
+  return `index.html?${qs.join('&')}#`;
 }
 
 function shuffleArray(arr) {
