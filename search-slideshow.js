@@ -215,14 +215,6 @@ function checkForPhotoFrameMode() {
   startSlideshow();
 }
 
-function toggleFullscreen() {
-  if (document.fullscreenElement !== null) {
-    document.exitFullscreen();
-  } else {
-    document.documentElement.requestFullscreen();
-  }
-}
-
 function exitImageFullscreen(event) {
   if (isImageFullscreen()) {
     event.preventDefault();
