@@ -196,7 +196,7 @@ function slideshowClicked() {
     search += '&photo_frame=1';
   }
   if (!search.includes('photo_update_secs=')) {
-    search += '&photo_update_secs=30';
+    search += '&photo_update_secs=10';
   }
   search += '#';
   window.history.pushState({}, '', search);
