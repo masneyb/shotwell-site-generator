@@ -108,18 +108,14 @@
     </template>
 
     <script type="text/javascript">
-      function showMobileView() {
-        return window.innerWidth < 900;
-      }
-
       let currentPageNumber = 1;
       let allMedia = null;
       let dateRange = null;
       let alwaysShowAnimations = false;
-      let isMobileView = showMobileView();
       let currentYearView = null;
       let lastSmallMediaItems = null;
       let preferLargeIcons = false;
+      let preferredPageIconSize = null;
       let currentGroupName = null;
       let currentGroupEle = null;
 
@@ -392,6 +388,7 @@
         }
 
         preferLargeIcons = preferredTitle[2];
+        preferredPageIconSize = getPageIconSize();
 
         showParentTags(searchTag);
       }
@@ -420,9 +417,9 @@
       }
 
       function windowSizeChanged() {
-        const prevMobileView = isMobileView;
-        isMobileView = showMobileView();
-        if (prevMobileView !== isMobileView) {
+        const prevPageIconSize = preferredPageIconSize;
+        preferredPageIconSize = getPageIconSize();
+        if (prevPageIconSize !== preferredPageIconSize) {
           showMedia();
         }
       }
@@ -490,11 +487,13 @@
           return iconSize;
         }
 
-        if (isMobileView) {
+        if (window.innerWidth <= 800) {
           return preferLargeIcons ? 'large' : 'small_medium';
+        } else if (window.innerWidth <= 1200) {
+          return 'large';
+        } else {
+          return 'regular';
         }
-
-        return 'regular';
       }
 
       function getMediaIconSize(pageIconSize, media) {
