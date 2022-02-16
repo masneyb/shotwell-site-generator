@@ -326,6 +326,24 @@
         }
       }
 
+      function getPageIconSize() {
+        const validIconSizes = ['small', 'medium', 'small_medium',
+                                'large', 'large_full_meta', 'large_no_meta',
+                                'regular', 'regular_full_meta', 'regular_no_meta'];
+        const iconSize = getQueryParameter('icon_size', 'default');
+        if (validIconSizes.includes(iconSize)) {
+          return iconSize;
+        }
+
+        if (window.innerWidth <= 800) {
+          return preferLargeIcons ? 'large' : 'small_medium';
+        }
+        if (window.innerWidth <= 1200) {
+          return 'large';
+        }
+        return 'regular';
+      }
+
       function setPageTitle(mediaTitle) {
         currentYearView = null;
 
@@ -475,24 +493,6 @@
       function windowScrolled() {
         if (window.innerHeight + window.scrollY >= (document.body.offsetHeight * 0.85)) {
           doShowMedia(currentPageNumber + 1);
-        }
-      }
-
-      function getPageIconSize() {
-        const validIconSizes = ['small', 'medium', 'small_medium',
-                                'large', 'large_full_meta', 'large_no_meta',
-                                'regular', 'regular_full_meta', 'regular_no_meta'];
-        const iconSize = getQueryParameter('icon_size', 'default');
-        if (validIconSizes.includes(iconSize)) {
-          return iconSize;
-        }
-
-        if (window.innerWidth <= 800) {
-          return preferLargeIcons ? 'large' : 'small_medium';
-        } else if (window.innerWidth <= 1200) {
-          return 'large';
-        } else {
-          return 'regular';
         }
       }
 
