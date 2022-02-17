@@ -43,7 +43,7 @@ function getFullscreenImageUrl(index) {
     return allMedia[index].thumbnail.reg;
   }
 
-  return allMedia[index].thumbnail.sq;
+  return allMedia[index].thumbnail.large;
 }
 
 function recordImageUrlAsCached(imageUrl) {

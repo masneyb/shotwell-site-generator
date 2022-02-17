@@ -71,6 +71,7 @@
         <option value="small">Small Icons</option>
         <option value="medium">Medium Icons</option>
         <option value="small_medium">Small/Medium Icons</option>
+        <option value="medium_large">Medium/Large Icons</option>
         <option value="large">Large Icons</option>
         <option value="large_full_meta">Large Icons (Full Metadata)</option>
         <option value="large_no_meta">Large Icons (No Metadata)</option>
@@ -327,7 +328,7 @@
       }
 
       function getPageIconSize() {
-        const validIconSizes = ['small', 'medium', 'small_medium',
+        const validIconSizes = ['small', 'medium', 'small_medium', 'medium_large',
                                 'large', 'large_full_meta', 'large_no_meta',
                                 'regular', 'regular_full_meta', 'regular_no_meta'];
         const iconSize = getQueryParameter('icon_size', 'default');
@@ -339,7 +340,7 @@
           return preferLargeIcons ? 'large' : 'small_medium';
         }
         if (window.innerWidth <= 1200) {
-          return 'large';
+          return 'medium_large';
         }
         return 'regular';
       }
@@ -496,13 +497,17 @@
         }
       }
 
+      function showLargerMedia(media) {
+        return media.rating === 5 || (media.type !== 'photo' && media.type !== 'video');
+      }
+
       function getMediaIconSize(media) {
         if (preferredPageIconSize === 'small_medium') {
-          if (media.rating === 5 || (media.type !== 'photo' && media.type !== 'video')) {
-            return 'medium';
-          }
+          return showLargerMedia(media) ? 'medium' : 'small';
+        }
 
-          return 'small';
+        if (preferredPageIconSize === 'medium_large') {
+          return showLargerMedia(media) ? 'large' : 'medium';
         }
 
         return preferredPageIconSize;
@@ -510,7 +515,6 @@
 
       function createMediaElement(index, media, iconSize) {
         const mediaEle = document.createElement('span');
-        mediaEle.className = 'media_dyn';
 
         const anchor = document.createElement('a');
         const mediaThumbSpan = document.createElement('span');
@@ -531,10 +535,15 @@
             img.src = media.motion_photo.medium_gif;
             mediaEle.className = 'media_medium';
           } else if (['large', 'large_full_meta', 'large_no_meta'].includes(iconSize) || !('reg_gif' in media.motion_photo)) {
-            img.src = media.motion_photo.sq_gif;
-            mediaEle.className = 'media';
+            img.src = media.motion_photo.large_gif;
+            if (preferredPageIconSize === 'medium_large' || iconSize === 'large_no_meta') {
+              mediaEle.className = 'media_no_descr';
+            } else {
+              mediaEle.className = 'media';
+            }
           } else {
             img.src = media.motion_photo.reg_gif;
+            mediaEle.className = 'media_dyn';
             mediaEle.style.width = `${media.thumbnail.reg_width}px`;
           }
         } else if (iconSize === 'small') {
@@ -556,14 +565,18 @@
           }
           mediaEle.className = 'media_medium';
         } else if (['large', 'large_full_meta', 'large_no_meta'].includes(iconSize) || !('reg' in media.thumbnail)) {
-          img.src = media.thumbnail.sq;
+          img.src = media.thumbnail.large;
           if (media.motion_photo) {
-            img.onmouseover = () => { img.src = media.motion_photo.sq_gif; };
-            img.onmouseleave = () => { img.src = media.thumbnail.sq; };
-            img.ontouchstart = () => { img.src = media.motion_photo.sq_gif; };
-            img.ontouchend = () => { img.src = media.thumbnail.sq; };
+            img.onmouseover = () => { img.src = media.motion_photo.large_gif; };
+            img.onmouseleave = () => { img.src = media.thumbnail.large; };
+            img.ontouchstart = () => { img.src = media.motion_photo.large_gif; };
+            img.ontouchend = () => { img.src = media.thumbnail.large; };
           }
-          mediaEle.className = 'media';
+          if (preferredPageIconSize === 'medium_large' || iconSize === 'large_no_meta') {
+            mediaEle.className = 'media_no_descr';
+          } else {
+            mediaEle.className = 'media';
+          }
         } else {
           img.src = media.thumbnail.reg;
           if (media.motion_photo) {
@@ -572,10 +585,11 @@
             img.ontouchstart = () => { img.src = media.motion_photo.reg_gif; };
             img.ontouchend = () => { img.src = media.thumbnail.reg; };
           }
+          mediaEle.className = 'media_dyn';
           mediaEle.style.width = `${media.thumbnail.reg_width}px`;
         }
 
-        if (['large', 'large_full_meta', 'regular', 'regular_full_meta'].includes(iconSize)) {
+        if (['large', 'large_full_meta', 'regular', 'regular_full_meta'].includes(iconSize) && preferredPageIconSize !== 'medium_large') {
           if (media.title) {
             const name = `title${media.type}${media.id}`;
             const title = document.createElement('span');
@@ -607,14 +621,21 @@
 
       function createMediaSmallContainer() {
         const ele = document.createElement('span');
-        ele.className = lastSmallMediaItems.length <= 2 ? 'media_mini_container' : 'media_small_container';
-        ele.appendChild(createMediaElement(lastSmallMediaItems[0][0], lastSmallMediaItems[0][1], 'small'));
+        let iconSize = null;
+        if (preferredPageIconSize === 'medium_large') {
+          iconSize = 'medium';
+          ele.className = lastSmallMediaItems.length <= 2 ? 'media_medium_container_2' : 'media_medium_container';
+        } else {
+          iconSize = 'small';
+          ele.className = lastSmallMediaItems.length <= 2 ? 'media_small_container_2' : 'media_small_container';
+        }
+        ele.appendChild(createMediaElement(lastSmallMediaItems[0][0], lastSmallMediaItems[0][1], iconSize));
         if (lastSmallMediaItems.length >= 2) {
-          ele.appendChild(createMediaElement(lastSmallMediaItems[1][0], lastSmallMediaItems[1][1], 'small'));
+          ele.appendChild(createMediaElement(lastSmallMediaItems[1][0], lastSmallMediaItems[1][1], iconSize));
           if (lastSmallMediaItems.length >= 3) {
-            ele.appendChild(createMediaElement(lastSmallMediaItems[2][0], lastSmallMediaItems[2][1], 'small'));
+            ele.appendChild(createMediaElement(lastSmallMediaItems[2][0], lastSmallMediaItems[2][1], iconSize));
             if (lastSmallMediaItems.length >= 4) {
-              ele.appendChild(createMediaElement(lastSmallMediaItems[3][0], lastSmallMediaItems[3][1], 'small'));
+              ele.appendChild(createMediaElement(lastSmallMediaItems[3][0], lastSmallMediaItems[3][1], iconSize));
             }
           }
         }
@@ -652,6 +673,8 @@
         let pageSize;
         if (preferredPageIconSize === 'small' || preferredPageIconSize === 'medium' || preferredPageIconSize === 'small_medium') {
           pageSize = 48;
+        } else if (preferredPageIconSize === 'medium_large') {
+          pageSize = 24;
         } else {
           pageSize = 12;
         }
@@ -691,8 +714,16 @@
           }
 
           const mediaIconSize = getMediaIconSize(media);
+
+          let largeIconSize = null;
           if (preferredPageIconSize === 'small_medium') {
-            if (mediaIconSize === 'medium') {
+            largeIconSize = 'medium';
+          } else if (preferredPageIconSize === 'medium_large') {
+            largeIconSize = 'large';
+          }
+
+          if (largeIconSize !== null) {
+            if (mediaIconSize === largeIconSize) {
               currentGroupEle.appendChild(createMediaElement(startIdx + index, media, mediaIconSize));
             } else {
               lastSmallMediaItems.push([startIdx + index, media]);

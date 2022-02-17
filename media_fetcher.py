@@ -96,7 +96,7 @@ class Database:
             os.makedirs(thumbnail_basedir)
 
         for year, year_block in all_media["events_by_year"].items():
-            year_block["thumbnail_path"] = "year/squared/%s" % ("%s.png" % (year))
+            year_block["thumbnail_path"] = "year/large/%s" % ("%s.png" % (year))
             fspath = self.__get_thumbnail_fs_path(year_block["thumbnail_path"])
             candidate_photos = self.__get_year_candidate_composite_photos(all_media,
                                                                           year,
@@ -205,9 +205,9 @@ class Database:
                 reg_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
                                                                          0, None,
                                                                          ThumbnailType.REGULAR)
-                sq_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
-                                                                        0, None,
-                                                                        ThumbnailType.LARGE_ROUND)
+                large_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"],
+                                                                           media_id, 0, None,
+                                                                           ThumbnailType.LARGE)
                 small_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"],
                                                                            media_id, 0, None,
                                                                            ThumbnailType.SMALL_SQ)
@@ -219,7 +219,7 @@ class Database:
                 media = self.__add_media(all_media, row, media_id, video, video, None, 0,
                                          self.icons.play, self.icons.play, self.icons.play_small,
                                          self.icons.play_medium, reg_short_mp_path,
-                                         sq_short_mp_path, small_short_mp_path,
+                                         large_short_mp_path, small_short_mp_path,
                                          medium_short_mp_path, video_json)
                 media["clip_duration"] = row["clip_duration"]
 
@@ -260,9 +260,9 @@ class Database:
         reg_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
                                                                  rotate, exif_metadata,
                                                                  ThumbnailType.REGULAR)
-        sq_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
-                                                                rotate, exif_metadata,
-                                                                ThumbnailType.LARGE_ROUND)
+        large_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
+                                                                   rotate, exif_metadata,
+                                                                   ThumbnailType.LARGE)
         small_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
                                                                    rotate, exif_metadata,
                                                                    ThumbnailType.SMALL_SQ)
@@ -272,29 +272,29 @@ class Database:
 
         if is_raw:
             reg_overlay_icon = self.icons.raw
-            sq_overlay_icon = self.icons.raw
+            large_overlay_icon = self.icons.raw
             small_overlay_icon = None
             medium_overlay_icon = None
         elif reg_short_mp_path:
             reg_overlay_icon = self.icons.motion_photo
-            sq_overlay_icon = self.icons.motion_photo
+            large_overlay_icon = self.icons.motion_photo
             small_overlay_icon = None
             medium_overlay_icon = None
         elif row["width"] / row["height"] >= 2.0:
             reg_overlay_icon = None
-            sq_overlay_icon = self.icons.panorama
+            large_overlay_icon = self.icons.panorama
             small_overlay_icon = self.icons.panorama_small
             medium_overlay_icon = self.icons.panorama_small
         else:
             reg_overlay_icon = None
-            sq_overlay_icon = None
+            large_overlay_icon = None
             small_overlay_icon = None
             medium_overlay_icon = None
 
         media = self.__add_media(all_media, row, media_id, download_source, row["filename"],
                                  row["transformations"], rotate, reg_overlay_icon,
-                                 sq_overlay_icon, small_overlay_icon, medium_overlay_icon,
-                                 reg_short_mp_path, sq_short_mp_path, small_short_mp_path,
+                                 large_overlay_icon, small_overlay_icon, medium_overlay_icon,
+                                 reg_short_mp_path, large_short_mp_path, small_short_mp_path,
                                  medium_short_mp_path, metadata_text)
 
         media.update(self.__parse_photo_exiv2_metadata(exiv2_metadata))
@@ -380,7 +380,7 @@ class Database:
             thumbnail_basename = "%d_%s.png" % (event["id"], year)
             descr = "event %s, year %s" % (cleanup_event_title(event), year)
 
-        thumbnail_path = "event/squared/%s/%s" % (dirhash, thumbnail_basename)
+        thumbnail_path = "event/large/%s/%s" % (dirhash, thumbnail_basename)
         fspath = self.__get_thumbnail_fs_path(thumbnail_path)
 
         self.thumbnailer.create_composite_media_thumbnail(descr, candidate_media, fspath)
@@ -440,7 +440,7 @@ class Database:
 
             thumbnail_basename = "%d.png" % (tag["id"])
             dir_shard = get_dir_hash(thumbnail_basename)
-            tag["thumbnail_path"] = "tag/squared/%s/%s" % (dir_shard, thumbnail_basename)
+            tag["thumbnail_path"] = "tag/large/%s/%s" % (dir_shard, thumbnail_basename)
             fspath = self.__get_thumbnail_fs_path(tag["thumbnail_path"])
             self.thumbnailer.create_composite_media_thumbnail("tag %s" % (tag["full_title"]),
                                                               tag["media"], fspath)
@@ -527,9 +527,9 @@ class Database:
         return fspath
 
     def __add_media(self, all_media, row, media_id, download_source, thumbnail_source,
-                    transformations, rotate, reg_overlay_icon, sq_overlay_icon,
+                    transformations, rotate, reg_overlay_icon, large_overlay_icon,
                     small_overlay_icon, medium_overlay_icon, reg_motion_photo,
-                    sq_motion_photo, small_motion_photo, medium_motion_photo, metadata_text):
+                    large_motion_photo, small_motion_photo, medium_motion_photo, metadata_text):
         # pylint: disable=too-many-arguments,too-many-locals,too-many-statements
         media = {}
         media["id"] = row["id"]
@@ -560,7 +560,7 @@ class Database:
         media["tags"] = set([])
 
         dir_shard = get_dir_hash(media["media_id"])
-        media["thumbnail_path"] = "media/squared/%s/%s.png" % (dir_shard, media["media_id"])
+        media["thumbnail_path"] = "media/large/%s/%s.png" % (dir_shard, media["media_id"])
         media["reg_thumbnail_path"] = "media/regular/%s/%s.jpg" % (dir_shard, media["media_id"])
         media["small_thumbnail_path"] = "media/small/%s/%s.jpg" % (dir_shard, media["media_id"])
         media["medium_thumbnail_path"] = "media/medium/%s/%s.jpg" % (dir_shard, media["media_id"])
@@ -580,15 +580,13 @@ class Database:
             media["filename"] = self.__get_html_basepath(thumbnail_source)
             media["filename_fullpath"] = thumbnail_source
 
-        # The regular thumbnails are used for the desktop version of the site on the search page.
         reg_fspath = self.__create_thumbnail(media, thumbnail_source, rotate, reg_overlay_icon,
                                              ThumbnailType.REGULAR, media["reg_thumbnail_path"])
         all_artifacts.add(reg_fspath)
         media["reg_thumbnail_width"] = self.__get_image_dimensions(reg_fspath)[0]
 
-        # The square thumbnails are used everywhere else.
-        all_artifacts.add(self.__create_thumbnail(media, thumbnail_source, rotate, sq_overlay_icon,
-                                                  ThumbnailType.LARGE_ROUND,
+        all_artifacts.add(self.__create_thumbnail(media, thumbnail_source, rotate,
+                                                  large_overlay_icon, ThumbnailType.LARGE,
                                                   media["thumbnail_path"]))
         all_artifacts.add(self.__create_thumbnail(media, thumbnail_source, rotate,
                                                   small_overlay_icon, ThumbnailType.SMALL_SQ,
@@ -599,7 +597,7 @@ class Database:
 
         all_media["media_by_id"][media_id] = media
 
-        for key, var in [("sq_motion_photo", sq_motion_photo),
+        for key, var in [("large_motion_photo", large_motion_photo),
                          ("small_motion_photo", small_motion_photo),
                          ("medium_motion_photo", medium_motion_photo),
                          ("reg_motion_photo", reg_motion_photo)]:

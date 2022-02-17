@@ -224,8 +224,8 @@ class Html(CommonWriter):
             output.write("<a href='%s'>" % (html.escape(link)))
 
         thumbnail = '../thumbnails/%s' % (html.escape(thumbnail_path))
-        if "sq_motion_photo" in media and media["sq_motion_photo"]:
-            motion_photo = '../%s' % (html.escape(media["sq_motion_photo"][1]))
+        if "large_motion_photo" in media and media["large_motion_photo"]:
+            motion_photo = '../%s' % (html.escape(media["large_motion_photo"][1]))
             output.write(("<span class='media_thumb'>"
                           f"<img onMouseOver='this.src=\"{motion_photo}\"'"
                           f" onMouseLeave='this.src=\"{thumbnail}\"'"
@@ -306,9 +306,10 @@ class Html(CommonWriter):
             detailed.append("<a href='../index.html?search=%s'>GPS %.5f,%.5f</a>" % \
                             (urllib.parse.quote(search), media["lat"], media["lon"]))
 
-        if "sq_motion_photo" in media and media["sq_motion_photo"] and media["sq_motion_photo"][0]:
+        if "large_motion_photo" in media and media["large_motion_photo"] and \
+           media["large_motion_photo"][0]:
             detailed.append("<a target='_new' href='../%s'>Motion Photo</a>" %
-                            (media["sq_motion_photo"][0]))
+                            (media["large_motion_photo"][0]))
 
         if "rating" in media:
             detailed.append(("&starf;" * media["rating"]) + ("&star;" * (5 - media["rating"])))

@@ -32,7 +32,7 @@ class Json(CommonWriter):
             item["thumbnail"] = {}
             item["thumbnail"]["small"] = "thumbnails/" + event["small_thumbnail_path"]
             item["thumbnail"]["medium"] = "thumbnails/" + event["medium_thumbnail_path"]
-            item["thumbnail"]["sq"] = "thumbnails/" + event["thumbnail_path"]
+            item["thumbnail"]["large"] = "thumbnails/" + event["thumbnail_path"]
 
             item["link"] = "event/%s.html" % (event["id"])
             item.update(self.__get_stats(event["stats"]))
@@ -82,7 +82,7 @@ class Json(CommonWriter):
         item["thumbnail"] = {}
         item["thumbnail"]["small"] = "thumbnails/" + media["small_thumbnail_path"]
         item["thumbnail"]["medium"] = "thumbnails/" + media["medium_thumbnail_path"]
-        item["thumbnail"]["sq"] = "thumbnails/" + media["thumbnail_path"]
+        item["thumbnail"]["large"] = "thumbnails/" + media["thumbnail_path"]
         if "reg_thumbnail_path" in media:
             item["thumbnail"]["reg"] = "thumbnails/" + media["reg_thumbnail_path"]
             item["thumbnail"]["reg_width"] = media["reg_thumbnail_width"]
@@ -96,14 +96,14 @@ class Json(CommonWriter):
         if "metadata_text" in media and media["metadata_text"]:
             item["metadata_text"] = media["metadata_text"]
 
-        if "sq_motion_photo" in media and media["sq_motion_photo"]:
+        if "large_motion_photo" in media and media["large_motion_photo"]:
             item["motion_photo"] = {}
-            if media["sq_motion_photo"][0]:
-                item["motion_photo"]["mp4"] = media["sq_motion_photo"][0]
+            if media["large_motion_photo"][0]:
+                item["motion_photo"]["mp4"] = media["large_motion_photo"][0]
 
             item["motion_photo"]["small_gif"] = media["small_motion_photo"][1]
             item["motion_photo"]["medium_gif"] = media["medium_motion_photo"][1]
-            item["motion_photo"]["sq_gif"] = media["sq_motion_photo"][1]
+            item["motion_photo"]["large_gif"] = media["large_motion_photo"][1]
             item["motion_photo"]["reg_gif"] = media["reg_motion_photo"][1]
 
         if "lat" in media:
@@ -126,7 +126,8 @@ class Json(CommonWriter):
                                                event["years"][year]["small_thumbnail_path"]
             year_block["thumbnail"]["medium"] = "thumbnails/" + \
                                                 event["years"][year]["medium_thumbnail_path"]
-            year_block["thumbnail"]["sq"] = "thumbnails/" + event["years"][year]["thumbnail_path"]
+            year_block["thumbnail"]["large"] = \
+                "thumbnails/" + event["years"][year]["thumbnail_path"]
 
             year_block.update(self.__get_stats(event["years"][year]["stats"]))
             ret["years"].append(year_block)
@@ -155,7 +156,7 @@ class Json(CommonWriter):
             item["thumbnail"] = {}
             item["thumbnail"]["small"] = "thumbnails/" + tag["small_thumbnail_path"]
             item["thumbnail"]["medium"] = "thumbnails/" + tag["medium_thumbnail_path"]
-            item["thumbnail"]["sq"] = "thumbnails/" + tag["thumbnail_path"]
+            item["thumbnail"]["large"] = "thumbnails/" + tag["thumbnail_path"]
 
             item["link"] = "tag/%s.html" % (tag["id"])
             item.update(self.__get_stats(tag["stats"]))
@@ -186,7 +187,7 @@ class Json(CommonWriter):
             item["thumbnail"] = {}
             item["thumbnail"]["small"] = "thumbnails/%s" % (year_block["small_thumbnail_path"])
             item["thumbnail"]["medium"] = "thumbnails/%s" % (year_block["medium_thumbnail_path"])
-            item["thumbnail"]["sq"] = "thumbnails/%s" % (year_block["thumbnail_path"])
+            item["thumbnail"]["large"] = "thumbnails/%s" % (year_block["thumbnail_path"])
 
             item["num_events"] = len(year_block["events"])
             item.update(self.__get_stats(year_block["stats"]))

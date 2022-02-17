@@ -15,7 +15,7 @@ COMPOSITE_FRAME_SIZE = 4
 class ThumbnailType(enum.Enum):
     SMALL_SQ = 1
     MEDIUM_SQ = 2
-    LARGE_ROUND = 3
+    LARGE = 3
     REGULAR = 4
 
 class Thumbnailer:
@@ -256,7 +256,7 @@ class Thumbnailer:
         if is_video:
             source_image += "[1]"
 
-        if thumbnail_type == ThumbnailType.LARGE_ROUND:
+        if thumbnail_type == ThumbnailType.LARGE:
             tn_size = f'{self.thumbnail_size}^'
         elif thumbnail_type == ThumbnailType.SMALL_SQ:
             tn_size = f'{self.small_thumbnail_size}^'
@@ -268,7 +268,7 @@ class Thumbnailer:
         resize_cmd = [self.imagemagick_command, source_image, "-strip", "-rotate", str(rotate),
                       "-thumbnail", tn_size]
 
-        if thumbnail_type == ThumbnailType.LARGE_ROUND:
+        if thumbnail_type == ThumbnailType.LARGE:
             resize_cmd += ["-gravity", "center", "-extent", self.thumbnail_size]
         elif thumbnail_type == ThumbnailType.SMALL_SQ:
             resize_cmd += ["-gravity", "center", "-extent", self.small_thumbnail_size]
@@ -277,14 +277,6 @@ class Thumbnailer:
 
         if overlay_icon:
             resize_cmd += [overlay_icon, "-gravity", "southeast", "-composite"]
-
-        if thumbnail_type == ThumbnailType.LARGE_ROUND:
-            resize_cmd += ["(", "+clone", "-alpha", "extract",
-                           "-draw", "fill black polygon 0,0 0,15 15,0 fill white circle 15,15 15,0",
-                           "(", "+clone", "-flip", ")",
-                           "-compose", "Multiply", "-composite", "(", "+clone", "-flop", ")",
-                           "-compose", "Multiply", "-composite", ")", "-alpha", "off",
-                           "-compose", "CopyOpacity", "-composite"]
 
         resize_cmd += [resized_image]
 
@@ -386,23 +378,11 @@ class Thumbnailer:
         elif rotate == 270:
             complex_filter += "transpose=2[rotate];[rotate]"
 
-        if thumbnail_type in (ThumbnailType.LARGE_ROUND, ThumbnailType.SMALL_SQ,
-                              ThumbnailType.MEDIUM_SQ):
-            complex_filter += f"scale='if(gt(iw,ih),-1,{height})':'if(gt(iw,ih),{width},-1)'"
+        if thumbnail_type in (ThumbnailType.SMALL_SQ, ThumbnailType.MEDIUM_SQ, ThumbnailType.LARGE):
+            complex_filter += (f"scale='if(gt(iw,ih),-1,{height})':'if(gt(iw,ih),{width},-1)'"
+                               f"[scale];[scale]crop={width}:{height}")
         else:
             complex_filter += f"scale='-1:{height}'"
-
-        if thumbnail_type == ThumbnailType.LARGE_ROUND:
-            complex_filter += \
-                (f"[scale];[scale]crop={width}:{height}[crop];"
-                 "[crop]geq=lum='p(X,Y)':"
-                 "a='if(gt(abs(W/2-X),W/2-15)*gt(abs(H/2-Y),H/2-15),"
-                 "if(lte(hypot(15-(W/2-abs(W/2-X)),15-(H/2-abs(H/2-Y))),15),255,0),255)'"
-                 "[rounded];"
-                 f"color=white@0.0:size={width}x{height},format=rgba[bg];"
-                 "[bg][rounded]overlay=x=0:y=0:shortest=1")
-        elif thumbnail_type in (ThumbnailType.SMALL_SQ, ThumbnailType.MEDIUM_SQ):
-            complex_filter += f"[scale];[scale]crop={width}:{height}"
 
         if num_frames:
             if thumbnail_type == ThumbnailType.SMALL_SQ:
@@ -443,8 +423,8 @@ class Thumbnailer:
             path_part = "small"
         elif thumbnail_type == ThumbnailType.MEDIUM_SQ:
             path_part = "medium"
-        elif thumbnail_type == ThumbnailType.LARGE_ROUND:
-            path_part = "squared"
+        elif thumbnail_type == ThumbnailType.LARGE:
+            path_part = "large"
         else:
             path_part = "regular"
 
