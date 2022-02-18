@@ -513,6 +513,10 @@
         return preferredPageIconSize;
       }
 
+      function showLargeIconWithNoDescr(iconSize) {
+        return (preferredPageIconSize === 'medium_large' && !preferLargeIcons) || iconSize === 'large_no_meta';
+      }
+
       function createMediaElement(index, media, iconSize) {
         const mediaEle = document.createElement('span');
 
@@ -536,7 +540,7 @@
             mediaEle.className = 'media_medium';
           } else if (['large', 'large_full_meta', 'large_no_meta'].includes(iconSize) || !('reg_gif' in media.motion_photo)) {
             img.src = media.motion_photo.large_gif;
-            if (preferredPageIconSize === 'medium_large' || iconSize === 'large_no_meta') {
+            if (showLargeIconWithNoDescr(iconSize)) {
               mediaEle.className = 'media_no_descr';
             } else {
               mediaEle.className = 'media';
@@ -572,7 +576,7 @@
             img.ontouchstart = () => { img.src = media.motion_photo.large_gif; };
             img.ontouchend = () => { img.src = media.thumbnail.large; };
           }
-          if (preferredPageIconSize === 'medium_large' || iconSize === 'large_no_meta') {
+          if (showLargeIconWithNoDescr(iconSize)) {
             mediaEle.className = 'media_no_descr';
           } else {
             mediaEle.className = 'media';
@@ -589,7 +593,7 @@
           mediaEle.style.width = `${media.thumbnail.reg_width}px`;
         }
 
-        if (['large', 'large_full_meta', 'regular', 'regular_full_meta'].includes(iconSize) && preferredPageIconSize !== 'medium_large') {
+        if (['large', 'large_full_meta', 'regular', 'regular_full_meta'].includes(iconSize) && !showLargeIconWithNoDescr(iconSize)) {
           if (media.title) {
             const name = `title${media.type}${media.id}`;
             const title = document.createElement('span');
