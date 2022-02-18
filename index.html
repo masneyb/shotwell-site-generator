@@ -118,7 +118,7 @@
       let dateRange = null;
       let alwaysShowAnimations = false;
       let currentYearView = null;
-      let lastSmallMediaItems = null;
+      let lastSmallMediaItems = [];
       let preferLargeIcons = false;
       let preferredPageIconSize = null;
       let currentGroupName = null;
@@ -639,25 +639,23 @@
         return mediaEle;
       }
 
-      function createMediaSmallContainer() {
-        const ele = document.createElement('span');
+      function createMediaSmallContainer(hasPreviousGroup) {
         let iconSize = null;
         if (preferredPageIconSize === 'medium_large') {
           iconSize = 'medium';
-          ele.className = lastSmallMediaItems.length <= 2 ? 'media_medium_container_2' : 'media_medium_container';
         } else {
           iconSize = 'small';
-          ele.className = lastSmallMediaItems.length <= 2 ? 'media_small_container_2' : 'media_small_container';
         }
-        ele.appendChild(createMediaElement(lastSmallMediaItems[0][0], lastSmallMediaItems[0][1], iconSize));
-        if (lastSmallMediaItems.length >= 2) {
-          ele.appendChild(createMediaElement(lastSmallMediaItems[1][0], lastSmallMediaItems[1][1], iconSize));
-          if (lastSmallMediaItems.length >= 3) {
-            ele.appendChild(createMediaElement(lastSmallMediaItems[2][0], lastSmallMediaItems[2][1], iconSize));
-            if (lastSmallMediaItems.length >= 4) {
-              ele.appendChild(createMediaElement(lastSmallMediaItems[3][0], lastSmallMediaItems[3][1], iconSize));
-            }
-          }
+
+        const ele = document.createElement('span');
+        if (lastSmallMediaItems.length <= 2) {
+          ele.className = hasPreviousGroup ? `media_${iconSize}_container_2v` : `media_${iconSize}_container_2h`;
+        } else {
+          ele.className = `media_${iconSize}_container`;
+        }
+
+        for (let i = 0; i < lastSmallMediaItems.length; i += 1) {
+          ele.appendChild(createMediaElement(lastSmallMediaItems[i][0], lastSmallMediaItems[i][1], iconSize));
         }
         return ele;
       }
@@ -711,16 +709,18 @@
         }
 
         const startIdx = (pageNumber - 1) * pageSize;
+        let hasPreviousGroup = false;
 
         for (const [index, media] of allMedia.slice(startIdx, startIdx + pageSize).entries()) {
           const thisGroupName = 'exposure_time_pretty' in media ? groupBy(media.exposure_time_pretty) : null;
           if (thisGroupName !== currentGroupName) {
             currentGroupName = thisGroupName;
 
-            if (lastSmallMediaItems != null && lastSmallMediaItems.length > 0) {
-              currentGroupEle.appendChild(createMediaSmallContainer());
+            if (lastSmallMediaItems.length > 0) {
+              currentGroupEle.appendChild(createMediaSmallContainer(hasPreviousGroup));
               lastSmallMediaItems = [];
             }
+            hasPreviousGroup = false;
 
             currentGroupEle = document.createElement('div');
             currentGroupEle.className = 'media_group';
@@ -745,10 +745,12 @@
           if (largeIconSize !== null) {
             if (mediaIconSize === largeIconSize) {
               currentGroupEle.appendChild(createMediaElement(startIdx + index, media, mediaIconSize));
+              hasPreviousGroup = true;
             } else {
               lastSmallMediaItems.push([startIdx + index, media]);
               if (lastSmallMediaItems.length === 4) {
-                currentGroupEle.appendChild(createMediaSmallContainer());
+                currentGroupEle.appendChild(createMediaSmallContainer(hasPreviousGroup));
+                hasPreviousGroup = true;
                 lastSmallMediaItems = [];
               }
             }
@@ -758,8 +760,8 @@
         }
 
         currentPageNumber = pageNumber;
-        if (pageNumber === lastPageNumber && lastSmallMediaItems != null && lastSmallMediaItems.length > 0) {
-          currentGroupEle.appendChild(createMediaSmallContainer());
+        if (pageNumber === lastPageNumber && lastSmallMediaItems.length > 0) {
+          currentGroupEle.appendChild(createMediaSmallContainer(hasPreviousGroup));
           lastSmallMediaItems = [];
         }
 
