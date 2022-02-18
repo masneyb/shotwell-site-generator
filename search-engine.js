@@ -1019,7 +1019,7 @@ function performSearch(allItems) {
     }
   }
 
-  const sortBy = getQueryParameter('sortby', 'takenZA'); // takenZA,takenAZ,createdZA,random
+  const sortBy = getQueryParameter('sortby', 'takenZA'); // takenZA,takenAZ,createdZA,createdAZ,random
   if (sortBy === 'random') {
     shuffleArray(ret);
   } else {
@@ -1030,6 +1030,10 @@ function performSearch(allItems) {
       sortField = 'time_created';
       sortValLt = 1;
       sortValGt = -1;
+    } else if (sortBy === 'createdAZ') {
+      sortField = 'time_created';
+      sortValLt = -1;
+      sortValGt = 1;
     } else if (sortBy === 'takenAZ') {
       sortField = 'exposure_time';
       sortValLt = -1;

@@ -202,7 +202,7 @@ function populateSearchValuesFromUrl() {
   const matchPolicy = getQueryParameter('match_policy', 'all'); // any,none,all
   document.querySelector('#match_policy').value = matchPolicy;
 
-  const sortby = getQueryParameter('sortby', 'takenZA'); // takenZA,takenAZ,createdZA
+  const sortby = getQueryParameter('sortby', 'takenZA'); // takenZA,takenAZ,createdZA,createdAZ,random
   document.querySelector('#sortby').value = sortby;
 
   const iconSize = getQueryParameter('icon_size', 'default');
