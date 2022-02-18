@@ -194,7 +194,7 @@ a {
 	padding-top: 10px;
 }
 
-.search_criterias, .search_criteria, .search_controls {
+.search_criterias, .search_criteria, #search_controls {
 	display: block;
 	padding-bottom: 5px;
 }
