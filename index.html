@@ -74,6 +74,7 @@
           <option value="small">Small Icons</option>
           <option value="medium">Medium Icons</option>
           <option value="small_medium">Small/Medium Icons</option>
+          <option value="small_medium_large">Small/Medium/Large Icons</option>
           <option value="medium_large">Medium/Large Icons</option>
           <option value="large">Large Icons</option>
           <option value="large_full_meta">Large Icons (Full Metadata)</option>
@@ -343,8 +344,8 @@
       }
 
       function getPageIconSize() {
-        const validIconSizes = ['small', 'medium', 'small_medium', 'medium_large',
-                                'large', 'large_full_meta', 'large_no_meta',
+        const validIconSizes = ['small', 'medium', 'small_medium', 'small_medium_large',
+                                'medium_large', 'large', 'large_full_meta', 'large_no_meta',
                                 'regular', 'regular_full_meta', 'regular_no_meta'];
         const iconSize = getQueryParameter('icon_size', 'default');
         if (validIconSizes.includes(iconSize)) {
@@ -355,7 +356,7 @@
           return preferLargeIcons ? 'large' : 'small_medium';
         }
         if (window.innerWidth <= 1200) {
-          return 'medium_large';
+          return 'small_medium_large';
         }
         return 'regular';
       }
@@ -389,7 +390,7 @@
         }
       }
 
-      class DualIconSizeWriter {
+      class DoubleIconSizeWriter {
         constructor(smallIconSize, largeIconSize) {
           this.smallIconSize = smallIconSize;
           this.largeIconSize = largeIconSize;
@@ -426,6 +427,45 @@
             this.unprocessedItems = [];
             this.hasPreviousGroup = true;
           }
+        }
+      }
+
+      class TripleIconSizeWriter {
+        constructor(smallIconSize, mediumIconSize, largeIconSize) {
+          this.smallIconSize = smallIconSize;
+          this.mediumIconSize = mediumIconSize;
+          this.largeIconSize = largeIconSize;
+          this.dualWriter = new DoubleIconSizeWriter(mediumIconSize, largeIconSize);
+          this.unprocessedItems = [];
+        }
+
+        add(element, mediaIconSize) {
+          if (mediaIconSize === this.smallIconSize) {
+            this.unprocessedItems.push(element);
+            if (this.unprocessedItems.length === 4) {
+              this.dualWriter.add(createMediaSmallContainer(this.unprocessedItems, this.dualWriter.hasPreviousGroup, this.smallIconSize), this.mediumIconSize);
+              this.unprocessedItems = [];
+            }
+          } else {
+            this.dualWriter.add(element, mediaIconSize);
+          }
+        }
+
+        get currentGroupEle() {
+          return this.dualWriter.currentGroupEle;
+        }
+
+        set currentGroupEle(newParentEle) {
+          this.dualWriter.currentGroupEle = newParentEle;
+          this.unprocessedItems = [];
+        }
+
+        flush() {
+          if (this.unprocessedItems.length > 0) {
+            this.dualWriter.add(createMediaSmallContainer(this.unprocessedItems, this.dualWriter.hasPreviousGroup, this.smallIconSize), this.mediumIconSize);
+            this.unprocessedItems = [];
+          }
+          this.dualWriter.flush();
         }
       }
 
@@ -494,9 +534,11 @@
         preferredPageIconSize = getPageIconSize();
 
         if (preferredPageIconSize === 'small_medium') {
-          mediaWriter = new DualIconSizeWriter('small', 'medium');
+          mediaWriter = new DoubleIconSizeWriter('small', 'medium');
         } else if (preferredPageIconSize === 'medium_large') {
-          mediaWriter = new DualIconSizeWriter('medium', 'large');
+          mediaWriter = new DoubleIconSizeWriter('medium', 'large');
+        } else if (preferredPageIconSize === 'small_medium_large') {
+          mediaWriter = new TripleIconSizeWriter('small', 'medium', 'large');
         } else {
           mediaWriter = new SingleIconSizeWriter();
         }
@@ -597,16 +639,20 @@
         if (preferredPageIconSize === 'small_medium') {
           return showLargerMedia(media) ? 'medium' : 'small';
         }
-
         if (preferredPageIconSize === 'medium_large') {
           return showLargerMedia(media) ? 'large' : 'medium';
         }
-
+        if (preferredPageIconSize === 'small_medium_large') {
+          if (showLargerMedia(media)) {
+            return 'large';
+          }
+          return media.rating === 4 ? 'medium' : 'small';
+        }
         return preferredPageIconSize;
       }
 
       function showLargeIconWithNoDescr(iconSize) {
-        return (preferredPageIconSize === 'medium_large' && !preferLargeIcons) || iconSize === 'large_no_meta';
+        return (['medium_large', 'small_medium_large'].includes(preferredPageIconSize) && !preferLargeIcons) || iconSize === 'large_no_meta';
       }
 
       function createMediaElement(index, media, iconSize) {
