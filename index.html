@@ -23,7 +23,6 @@
     <span id="title" class="page_title">Search</span>
     <span class="summary_stats"></span>
     <span class="header_links" style="display: none">
-      <a class="header_link" id="toggle_search_controls" href="#" onClick="toggleSearchControls();"></a>
       <a class="header_link" id="toggle_animations" href="#" onClick="toggleAnimations();"></a>
       <a class="header_link" href="#" onClick="slideshowClicked();">Slideshow</a>
       <a class="header_link" href="#" id="csv_link">CSV</a>
@@ -46,45 +45,43 @@
       <span id="extra_header"></span>
     </span>
 
-    <span id="search" style="display: none">
-      <span id="search_criterias"></span>
+    <span id="search_criterias" style="display: none"></span>
 
-      <span id="search_controls">
-        <input type="button" onClick="addSearchInputRow();" value="+"></input>
-        <select id="match_policy" onChange="updateSearchCriteria();">
-          <option value="any">Match Any</option>
-          <option value="all">Match All</option>
-          <option value="none">Match None</option>
-        </select>
-        <select id="group_by" onChange="updateSearchCriteria();">
-          <option value="none">No grouping</option>
-          <option value="day">Group by day</option>
-          <option value="month">Group by month</option>
-          <option value="year">Group by year</option>
-        </select>
-        <select id="sortby" onChange="updateSearchCriteria();">
-          <option value="takenZA">Sort taken Z-A</option>
-          <option value="takenAZ">Sort taken A-Z</option>
-          <option value="createdZA">Sort added Z-A</option>
-          <option value="createdAZ">Sort added A-Z</option>
-          <option value="random">Sort random</option>
-        </select>
-        <select id="icon_size" onChange="updateSearchCriteria();">
-          <option value="default">Default Icons</option>
-          <option value="small">Small Icons</option>
-          <option value="medium">Medium Icons</option>
-          <option value="small_medium">Small/Medium Icons</option>
-          <option value="small_medium_large">Small/Medium/Large Icons</option>
-          <option value="medium_large">Medium/Large Icons</option>
-          <option value="large">Large Icons</option>
-          <option value="large_full_meta">Large Icons (Full Metadata)</option>
-          <option value="large_no_meta">Large Icons (No Metadata)</option>
-          <option value="regular">Regular Icons</option>
-          <option value="regular_full_meta">Regular Icons (Full Metadata)</option>
-          <option value="regular_no_meta">Regular Icons (No Metadata)</option>
-        </select>
-        <input class="button" type="button" onClick="clearSearchCriteria();" value="Clear"></input>
-      </span>
+    <span id="search_controls" style="display: none">
+      <input type="button" onClick="addSearchInputRow();" value="+"></input>
+      <select id="match_policy" onChange="updateSearchCriteria();">
+        <option value="any">Match Any</option>
+        <option value="all">Match All</option>
+        <option value="none">Match None</option>
+      </select>
+      <select id="group_by" onChange="updateSearchCriteria();">
+        <option value="none">No grouping</option>
+        <option value="day">Group by day</option>
+        <option value="month">Group by month</option>
+        <option value="year">Group by year</option>
+      </select>
+      <select id="sortby" onChange="updateSearchCriteria();">
+        <option value="takenZA">Sort taken Z-A</option>
+        <option value="takenAZ">Sort taken A-Z</option>
+        <option value="createdZA">Sort added Z-A</option>
+        <option value="createdAZ">Sort added A-Z</option>
+        <option value="random">Sort random</option>
+      </select>
+      <select id="icon_size" onChange="updateSearchCriteria();">
+        <option value="default">Default Icons</option>
+        <option value="small">Small Icons</option>
+        <option value="medium">Medium Icons</option>
+        <option value="small_medium">Small/Medium Icons</option>
+        <option value="small_medium_large">Small/Medium/Large Icons</option>
+        <option value="medium_large">Medium/Large Icons</option>
+        <option value="large">Large Icons</option>
+        <option value="large_full_meta">Large Icons (Full Metadata)</option>
+        <option value="large_no_meta">Large Icons (No Metadata)</option>
+        <option value="regular">Regular Icons</option>
+        <option value="regular_full_meta">Regular Icons (Full Metadata)</option>
+        <option value="regular_no_meta">Regular Icons (No Metadata)</option>
+      </select>
+      <input class="button" type="button" onClick="clearSearchCriteria();" value="Clear"></input>
     </span>
 
     <div id="all_media"><div class='status'>Loading</div></div>
@@ -139,20 +136,8 @@
         updateOverallStatusMessage('Error loading media');
       }
 
-      function updateSearchControlsText() {
-        const shown = document.querySelector('#search').style.display !== 'none';
-        document.querySelector('#toggle_search_controls').innerText = shown ? 'Hide Search Controls' : 'Show Search Controls';
-      }
-
       function updateAnimationsText() {
         document.querySelector('#toggle_animations').innerText = alwaysShowAnimations ? 'Stop Animations' : 'Show Animations';
-      }
-
-      function toggleSearchControls() {
-        const ele = document.querySelector('#search');
-        const shown = ele.style.display !== 'none';
-        ele.style.display = shown ? 'none' : 'block';
-        updateSearchControlsText();
       }
 
       function toggleAnimations() {
@@ -855,6 +840,9 @@
           return;
         }
 
+        document.querySelector('#search_controls').style.display = 'block';
+        document.querySelector('#search_criterias').style.display = 'block';
+
         if (allMedia.length === 0) {
           updateOverallStatusMessage('No results found');
           hideResultsInfo();
@@ -877,7 +865,6 @@
         }, 0);
       }
 
-      updateSearchControlsText();
       updateAnimationsText();
       window.onscroll = windowScrolled;
       window.onresize = windowSizeChanged;
