@@ -115,14 +115,13 @@
     <script type="text/javascript">
       let currentPageNumber = 1;
       let allMedia = null;
+      let mediaWriter = null;
       let dateRange = null;
       let alwaysShowAnimations = false;
       let currentYearView = null;
-      let lastSmallMediaItems = [];
       let preferLargeIcons = false;
       let preferredPageIconSize = null;
       let currentGroupName = null;
-      let currentGroupEle = null;
 
       function addStatusMessage(parentEle, text) {
         const msgEle = document.createElement('div');
@@ -361,7 +360,76 @@
         return 'regular';
       }
 
-      function setPageTitle(mediaTitle) {
+      function createMediaSmallContainer(items, hasPreviousGroup, iconSize) {
+        const ele = document.createElement('span');
+        if (items.length <= 2) {
+          ele.className = hasPreviousGroup ? `media_${iconSize}_container_2v` : `media_${iconSize}_container_2h`;
+        } else {
+          ele.className = `media_${iconSize}_container`;
+        }
+
+        for (let i = 0; i < items.length; i += 1) {
+          ele.appendChild(items[i]);
+        }
+
+        return ele;
+      }
+
+      class SingleIconSizeWriter {
+        constructor() {
+          this.currentGroupEle = null;
+        }
+
+        add(element) {
+          this.currentGroupEle.appendChild(element);
+        }
+
+        flush() {
+          // NOOP
+        }
+      }
+
+      class DualIconSizeWriter {
+        constructor(smallIconSize, largeIconSize) {
+          this.smallIconSize = smallIconSize;
+          this.largeIconSize = largeIconSize;
+          this.parentEle = null;
+          this.unprocessedItems = [];
+          this.hasPreviousGroup = false;
+        }
+
+        add(element, mediaIconSize) {
+          if (mediaIconSize === this.largeIconSize) {
+            this.parentEle.appendChild(element);
+            this.hasPreviousGroup = true;
+          } else {
+            this.unprocessedItems.push(element);
+            if (this.unprocessedItems.length === 4) {
+              this.flush();
+            }
+          }
+        }
+
+        get currentGroupEle() {
+          return this.parentEle;
+        }
+
+        set currentGroupEle(newParentEle) {
+          this.parentEle = newParentEle;
+          this.unprocessedItems = [];
+          this.hasPreviousGroup = false;
+        }
+
+        flush() {
+          if (this.unprocessedItems.length > 0) {
+            this.parentEle.appendChild(createMediaSmallContainer(this.unprocessedItems, this.hasPreviousGroup, this.smallIconSize));
+            this.unprocessedItems = [];
+            this.hasPreviousGroup = true;
+          }
+        }
+      }
+
+      function setPageTitleAndIconSize(mediaTitle) {
         currentYearView = null;
 
         // Search criteria can be chained in any order. Get the distinct types and order below.
@@ -425,6 +493,14 @@
         preferLargeIcons = preferredTitle[2];
         preferredPageIconSize = getPageIconSize();
 
+        if (preferredPageIconSize === 'small_medium') {
+          mediaWriter = new DualIconSizeWriter('small', 'medium');
+        } else if (preferredPageIconSize === 'medium_large') {
+          mediaWriter = new DualIconSizeWriter('medium', 'large');
+        } else {
+          mediaWriter = new SingleIconSizeWriter();
+        }
+
         showParentTags(searchTag);
       }
 
@@ -446,7 +522,7 @@
           extraHeaderEle.replaceChildren(outerSpan);
         }
 
-        setPageTitle(mediaTitle);
+        setPageTitleAndIconSize(mediaTitle);
         showMedia();
         populateSearchValuesFromUrl();
       }
@@ -639,27 +715,6 @@
         return mediaEle;
       }
 
-      function createMediaSmallContainer(hasPreviousGroup) {
-        let iconSize = null;
-        if (preferredPageIconSize === 'medium_large') {
-          iconSize = 'medium';
-        } else {
-          iconSize = 'small';
-        }
-
-        const ele = document.createElement('span');
-        if (lastSmallMediaItems.length <= 2) {
-          ele.className = hasPreviousGroup ? `media_${iconSize}_container_2v` : `media_${iconSize}_container_2h`;
-        } else {
-          ele.className = `media_${iconSize}_container`;
-        }
-
-        for (let i = 0; i < lastSmallMediaItems.length; i += 1) {
-          ele.appendChild(createMediaElement(lastSmallMediaItems[i][0], lastSmallMediaItems[i][1], iconSize));
-        }
-        return ele;
-      }
-
       function getMediaGroupByFunc() {
         const groupBy = getQueryParameter('group_by', 'none');
 
@@ -704,65 +759,36 @@
 
         const allMediaEle = document.querySelector('#all_media');
         const groupBy = getMediaGroupByFunc();
-        if (currentGroupEle == null) {
-          currentGroupEle = allMediaEle;
+        if (mediaWriter.currentGroupEle == null) {
+          mediaWriter.currentGroupEle = allMediaEle;
         }
 
         const startIdx = (pageNumber - 1) * pageSize;
-        let hasPreviousGroup = false;
 
         for (const [index, media] of allMedia.slice(startIdx, startIdx + pageSize).entries()) {
           const thisGroupName = 'exposure_time_pretty' in media ? groupBy(media.exposure_time_pretty) : null;
           if (thisGroupName !== currentGroupName) {
             currentGroupName = thisGroupName;
+            mediaWriter.flush();
 
-            if (lastSmallMediaItems.length > 0) {
-              currentGroupEle.appendChild(createMediaSmallContainer(hasPreviousGroup));
-              lastSmallMediaItems = [];
-            }
-            hasPreviousGroup = false;
-
-            currentGroupEle = document.createElement('div');
-            currentGroupEle.className = 'media_group';
+            mediaWriter.currentGroupEle = document.createElement('div');
+            mediaWriter.currentGroupEle.className = 'media_group';
 
             const titleEle = document.createElement('div');
             titleEle.className = 'media_group_title';
             titleEle.innerText = thisGroupName;
-            currentGroupEle.appendChild(titleEle);
+            mediaWriter.currentGroupEle.appendChild(titleEle);
 
-            allMediaEle.appendChild(currentGroupEle);
+            allMediaEle.appendChild(mediaWriter.currentGroupEle);
           }
 
           const mediaIconSize = getMediaIconSize(media);
-
-          let largeIconSize = null;
-          if (preferredPageIconSize === 'small_medium') {
-            largeIconSize = 'medium';
-          } else if (preferredPageIconSize === 'medium_large') {
-            largeIconSize = 'large';
-          }
-
-          if (largeIconSize !== null) {
-            if (mediaIconSize === largeIconSize) {
-              currentGroupEle.appendChild(createMediaElement(startIdx + index, media, mediaIconSize));
-              hasPreviousGroup = true;
-            } else {
-              lastSmallMediaItems.push([startIdx + index, media]);
-              if (lastSmallMediaItems.length === 4) {
-                currentGroupEle.appendChild(createMediaSmallContainer(hasPreviousGroup));
-                hasPreviousGroup = true;
-                lastSmallMediaItems = [];
-              }
-            }
-          } else {
-            currentGroupEle.appendChild(createMediaElement(startIdx + index, media, mediaIconSize));
-          }
+          mediaWriter.add(createMediaElement(startIdx + index, media, mediaIconSize), mediaIconSize);
         }
 
         currentPageNumber = pageNumber;
-        if (pageNumber === lastPageNumber && lastSmallMediaItems.length > 0) {
-          currentGroupEle.appendChild(createMediaSmallContainer(hasPreviousGroup));
-          lastSmallMediaItems = [];
+        if (pageNumber === lastPageNumber) {
+          mediaWriter.flush();
         }
 
         // Ensure that the viewport is filled with media for higher screen resolutions.
