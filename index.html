@@ -454,6 +454,18 @@
         }
       }
 
+      function setIconWriter() {
+        if (preferredPageIconSize === 'small_medium') {
+          mediaWriter = new DoubleIconSizeWriter('small', 'medium');
+        } else if (preferredPageIconSize === 'medium_large') {
+          mediaWriter = new DoubleIconSizeWriter('medium', 'large');
+        } else if (preferredPageIconSize === 'small_medium_large') {
+          mediaWriter = new TripleIconSizeWriter('small', 'medium', 'large');
+        } else {
+          mediaWriter = new SingleIconSizeWriter();
+        }
+      }
+
       function setPageTitleAndIconSize(mediaTitle) {
         currentYearView = null;
 
@@ -517,16 +529,7 @@
 
         preferLargeIcons = preferredTitle[2];
         preferredPageIconSize = getPageIconSize();
-
-        if (preferredPageIconSize === 'small_medium') {
-          mediaWriter = new DoubleIconSizeWriter('small', 'medium');
-        } else if (preferredPageIconSize === 'medium_large') {
-          mediaWriter = new DoubleIconSizeWriter('medium', 'large');
-        } else if (preferredPageIconSize === 'small_medium_large') {
-          mediaWriter = new TripleIconSizeWriter('small', 'medium', 'large');
-        } else {
-          mediaWriter = new SingleIconSizeWriter();
-        }
+        setIconWriter();
 
         showParentTags(searchTag);
       }
@@ -558,6 +561,7 @@
         const prevPageIconSize = preferredPageIconSize;
         preferredPageIconSize = getPageIconSize();
         if (prevPageIconSize !== preferredPageIconSize) {
+          setIconWriter();
           showMedia();
         }
       }
