@@ -779,10 +779,10 @@
 
       function doShowMedia(pageNumber) {
         let pageSize;
-        if (preferredPageIconSize === 'small' || preferredPageIconSize === 'medium' || preferredPageIconSize === 'small_medium') {
+        if (preferredPageIconSize.includes('small')) {
           pageSize = 48;
-        } else if (preferredPageIconSize === 'medium_large') {
-          pageSize = 24;
+        } else if (preferredPageIconSize.includes('medium')) {
+          pageSize = 36;
         } else {
           pageSize = 12;
         }
