@@ -53,7 +53,8 @@ a {
 
 .media_group {
 	display: block;
-	padding: 5px;
+	padding-top: 5px;
+	padding-bottom: 5px;
 }
 
 .media_group_title {
