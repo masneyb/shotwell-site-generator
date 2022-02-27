@@ -373,6 +373,10 @@
         flush() {
           // NOOP
         }
+
+        clear() {
+          // NOOP
+        }
       }
 
       class DoubleIconSizeWriter {
@@ -402,8 +406,7 @@
 
         set currentGroupEle(newParentEle) {
           this.parentEle = newParentEle;
-          this.unprocessedItems = [];
-          this.hasPreviousGroup = false;
+          this.clear();
         }
 
         flush() {
@@ -412,6 +415,11 @@
             this.unprocessedItems = [];
             this.hasPreviousGroup = true;
           }
+        }
+
+        clear() {
+          this.unprocessedItems = [];
+          this.hasPreviousGroup = false;
         }
       }
 
@@ -442,7 +450,7 @@
 
         set currentGroupEle(newParentEle) {
           this.dualWriter.currentGroupEle = newParentEle;
-          this.unprocessedItems = [];
+          this.clear();
         }
 
         flush() {
@@ -451,6 +459,11 @@
             this.unprocessedItems = [];
           }
           this.dualWriter.flush();
+        }
+
+        clear() {
+          this.unprocessedItems = [];
+          this.dualWriter.clear();
         }
       }
 
@@ -831,6 +844,7 @@
       }
 
       function clearPreviousMedia(allMediaEle) {
+        mediaWriter.clear();
         removeAllChildren(allMediaEle);
         lastSmallMediaItems = [];
         window.scrollTo(0, 0);
