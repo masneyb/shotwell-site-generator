@@ -507,6 +507,10 @@ function doMediaSearchEquals(input, value) {
   }
 
   // If the user searches for a photo, then include the other subtypes in that search.
+  if (value === 'media') {
+    return ['photo', 'raw_photo', 'motion_photo', 'video'].indexOf(input) > -1;
+  }
+
   if (value === 'photo') {
     return ['photo', 'raw_photo', 'motion_photo'].indexOf(input) > -1;
   }
@@ -782,8 +786,8 @@ const searchFields = [
     search: mediaTypeSearch,
     searchFields: ['type'],
     validValues: [
-      ['event', 'events'], ['photo', 'photo'], ['motion photo', 'motion_photo'],
-      ['raw photo', 'raw_photo'], ['tag', 'tags'], ['video', 'video'],
+      ['media', 'media'], ['photo', 'photo'], ['motion photo', 'motion_photo'],
+      ['raw photo', 'raw_photo'], ['video', 'video'], ['event', 'events'], ['tag', 'tags'],
       ['year', 'years'],
     ],
   },
