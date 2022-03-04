@@ -24,11 +24,9 @@ def write_manifest_json(options):
     vals["start_url"] = "index.html"
     vals["display"] = "fullscreen"
     vals["background_color"] = "#fff"
-
-    if options.manifest_icon_src:
-        vals["icons"] = [{"src": options.manifest_icon_src,
-                          "sizes": options.manifest_icon_size,
-                          "type": "image/png"}]
+    vals["icons"] = [{"src": "app-icon.png",
+                      "sizes": "512x512",
+                      "type": "image/png"}]
 
     with open(os.path.join(options.dest_directory, "manifest.json"), "w") as outfile:
         outfile.write(json.dumps(vals, indent="\t"))
@@ -178,9 +176,6 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--extra-header-link-descr",
                            help="Label for the URL in --extra-header-link")
     ARGPARSER.add_argument("--add-path-to-overall-diskspace", nargs="+", default=[])
-    ARGPARSER.add_argument("--manifest-icon-src",
-                           help="PNG file for the Progress Web App manifest file")
-    ARGPARSER.add_argument("--manifest-icon-size")
     ARGPARSER.add_argument("--debug", action="store_true", default=False)
     ARGS = ARGPARSER.parse_args(sys.argv[1:])
     logging.basicConfig(format="%(asctime)s %(message)s",
