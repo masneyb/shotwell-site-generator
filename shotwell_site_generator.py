@@ -16,6 +16,9 @@ import media_thumbnailer
 import media_writer_html
 import media_writer_json
 
+def _app_icon_by_size(size):
+    return {"src": f'app-icon-{size}.png', "sizes": size, "type": "image/png"}
+
 def write_manifest_json(options):
     vals = {}
     vals["name"] = options.title
@@ -24,9 +27,19 @@ def write_manifest_json(options):
     vals["start_url"] = "index.html"
     vals["display"] = "fullscreen"
     vals["background_color"] = "#fff"
-    vals["icons"] = [{"src": "app-icon.png",
-                      "sizes": "512x512",
-                      "type": "image/png"}]
+    vals["icons"] = [_app_icon_by_size("512x512"),
+                     _app_icon_by_size("310x310"),
+                     _app_icon_by_size("270x270"),
+                     _app_icon_by_size("228x228"),
+                     _app_icon_by_size("196x196"),
+                     _app_icon_by_size("180x180"),
+                     _app_icon_by_size("167x167"),
+                     _app_icon_by_size("152x152"),
+                     _app_icon_by_size("128x128"),
+                     _app_icon_by_size("96x96"),
+                     _app_icon_by_size("70x70"),
+                     _app_icon_by_size("32x32"),
+                     _app_icon_by_size("16x16")]
 
     with open(os.path.join(options.dest_directory, "manifest.json"), "w") as outfile:
         outfile.write(json.dumps(vals, indent="\t"))
