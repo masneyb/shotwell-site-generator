@@ -17,7 +17,7 @@ import media_writer_html
 import media_writer_json
 
 def _app_icon_by_size(size):
-    return {"src": f'app-icon-{size}.png', "sizes": size, "type": "image/png"}
+    return {"src": f"icons/app-icon-{size}.png", "sizes": size, "type": "image/png"}
 
 def write_manifest_json(options):
     vals = {}
