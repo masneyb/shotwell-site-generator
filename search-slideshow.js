@@ -13,6 +13,7 @@ let fullscreenReinstateSlideshowSecs = 0;
 let fullscreenReinstateSlideshowTimer = null;
 const cachedImages = new Set();
 let numCachedImages = 0;
+let wakeLock = null;
 
 function setFullscreenDescriptionShown(shown) {
   const descrEle = document.querySelector('#description');
@@ -180,6 +181,37 @@ function setFullImageDisplay(shown) {
   }
 }
 
+const handleVisibilityChange = () => {
+  if (wakeLock !== null && document.visibilityState === 'visible') {
+    requestWakeLock();
+  }
+};
+
+function requestWakeLock() {
+  // Only available over HTTPS and certain browsers
+  if ('wakeLock' in navigator) {
+    try {
+      navigator.wakeLock.request('screen')
+        .then((lock) => {
+          wakeLock = lock;
+        });
+
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    } catch (err) {
+      // NOOP
+    }
+  }
+}
+
+function releaseWakeLock() {
+  if (wakeLock != null) {
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    wakeLock.release().then(() => {
+      wakeLock = null;
+    });
+  }
+}
+
 function startSlideshow() {
   fullScreenPhotoUpdateSecs = getIntQueryParameter('photo_update_secs', 10);
   fullscreenReinstateSlideshowSecs = getIntQueryParameter('reinstate_slideshow_secs', 300);
@@ -187,6 +219,7 @@ function startSlideshow() {
   allMediaFullscreenIndex = 0;
   doShowFullscreenImage(false);
   toggleSlideshowTimers();
+  requestWakeLock();
 }
 
 function slideshowClicked() {
@@ -225,6 +258,7 @@ function exitImageFullscreen(event) {
     document.body.style.cursor = 'auto';
     setFullImageDisplay(false);
     window.scrollTo(preFullscreenScrollX, preFullscreenScrollY);
+    releaseWakeLock();
   }
 }
 
