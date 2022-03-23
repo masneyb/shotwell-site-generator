@@ -253,6 +253,10 @@ function exitImageFullscreen(event) {
     event.preventDefault();
     event.stopPropagation();
 
+    if (fullscreenPhotoUpdateTimer != null) {
+      clearInterval(fullscreenPhotoUpdateTimer);
+      fullscreenPhotoUpdateTimer = null;
+    }
     fullScreenPhotoUpdateSecs = 0;
     fullscreenReinstateSlideshowSecs = 0;
     document.body.style.cursor = 'auto';
