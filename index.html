@@ -374,8 +374,10 @@
 
       function createMediaSmallContainer(items, hasPreviousGroup, iconSize) {
         const ele = document.createElement('span');
-        if (items.length <= 2) {
-          ele.className = hasPreviousGroup ? `media_${iconSize}_container_2v` : `media_${iconSize}_container_2h`;
+        if (items.length <= 1) {
+          ele.className = `media_${iconSize}`;
+        } else if (items.length <= 2) {
+          ele.className = `media_${iconSize}_container_2h`;
         } else {
           ele.className = `media_${iconSize}_container`;
         }
