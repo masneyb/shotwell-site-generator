@@ -223,17 +223,12 @@ function startSlideshow() {
 }
 
 function slideshowClicked() {
-  const params = window.location.search.startsWith('?') ? window.location.search : '?';
-  let search = `index.html${params}`;
-  if (!search.includes('photo_frame=')) {
-    search += '&photo_frame=1';
-  }
-  if (!search.includes('photo_update_secs=')) {
-    search += '&photo_update_secs=10';
-  }
-  search += '#';
-  window.history.pushState({}, '', search);
-
+  const searchParams = new URLSearchParams(window.location.search);
+  searchParams.delete('photo_frame');
+  searchParams.append('photo_frame', '1');
+  searchParams.delete('photo_update_secs');
+  searchParams.append('photo_update_secs', '10');
+  window.history.pushState({}, '', `?${searchParams.toString()}#`);
   startSlideshow();
 }
 
@@ -256,13 +251,20 @@ function exitImageFullscreen(event) {
     if (fullscreenPhotoUpdateTimer != null) {
       clearInterval(fullscreenPhotoUpdateTimer);
       fullscreenPhotoUpdateTimer = null;
+
+      const searchParams = new URLSearchParams(window.location.search);
+      searchParams.delete('photo_frame');
+      searchParams.delete('photo_update_secs');
+      window.history.pushState({}, '', `?${searchParams.toString()}#`);
+
+      releaseWakeLock();
     }
+
     fullScreenPhotoUpdateSecs = 0;
     fullscreenReinstateSlideshowSecs = 0;
     document.body.style.cursor = 'auto';
     setFullImageDisplay(false);
     window.scrollTo(preFullscreenScrollX, preFullscreenScrollY);
-    releaseWakeLock();
   }
 }
 
