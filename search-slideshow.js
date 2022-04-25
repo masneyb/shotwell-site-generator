@@ -59,6 +59,10 @@ function recordImageUrlAsCached(imageUrl) {
 }
 
 function prefetchImage(index) {
+  if (allMedia[index].type === 'video') {
+    return;
+  }
+
   const imageUrl = getFullscreenImageUrl(index);
   if (!cachedImages.has(imageUrl)) {
     recordImageUrlAsCached(imageUrl);
