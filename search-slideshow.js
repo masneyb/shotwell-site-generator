@@ -69,6 +69,12 @@ function prefetchImage(index) {
   }
 }
 
+function updateMediaDescriptionText(descrEle) {
+  descrEle.replaceChildren(createMediaStatsHtml(allMedia[allMediaFullscreenIndex], eventNames, tags, true, false, (event) => {
+    exitImageFullscreen(event);
+  }));
+}
+
 function doShowFullscreenImage(manuallyInvoked) {
   const descrEle = document.querySelector('#description');
   addStatusMessage(descrEle, 'Loading');
@@ -86,9 +92,11 @@ function doShowFullscreenImage(manuallyInvoked) {
     setFullscreenDescriptionShown(false);
   }
 
-  if (allMedia[allMediaFullscreenIndex].type === 'video') {
+  if (hideDescr) {
     descrEle.style.display = 'none';
+  }
 
+  if (allMedia[allMediaFullscreenIndex].type === 'video') {
     const imageEle = document.querySelector('#fullimage');
     imageEle.removeAttribute('src');
     imageEle.style.display = 'none';
@@ -96,8 +104,11 @@ function doShowFullscreenImage(manuallyInvoked) {
     const videoEle = document.querySelector('#fullvideo');
     videoEle.src = allMedia[allMediaFullscreenIndex].link;
     videoEle.style.display = 'block';
+
+    updateMediaDescriptionText(descrEle);
+
     recordImageUrlAsCached(videoEle.src);
-  } else if (allMedia[allMediaFullscreenIndex].type === 'photo') {
+  } else {
     const videoEle = document.querySelector('#fullvideo');
     videoEle.pause();
     videoEle.removeAttribute('src');
@@ -105,18 +116,13 @@ function doShowFullscreenImage(manuallyInvoked) {
 
     const imageEle = document.querySelector('#fullimage');
     imageEle.onload = () => {
-      if (hideDescr) {
-        descrEle.style.display = 'none';
-      }
-      descrEle.replaceChildren(createMediaStatsHtml(allMedia[allMediaFullscreenIndex], eventNames, tags, true, false, (event) => {
-        exitImageFullscreen(event);
-      }));
+      updateMediaDescriptionText(descrEle);
     };
     imageEle.style.display = 'block';
     imageEle.src = getFullscreenImageUrl(allMediaFullscreenIndex);
+
     recordImageUrlAsCached(imageEle.src);
   }
-  // FIXME - links to events, tags, and years don't work at the moment
 
   // Cache the nearby images to make the page faster
   prefetchImage(getNextImageIndex());
