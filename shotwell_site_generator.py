@@ -104,6 +104,10 @@ def process_photos(options):
                     os.path.join(options.dest_directory, "index.html"))
     shutil.copyfile(__get_assets_path(options, "search.css"),
                     os.path.join(options.dest_directory, "search.css"))
+    shutil.copyfile(__get_assets_path(options, "search-375px-width.css"),
+                    os.path.join(options.dest_directory, "search-375px-width.css"))
+    shutil.copyfile(__get_assets_path(options, "search-400px-width.css"),
+                    os.path.join(options.dest_directory, "search-400px-width.css"))
     shutil.copyfile(__get_assets_path(options, "search.html"),
                     os.path.join(options.dest_directory, "search.html"))
     shutil.copyfile(__get_assets_path(options, "search-controls.js"),

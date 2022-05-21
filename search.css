@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+
 body {
 	text-align: center;
 	margin: 0px;
@@ -71,13 +73,10 @@ a {
 }
 
 .media {
-	width: 388px;
 	padding: 2px;
 }
 
 .media_no_descr {
-	width: 388px;
-	height: 388px;
 	padding: 2px;
 }
 
@@ -86,42 +85,30 @@ a {
 }
 
 .media_medium {
-	width: 192px;
-	height: 192px;
 	padding: 2px;
 }
 
 .media_medium_container {
-	width: 392px;
-	height: 392px;
 	padding: 0px;
 	text-align: left;
 }
 
 .media_medium_container_2h {
-	width: 392px;
-	height: 196px;
 	padding: 0px;
 	text-align: center;
 }
 
 .media_small_container {
-	width: 196px;
-	height: 196px;
 	padding: 0px;
 	text-align: left;
 }
 
 .media_small_container_2h {
-	width: 196px;
-	height: 98px;
 	padding: 0px;
 	text-align: left;
 }
 
 .media_small {
-	width: 94px;
-	height: 94px;
 	padding: 2px;
 }
 

@@ -1,0 +1,46 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/*
+ * This stylesheet does not scale the images down and is intended to be used
+ * with screens with a minimum width of 400px. This is intended to be the
+ * default stylesheet and the properties can be merged back into search.css
+ * once there is no longer a need for search-375px-width.css.
+ */
+
+.media {
+	width: 388px;
+}
+
+.media_no_descr {
+	width: 388px;
+	height: 388px;
+}
+
+.media_medium {
+	width: 192px;
+	height: 192px;
+}
+
+.media_medium_container {
+	width: 392px;
+	height: 392px;
+}
+
+.media_medium_container_2h {
+	width: 392px;
+	height: 196px;
+}
+
+.media_small_container {
+	width: 196px;
+	height: 196px;
+}
+
+.media_small_container_2h {
+	width: 196px;
+	height: 98px;
+}
+
+.media_small {
+	width: 94px;
+	height: 94px;
+}
