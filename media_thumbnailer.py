@@ -307,7 +307,10 @@ class Thumbnailer:
             logging.error("Error running %s: %s", cmd, result.returncode)
             return None
 
-        return int(result.stdout) if result.stdout else None
+        if not result.stdout:
+            return None
+
+        return int(result.stdout.decode('UTF-8').replace(',', '').replace('\n', ''))
 
     def _get_ffmpeg_animated_gif_cmd(self, src_filename, is_video, thumbnail_type,
                                      rotate, gif_dest_filename):
