@@ -37,8 +37,8 @@
     <link rel="icon" sizes="16x16" href="icons/app-icon-16x16.png"/>
     <link rel="manifest" href="manifest.json" crossorigin="use-credentials"/>
     <link rel="stylesheet" type="text/css" href="search.css"/>
-    <link rel="stylesheet" type="text/css" media="screen and (max-width: 399px)" href="search-375px-width.css"/>
-    <link rel="stylesheet" type="text/css" media="screen and (min-width: 400px)" href="search-400px-width.css"/>
+    <link rel="stylesheet" type="text/css" media="all and (max-width: 399px), (min-width: 750px) and (max-width: 799px)" href="search-375px-width.css"/>
+    <link rel="stylesheet" type="text/css" media="all and (min-width: 400px) and (max-width: 749px), (min-width: 800px)" href="search-400px-width.css"/>
     <script type="text/javascript" src="search-controls.js"></script>
     <script type="text/javascript" src="search-csv.js"></script>
     <script type="text/javascript" src="search-engine.js"></script>
@@ -365,7 +365,7 @@
           return iconSize;
         }
 
-        if (window.innerWidth < 800) {
+        if (window.innerWidth < 750) {
           return preferLargeIcons ? 'large' : 'small_medium';
         }
         if (window.innerWidth <= 1200) {
