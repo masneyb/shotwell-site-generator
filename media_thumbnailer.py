@@ -81,7 +81,8 @@ class Thumbnailer:
 
         file_ops = []
         for media in source_media:
-            file_ops += ["(", media["shotwell_thumbnail_path"],
+            file_ops += ["(",
+                         os.path.join(self.dest_thumbs_directory, media["medium_thumbnail_path"]),
                          "-thumbnail", "%s^" % (geometry), "-gravity", "center",
                          "-extent", geometry, ")"]
 

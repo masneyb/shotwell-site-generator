@@ -34,13 +34,12 @@ class Icons:
 
 class Database:
     # pylint: disable=too-few-public-methods,too-many-instance-attributes
-    def __init__(self, conn, input_media_path, input_thumbs_directory, dest_directory,
+    def __init__(self, conn, input_media_path, dest_directory,
                  thumbnailer, tags_to_skip, video_convert_ext, add_paths_to_overall_diskspace,
                  icons):
         # pylint: disable=too-many-arguments
         self.conn = conn
         self.input_media_path = input_media_path
-        self.input_thumbs_directory = input_thumbs_directory
         self.dest_directory = dest_directory
         self.dest_thumbs_directory = os.path.join(dest_directory, "thumbnails")
         self.transformed_origs_directory = os.path.join(dest_directory, "transformed")
@@ -519,11 +518,6 @@ class Database:
         fspath = self.__get_thumbnail_fs_path(path_part)
         self.thumbnailer.create_thumbnail(thumbnail_source, media["media_id"].startswith("video"),
                                           rotate, fspath, overlay_icon, thumbnail_type)
-        if not os.path.exists(fspath) and thumbnail_source != media["shotwell_thumbnail_path"]:
-            # If generating a thumbnail fails for some reason, then fall back to the Shotwell
-            # thumbnail. This can happen for some videos.
-            self.thumbnailer.create_thumbnail(media["shotwell_thumbnail_path"], False, rotate,
-                                              fspath, overlay_icon, thumbnail_type)
         return fspath
 
     def __add_media(self, all_media, row, media_id, download_source, thumbnail_source,
@@ -535,11 +529,6 @@ class Database:
         media["id"] = row["id"]
         media["event_id"] = row["event_id"]
         media["media_id"] = media_id
-
-        media["shotwell_thumbnail_path"] = self.__get_shotwell_thumbnail_path(media_id)
-
-        if not thumbnail_source:
-            thumbnail_source = media["shotwell_thumbnail_path"]
 
         all_artifacts = set([])
 
@@ -741,14 +730,6 @@ class Database:
             ret = ret * -1
 
         return ret
-
-    def __get_shotwell_thumbnail_path(self, source_image_basename):
-        # The source_image_basename does not have a file extension so try some variants.
-        path = os.path.join(self.input_thumbs_directory, "%s.jpg" % (source_image_basename))
-        if not os.path.exists(path):
-            path = os.path.join(self.input_thumbs_directory, "%s.png" % (source_image_basename))
-
-        return path
 
     def __get_thumbnail_fs_path(self, relpath):
         return os.path.join(self.dest_thumbs_directory, relpath)

@@ -77,8 +77,7 @@ def process_photos(options):
                                                 icons.play_small,
                                                 icons.play_medium)
 
-    fetcher = media_fetcher.Database(conn, options.input_media_path,
-                                     options.input_thumbs_directory, options.dest_directory,
+    fetcher = media_fetcher.Database(conn, options.input_media_path, options.dest_directory,
                                      thumbnailer, set(options.tags_to_skip),
                                      options.video_convert_ext,
                                      options.add_path_to_overall_diskspace, icons)
@@ -164,7 +163,6 @@ if __name__ == "__main__":
     ARGPARSER = argparse.ArgumentParser()
     ARGPARSER.add_argument("--input-database", required=True)
     ARGPARSER.add_argument("--input-media-path", required=True)
-    ARGPARSER.add_argument("--input-thumbs-directory", required=True)
     ARGPARSER.add_argument("--dest-directory", required=True)
     ARGPARSER.add_argument("--src-assets-directory", required=True)
     ARGPARSER.add_argument("--title", required=True)
