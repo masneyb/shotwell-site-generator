@@ -133,6 +133,7 @@ function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMeta
   }
 
   if (entity.clip_duration) {
+    stats.push(createTextMediaStat(entity.clip_duration));
     extStats.push(createTextMediaStat(entity.clip_duration));
   }
 
