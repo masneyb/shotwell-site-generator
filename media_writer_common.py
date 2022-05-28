@@ -29,7 +29,8 @@ class CommonWriter:
             return {"year": str(date.year), "month": None}
 
         return {"year": str(date.year), "month": date.strftime("%b"), "day": str(date.day),
-                "weekday": str(date.weekday()), "hour": date.hour, "minute": date.minute}
+                "weekday": str(date.weekday()), "hour": 12 if date.hour == 0 else date.hour,
+                "minute": date.minute, "am_pm": "pm" if date.hour >= 12 else "am"}
 
     WEEKDAYS = {"0": "Mon", "1": "Tue", "2": "Wed", "3": "Thu", "4": "Fri", "5": "Sat", "6": "Sun"}
 
@@ -45,9 +46,8 @@ class CommonWriter:
 
         has_approx_time = date_parts["minute"] == 0 and date_parts["hour"] in (0, 12)
         if include_more and not has_approx_time:
-            am_pm = "pm" if date_parts["hour"] >= 12 else "am"
             hour = date_parts["hour"] - 12 if date_parts["hour"] > 12 else date_parts["hour"]
-            ret += " %d:%02d%s" % (hour, date_parts["minute"], am_pm)
+            ret += " %d:%02d%s" % (hour, date_parts["minute"], date_parts["am_pm"])
 
         return ret
 
