@@ -84,7 +84,7 @@ class Html(CommonWriter):
         shown_media = []
         for event in self.all_media["events_by_id"].values():
             for media in event["media"]:
-                relpath = "../%s" % (media["filename"])
+                relpath = "../../%s" % (media["filename"])
                 shown_media.append({"media": media, "link": relpath,
                                     "thumbnail_path": media["thumbnail_path"],
                                     "stats": None, "show_daterange": True})
@@ -129,7 +129,7 @@ class Html(CommonWriter):
             shown_media = []
             for media in tag["media"]:
                 shown_media.append({"media": media,
-                                    "link": "../%s" % (media["filename"]),
+                                    "link": "../../%s" % (media["filename"]),
                                     "thumbnail_path": media["thumbnail_path"],
                                     "stats": None, "show_daterange": False})
 
@@ -203,10 +203,10 @@ class Html(CommonWriter):
                              "</a></span>")
 
         if self.extra_header:
-            output.write("<span><a href='../%s'><span class='main_view'>%s</span></a></span>" % \
+            output.write("<span><a href='../../%s'><span class='main_view'>%s</span></a></span>" % \
                          (self.extra_header[1], self.extra_header[0]))
 
-        output.write("<span><a href='../index.html#'>" + \
+        output.write("<span><a href='../../index.html#'>" + \
                      "<span class='main_view'>Search</span>" + \
                      "</a></span>")
 
@@ -223,9 +223,9 @@ class Html(CommonWriter):
         else:
             output.write("<a href='%s'>" % (html.escape(link)))
 
-        thumbnail = '../thumbnails/%s' % (html.escape(thumbnail_path))
+        thumbnail = '../../thumbnails/%s' % (html.escape(thumbnail_path))
         if "large_motion_photo" in media and media["large_motion_photo"]:
-            motion_photo = '../%s' % (html.escape(media["large_motion_photo"][1]))
+            motion_photo = '../../%s' % (html.escape(media["large_motion_photo"][1]))
             output.write(("<span class='media_thumb'>"
                           f"<img onMouseOver='this.src=\"{motion_photo}\"'"
                           f" onMouseLeave='this.src=\"{thumbnail}\"'"
@@ -280,7 +280,7 @@ class Html(CommonWriter):
             detailed.append("%sx%s" % (media["width"], media["height"]))
 
         if "camera" in media:
-            detailed.append("<a href='../index.html?search=%s'>%s</a>" % \
+            detailed.append("<a href='../../index.html?search=%s'>%s</a>" % \
                             (urllib.parse.quote("Camera,equals,%s" % (media["camera"])),
                              media["camera"]))
 
@@ -288,7 +288,7 @@ class Html(CommonWriter):
             detailed += media["exif"]
 
         if "metadata_text" in media and media["metadata_text"]:
-            detailed.append("<a target='_new' href='../%s'>Metadata</a>" % (media["metadata_text"]))
+            detailed.append("<a target='_new' href='../../%s'>Metadata</a>" % (media["metadata_text"]))
 
         if "event_id" in media and media["event_id"]:
             title = common.cleanup_event_title(self.all_media["events_by_id"][media["event_id"]])
@@ -303,12 +303,12 @@ class Html(CommonWriter):
         if "lat" in media:
             search = "%s,%s,%.5f,%.5f,0.1" % \
                      ("GPS Coordinate", "is within", media["lat"], media["lon"])
-            detailed.append("<a href='../index.html?search=%s'>GPS %.5f,%.5f</a>" % \
+            detailed.append("<a href='../../index.html?search=%s'>GPS %.5f,%.5f</a>" % \
                             (urllib.parse.quote(search), media["lat"], media["lon"]))
 
         if "large_motion_photo" in media and media["large_motion_photo"] and \
            media["large_motion_photo"][0]:
-            detailed.append("<a target='_new' href='../%s'>Motion Photo</a>" %
+            detailed.append("<a target='_new' href='../../%s'>Motion Photo</a>" %
                             (media["large_motion_photo"][0]))
 
         if "rating" in media:
@@ -430,7 +430,7 @@ class Html(CommonWriter):
 
     def __get_search_element(self, search_field, search_val):
         search = html.escape("%s,equals,%s" % (search_field, search_val))
-        return "<a href='../index.html?search=%s'>" % (search) + \
+        return "<a href='../../index.html?search=%s'>" % (search) + \
                "<span class='header_link'>Search</span>" + \
                "</a>"
 
@@ -455,7 +455,7 @@ class Html(CommonWriter):
         for event in self.all_media["events_by_id"].values():
             shown_media = []
             for media in event["media"]:
-                relpath = "../%s" % (media["filename"])
+                relpath = "../../%s" % (media["filename"])
                 shown_media.append({"media": media, "link": relpath,
                                     "thumbnail_path": media["thumbnail_path"],
                                     "stats": None, "show_daterange": True})
@@ -737,8 +737,8 @@ class Html(CommonWriter):
         output.write("<!DOCTYPE html>")
         output.write("<html lang='en'>")
         output.write("<head>")
-        output.write("<link rel='stylesheet' type='text/css' href='../search.css'/>")
-        output.write("<link rel='stylesheet' type='text/css' href='../search-400px-width.css'/>")
+        output.write("<link rel='stylesheet' type='text/css' href='../../search.css'/>")
+        output.write("<link rel='stylesheet' type='text/css' href='../../search-400px-width.css'/>")
         output.write("<meta name='viewport' content='width=device-width'/>")
         output.write("<meta charset='UTF-8'/>")
 

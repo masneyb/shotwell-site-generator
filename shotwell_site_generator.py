@@ -98,7 +98,9 @@ def process_photos(options):
     json_writer.write()
 
     logging.info("Copying other support files")
-    write_redirect(os.path.join(options.dest_directory, "static-site.html"), "media/index.html")
+    write_redirect(os.path.join(os.path.join(options.dest_directory, "static-site"),
+                                "index.html"),
+                   "media/index.html")
     shutil.copyfile(__get_assets_path(options, "index.html"),
                     os.path.join(options.dest_directory, "index.html"))
     shutil.copyfile(__get_assets_path(options, "search.css"),
@@ -128,8 +130,9 @@ def process_photos(options):
             os.unlink(media_symlink)
         os.symlink(options.input_media_path, media_symlink)
 
-    photos = media_writer_html.Html(all_media, options.dest_directory, options.title,
-                                    options.years_prior_are_approximate,
+    photos = media_writer_html.Html(all_media,
+                                    os.path.join(options.dest_directory, "static-site"),
+                                    options.title, options.years_prior_are_approximate,
                                     options.max_media_per_page, options.expand_all_elements,
                                     extra_header, options.version_label,
                                     options.remove_stale_artifacts)
@@ -148,6 +151,10 @@ def process_photos(options):
     logging.info("Finished")
 
 def write_redirect(filename, redirect_to):
+    base_dir = os.path.dirname(filename)
+    if not os.path.isdir(base_dir):
+        os.makedirs(base_dir)
+
     with open(filename, "w", encoding="UTF-8") as output:
         output.write("<html>")
         output.write("<head><meta http-equiv='refresh' content='0;url=%s'/></head>" % (redirect_to))
