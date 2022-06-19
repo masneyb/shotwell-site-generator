@@ -75,6 +75,15 @@ function updateMediaDescriptionText(descrEle) {
   }));
 }
 
+function getFullscreenVideoUrl(entity) {
+  if (window.alwaysShowAnimations && 'motion_photo' in entity && 'mp4' in entity.motion_photo) {
+    return entity.motion_photo.mp4;
+  } else if (entity.type === 'video') {
+    return entity.link;
+  }
+  return null;
+}
+
 function doShowFullscreenImage(manuallyInvoked) {
   const descrEle = document.querySelector('#description');
   addStatusMessage(descrEle, 'Loading');
@@ -96,13 +105,14 @@ function doShowFullscreenImage(manuallyInvoked) {
     descrEle.style.display = 'none';
   }
 
-  if (allMedia[allMediaFullscreenIndex].type === 'video') {
+  const videoUrl = getFullscreenVideoUrl(allMedia[allMediaFullscreenIndex]);
+  if (videoUrl !== null) {
     const imageEle = document.querySelector('#fullimage');
     imageEle.removeAttribute('src');
     imageEle.style.display = 'none';
 
     const videoEle = document.querySelector('#fullvideo');
-    videoEle.src = allMedia[allMediaFullscreenIndex].link;
+    videoEle.src = videoUrl;
     videoEle.style.display = 'block';
 
     updateMediaDescriptionText(descrEle);

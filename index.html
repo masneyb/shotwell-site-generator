@@ -143,11 +143,11 @@
       let allMedia = null;
       let mediaWriter = null;
       let dateRange = null;
-      let alwaysShowAnimations = false;
       let currentYearView = null;
       let preferLargeIcons = false;
       let preferredPageIconSize = null;
       let currentGroupName = null;
+      window.alwaysShowAnimations = getIntQueryParameter('show_animations', 0);
 
       function addStatusMessage(parentEle, text) {
         const msgEle = document.createElement('div');
@@ -165,11 +165,11 @@
       }
 
       function updateAnimationsText() {
-        document.querySelector('#toggle_animations').innerText = alwaysShowAnimations ? 'Stop Animations' : 'Show Animations';
+        document.querySelector('#toggle_animations').innerText = window.alwaysShowAnimations ? 'Stop Animations' : 'Show Animations';
       }
 
       function toggleAnimations() {
-        alwaysShowAnimations = !alwaysShowAnimations;
+        window.alwaysShowAnimations = !window.alwaysShowAnimations;
         updateAnimationsText();
         showMedia();
       }
@@ -701,7 +701,7 @@
         // See the comment above for why the media element can be overridden for the event search.
         media = populateMediaAnchorTag(anchor, media, index);
 
-        if (alwaysShowAnimations && media.motion_photo) {
+        if (window.alwaysShowAnimations && media.motion_photo) {
           if (iconSize === 'small') {
             img.src = media.motion_photo.small_gif;
             mediaEle.className = 'media_small';
