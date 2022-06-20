@@ -200,12 +200,13 @@ class Json(CommonWriter):
     def __write_json_files(self, ret):
         # No part of the generated site reads this generated media.json file. Including here
         # for scripting purposes.
-        with open(os.path.join(self.dest_directory, "media.json"), "w") as outfile:
+        with open(os.path.join(self.dest_directory, "media.json"), "w",
+                  encoding="UTF-8") as outfile:
             outfile.write(json.dumps(ret, indent="\t"))
 
         # Write out the media in an embedded Javascript file to work around browser mitigations
         # for CVE-2019-11730 so that the search page will work for file URIs.
-        with open(os.path.join(self.dest_directory, "media.js"), "w") as outfile:
+        with open(os.path.join(self.dest_directory, "media.js"), "w", encoding="UTF-8") as outfile:
             outfile.write("const _allMedia = ")
             outfile.write(json.dumps(ret, indent=None))
             outfile.write(";\n")

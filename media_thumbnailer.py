@@ -74,7 +74,7 @@ class Thumbnailer:
             cmd = [self.imagemagick_command, "-size", self.thumbnail_size, "xc:lightgray",
                    dest_filename]
             self._do_run_command(cmd, False)
-            pathlib.Path(tn_idx_file).write_text(tn_idx_contents)
+            pathlib.Path(tn_idx_file).write_text(tn_idx_contents, encoding="UTF-8")
             return
 
         logging.info("Generating composite thumbnail for %s: %s", title, dest_filename)
@@ -91,7 +91,7 @@ class Thumbnailer:
                dest_filename]
         self._do_run_command(cmd, False)
 
-        pathlib.Path(tn_idx_file).write_text(tn_idx_contents)
+        pathlib.Path(tn_idx_file).write_text(tn_idx_contents, encoding="UTF-8")
 
     def __get_composite_thumbnail_media(self, source_media, max_photos):
         # Group the media by rating (largest to smallest). For each rating, if there is more
@@ -136,7 +136,7 @@ class Thumbnailer:
         if not os.path.isfile(tn_idx_file):
             return False
 
-        contents = pathlib.Path(tn_idx_file).read_text()
+        contents = pathlib.Path(tn_idx_file).read_text(encoding="UTF-8")
         return contents == tn_idx_contents
 
     def __get_montage_tile_props(self, num_avail_photos):
@@ -205,7 +205,7 @@ class Thumbnailer:
         logging.info("Transforming original image: %s", " ".join(cmd))
         self._do_run_command(cmd, False)
 
-        pathlib.Path(idx_file).write_text(idx_contents)
+        pathlib.Path(idx_file).write_text(idx_contents, encoding="UTF-8")
 
         return transformed_image
 
@@ -311,7 +311,7 @@ class Thumbnailer:
         if not result.stdout:
             return None
 
-        return int(result.stdout.decode('UTF-8').replace(',', '').replace('\n', ''))
+        return int(result.stdout.decode("UTF-8").replace(',', '').replace('\n', ''))
 
     def _get_ffmpeg_animated_gif_cmd(self, src_filename, is_video, thumbnail_type,
                                      rotate, gif_dest_filename):
@@ -414,7 +414,7 @@ class Thumbnailer:
 
         if not os.path.exists(mp4_dest_filename):
             logging.info("Extracting motion photo from %s", src_filename)
-            with open(src_filename, 'rb') as src, open(mp4_dest_filename, 'wb') as dest:
+            with open(src_filename, "rb") as src, open(mp4_dest_filename, "wb") as dest:
                 src.seek(-1 * offset, os.SEEK_END)
                 for content in src:
                     dest.write(content)
@@ -477,7 +477,7 @@ class Thumbnailer:
         self.generated_artifacts.add(exif_filename)
 
         if self.skip_metadata_text_if_exists and os.path.exists(exif_filename):
-            with open(exif_filename, 'r') as infile:
+            with open(exif_filename, "r", encoding="UTF-8") as infile:
                 return (short_path, self._read_exif_txt(infile))
 
         cmd = [self.exiv2_command, "-pa", img_filename]
@@ -487,8 +487,8 @@ class Thumbnailer:
         if ret.returncode != 0:
             logging.warning("Error executing %s: %d", cmd, ret.returncode)
 
-        decoded_text = ret.stdout.decode('utf-8', 'ignore')
-        with open(exif_filename, "w") as file:
+        decoded_text = ret.stdout.decode("UTF-8", 'ignore')
+        with open(exif_filename, "w", encoding="UTF-8") as file:
             file.write(decoded_text)
 
         return (short_path, self._read_exif_txt(decoded_text.split('\n')))
@@ -510,8 +510,8 @@ class Thumbnailer:
         if ret.returncode != 0:
             logging.warning("Error executing %s: %d", cmd, ret.returncode)
 
-        decoded_text = ret.stdout.decode('utf-8', 'ignore')
-        with open(metadata_filename, "w") as file:
+        decoded_text = ret.stdout.decode("UTF-8", 'ignore')
+        with open(metadata_filename, "w", encoding="UTF-8") as file:
             file.write(decoded_text)
 
         return short_path

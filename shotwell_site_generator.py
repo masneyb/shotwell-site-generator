@@ -41,7 +41,8 @@ def write_manifest_json(options):
                      _app_icon_by_size("32x32"),
                      _app_icon_by_size("16x16")]
 
-    with open(os.path.join(options.dest_directory, "manifest.json"), "w") as outfile:
+    with open(os.path.join(options.dest_directory, "manifest.json"), "w",
+              encoding="UTF-8") as outfile:
         outfile.write(json.dumps(vals, indent="\t"))
 
 

@@ -78,7 +78,8 @@ function updateMediaDescriptionText(descrEle) {
 function getFullscreenVideoUrl(entity) {
   if (window.alwaysShowAnimations && 'motion_photo' in entity && 'mp4' in entity.motion_photo) {
     return entity.motion_photo.mp4;
-  } else if (entity.type === 'video') {
+  }
+  if (entity.type === 'video') {
     return entity.link;
   }
   return null;

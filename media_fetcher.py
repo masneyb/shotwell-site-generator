@@ -663,7 +663,7 @@ class Database:
         logging.info('Using camera transformation file %s', camera_file)
 
         ret = {}
-        with open(camera_file, 'r') as csv_file:
+        with open(camera_file, "r", encoding="UTF-8") as csv_file:
             reader = csv.reader(csv_file)
             for row in reader:
                 ret[row[0]] = row[1]
