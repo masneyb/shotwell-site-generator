@@ -32,10 +32,10 @@ function updateSearchCriteria() {
     }
 
     const matchPolicy = document.querySelector('#match_policy').value;
-    const sortby = document.querySelector('#sortby').value;
+    const sortBy = document.querySelector('#sort_by').value;
     const iconSize = document.querySelector('#icon_size').value;
     const groupBy = document.querySelector('#group_by').value;
-    window.history.pushState({}, '', `index.html?${searchArgs.join('&')}&match_policy=${matchPolicy}&sortby=${sortby}&icon_size=${iconSize}&group_by=${groupBy}#`);
+    window.history.pushState({}, '', `index.html?${searchArgs.join('&')}&match_policy=${matchPolicy}&sort_by=${sortBy}&icon_size=${iconSize}&group_by=${groupBy}#`);
     processJson(populateMedia);
   }, 0);
 }
@@ -202,8 +202,8 @@ function populateSearchValuesFromUrl() {
   const matchPolicy = getQueryParameter('match_policy', 'all'); // any,none,all
   document.querySelector('#match_policy').value = matchPolicy;
 
-  const sortby = getQueryParameter('sortby', 'takenZA'); // takenZA,takenAZ,createdZA,createdAZ,random
-  document.querySelector('#sortby').value = sortby;
+  const sortBy = getQueryParameter('sort_by', 'takenZA');
+  document.querySelector('#sort_by').value = sortBy;
 
   const iconSize = getQueryParameter('icon_size', 'default');
   document.querySelector('#icon_size').value = iconSize;

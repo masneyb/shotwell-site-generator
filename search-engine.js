@@ -1024,7 +1024,7 @@ function performSearch(allItems) {
     }
   }
 
-  const sortBy = getQueryParameter('sortby', 'takenZA'); // takenZA,takenAZ,createdZA,createdAZ,random
+  const sortBy = getQueryParameter('sort_by', 'takenZA'); // takenZA,takenAZ,createdZA,createdAZ,random
   if (sortBy === 'random') {
     shuffleArray(ret);
   } else {
