@@ -89,6 +89,7 @@
         <option value="year">Group by year</option>
       </select>
       <select id="sort_by" onChange="updateSearchCriteria();">
+        <option value="default">Default Sort</option>
         <option value="takenZA">Sort taken Z-A</option>
         <option value="takenAZ">Sort taken A-Z</option>
         <option value="createdZA">Sort added Z-A</option>
@@ -309,7 +310,8 @@
 
         const iconSize = getQueryParameter('icon_size', 'default');
         const groupBy = getQueryParameter('group_by', 'none');
-        const search = generateSearchUrl(parts, matchPolicy, iconSize, groupBy);
+        const sortBy = getQueryParameter('sort_by', 'default');
+        const search = generateSearchUrl(parts, matchPolicy, iconSize, groupBy, sortBy);
 
         // Check to see if the user control clicked the URL to request it be opened in a new tab.
         if (event.ctrlKey || event.which === 2 || event.which === 3) {
@@ -326,7 +328,7 @@
         const tagParentsEle = document.querySelector('#tag_parents');
         removeAllChildren(tagParentsEle);
 
-        if (searchTag !== undefined) {
+        if (searchTag !== null) {
           let parentTag = searchTag.parent_tag_id;
           let firstChild = true;
           while (parentTag !== null) {
@@ -357,6 +359,7 @@
       }
 
       function getPageIconSize() {
+        /* eslint indent: 0 */
         const validIconSizes = ['small', 'medium', 'small_medium', 'small_medium_large',
                                 'medium_large', 'large', 'large_full_meta', 'large_no_meta',
                                 'regular', 'regular_full_meta', 'regular_no_meta'];
@@ -509,77 +512,33 @@
         }
       }
 
-      function setPageTitleAndIconSize(mediaTitle) {
-        currentYearView = null;
-
-        // Search criteria can be chained in any order. Get the distinct types and order below.
-        let eventTitle = null;
-        let eventPreferLargeIcons = false;
-        let yearTitle = null;
-        let tagTitle = null;
-        let tagPreferLargeIcons = false;
-        let searchTag;
-
-        const allCriteria = getSearchCriteria();
-        for (const criteria of allCriteria) {
-          if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'years') {
-            yearTitle = `${mediaTitle}: All Years`;
-          } else if (criteria.field.title === 'Year' && criteria.op.descr === 'equals') {
-            yearTitle = `${mediaTitle}: Year ${criteria.searchValues[0]}`;
-            // Used for generating search links when searching for events.
-            currentYearView = criteria.searchValues[0];
-          } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'events') {
-            eventTitle = `${mediaTitle}: All Events`;
-            eventPreferLargeIcons = true;
-          } else if (criteria.field.title === 'Event ID' && criteria.op.descr === 'equals') {
-            let eventName = eventNames[criteria.searchValues[0]];
-            if (eventName === undefined) {
-              eventName = 'Unknown event';
-            }
-            eventTitle = `${mediaTitle}: ${eventName}`;
-            eventPreferLargeIcons = false;
-          } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'tags') {
-            tagTitle = `${mediaTitle}: All Tags`;
-            tagPreferLargeIcons = true;
-          } else if (criteria.field.title === 'Tag ID' && criteria.op.descr === 'equals') {
-            searchTag = tags[criteria.searchValues[0]];
-            tagTitle = `${mediaTitle}: ${searchTag !== undefined ? searchTag.title : 'Unknown tag'}`;
-            tagPreferLargeIcons = false;
-          }
-        }
-
-        /* eslint indent: 0 */
-        const titles = [[eventTitle, 'events_link', eventPreferLargeIcons],
-                        [yearTitle, 'years_link', true],
-                        [tagTitle, 'tags_link', tagPreferLargeIcons],
-                        [`${mediaTitle}: Search`, null, false]];
-        const preferredTitle = titles.find((ent) => ent[0] !== null);
-
-        document.title = preferredTitle[0];
+      function setPageTitleAndIconSize(preferredView) {
+        document.title = preferredView.title;
         const ele = document.querySelector('#title');
         if (ele) {
           ele.innerText = document.title;
         }
 
-        if (preferredTitle[1] !== null) {
-          document.querySelector(`#${preferredTitle[1]}`).classList.add('main_view_selected');
+        if (preferredView.cssSelector !== null) {
+          document.querySelector(`#${preferredView.cssSelector}`).classList.add('main_view_selected');
         }
         for (const tagName of ['years_link', 'events_link', 'tags_link']) {
-          if (tagName !== preferredTitle[1]) {
+          if (tagName !== preferredView.cssSelector) {
             document.querySelector(`#${tagName}`).classList.remove('main_view_selected');
           }
         }
 
-        preferLargeIcons = preferredTitle[2];
+        preferLargeIcons = preferredView.preferLargeIcons;
         preferredPageIconSize = getPageIconSize();
         setIconWriter();
 
-        showParentTags(searchTag);
+        showParentTags(preferredView.searchTag);
       }
 
-      function populateMedia(newAllMedia, extraHeader, mediaTitle, newDateRange) {
+      function populateMedia(newAllMedia, extraHeader, newDateRange, preferredView) {
         allMedia = newAllMedia;
         dateRange = newDateRange;
+        currentYearView = preferredView.currentYearView;
 
         if (extraHeader) {
           const extraHeaderEle = document.querySelector('#extra_header');
@@ -595,7 +554,7 @@
           extraHeaderEle.replaceChildren(outerSpan);
         }
 
-        setPageTitleAndIconSize(mediaTitle);
+        setPageTitleAndIconSize(preferredView);
         showMedia();
         populateSearchValuesFromUrl();
       }

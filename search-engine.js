@@ -206,7 +206,7 @@ function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMeta
   return ret;
 }
 
-function generateSearchUrl(criterias, matchPolicy, iconSize, groupBy) {
+function generateSearchUrl(criterias, matchPolicy, iconSize, groupBy, sortBy) {
   const qs = [];
   for (const criteria of criterias) {
     qs.push(`search=${encodeURI(criteria)}`);
@@ -219,6 +219,9 @@ function generateSearchUrl(criterias, matchPolicy, iconSize, groupBy) {
   }
   if (groupBy !== 'none') {
     qs.push(`group_by=${groupBy}`);
+  }
+  if (sortBy !== 'default') {
+    qs.push(`sort_by=${sortBy}`);
   }
   return `index.html?${qs.join('&')}#`;
 }
@@ -961,8 +964,87 @@ function shortenPrettyDate(input) {
   return `${parts[1]} ${parts[2]} ${parts[3]}`;
 }
 
-function performSearch(allItems) {
-  const allCriteria = getSearchCriteria();
+function getPreferredView(allCriteria, mainTitle, eventNames, tags) {
+  // Search criteria can be chained in any order. Get the distinct types and order below.
+  let eventTitle = null;
+  let eventPreferLargeIcons = false;
+  let eventDefaultSort = null;
+  let yearTitle = null;
+  let yearDefaultSort = null;
+  let tagTitle = null;
+  let tagPreferLargeIcons = false;
+  let tagView = null;
+  let yearView = null;
+
+  for (const criteria of allCriteria) {
+    if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'years') {
+      yearTitle = `${mainTitle}: All Years`;
+      yearDefaultSort = 'takenZA';
+    } else if (criteria.field.title === 'Year' && criteria.op.descr === 'equals') {
+      yearTitle = `${mainTitle}: Year ${criteria.searchValues[0]}`;
+      // Used for generating search links when searching for events.
+      yearView = criteria.searchValues[0];
+      yearDefaultSort = 'takenAZ';
+    } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'events') {
+      eventTitle = `${mainTitle}: All Events`;
+      eventPreferLargeIcons = true;
+      eventDefaultSort = 'takenZA';
+    } else if (criteria.field.title === 'Event ID' && criteria.op.descr === 'equals') {
+      let eventName = eventNames[criteria.searchValues[0]];
+      if (eventName === undefined) {
+        eventName = 'Unknown event';
+      }
+      eventTitle = `${mainTitle}: ${eventName}`;
+      eventPreferLargeIcons = false;
+      eventDefaultSort = 'takenAZ';
+    } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'tags') {
+      tagTitle = `${mainTitle}: All Tags`;
+      tagPreferLargeIcons = true;
+    } else if (criteria.field.title === 'Tag ID' && criteria.op.descr === 'equals') {
+      tagView = tags[criteria.searchValues[0]];
+      tagTitle = `${mainTitle}: ${tagView !== undefined ? tagView.title : 'Unknown tag'}`;
+      tagPreferLargeIcons = false;
+    }
+  }
+
+  /* eslint indent: 0 */
+  const views = [{
+                   title: eventTitle,
+                   cssSelector: 'events_link',
+                   preferLargeIcons: eventPreferLargeIcons,
+                   defaultSort: eventDefaultSort,
+                   currentYearView: null,
+                   searchTag: null,
+                 },
+                 {
+                   title: yearTitle,
+                   cssSelector: 'years_link',
+                   preferLargeIcons: true,
+                   defaultSort: yearDefaultSort,
+                   currentYearView: yearView,
+                   searchTag: null,
+                 },
+                 {
+                   title: tagTitle,
+                   cssSelector: 'tags_link',
+                   preferLargeIcons: tagPreferLargeIcons,
+                   defaultSort: 'takenZA',
+                   currentYearView: null,
+                   searchTag: tagView,
+                 },
+                 {
+                   title: `${mainTitle}: Search`,
+                   cssSelector: null,
+                   preferLargeIcons: false,
+                   defaultSort: 'takenZA',
+                   currentYearView: null,
+                   searchTag: null,
+                 }];
+
+  return views.find((ent) => ent.title !== null);
+}
+
+function performSearch(allItems, allCriteria, defaultSort) {
   const matchPolicy = getQueryParameter('match_policy', 'all'); // any,none,all
   let minDate;
   let minDatePretty;
@@ -1024,7 +1106,11 @@ function performSearch(allItems) {
     }
   }
 
-  const sortBy = getQueryParameter('sort_by', 'takenZA'); // takenZA,takenAZ,createdZA,createdAZ,random
+  let sortBy = getQueryParameter('sort_by', 'default'); // default,takenZA,takenAZ,createdZA,createdAZ,random
+  if (sortBy === 'default') {
+    sortBy = defaultSort;
+  }
+
   if (sortBy === 'random') {
     shuffleArray(ret);
   } else {
@@ -1118,6 +1204,8 @@ function processJson(readyFunc) {
     }
   }
 
-  const searchResults = performSearch(processedMedia);
-  readyFunc(searchResults[0], extraHeader, mainTitle, searchResults[1]);
+  const allCriteria = getSearchCriteria();
+  const preferredView = getPreferredView(allCriteria, mainTitle, eventNames, tags);
+  const searchResults = performSearch(processedMedia, allCriteria, preferredView.defaultSort);
+  readyFunc(searchResults[0], extraHeader, searchResults[1], preferredView);
 }
