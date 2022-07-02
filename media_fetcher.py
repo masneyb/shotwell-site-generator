@@ -202,16 +202,19 @@ class Database:
             for row in cursor.execute(qry):
                 media_id = "video-%016x" % (row["id"])
                 reg_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
-                                                                         0, None,
+                                                                         0, None, None, None, None,
                                                                          ThumbnailType.REGULAR)
                 large_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"],
                                                                            media_id, 0, None,
+                                                                           None, None, None,
                                                                            ThumbnailType.LARGE)
                 small_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"],
                                                                            media_id, 0, None,
+                                                                           None, None, None,
                                                                            ThumbnailType.SMALL_SQ)
                 medium_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"],
                                                                             media_id, 0, None,
+                                                                            None, None, None,
                                                                             ThumbnailType.MEDIUM_SQ)
                 video = self.__transform_video(row["filename"])
                 video_json = self.thumbnailer.write_video_json(video, media_id)
@@ -223,7 +226,7 @@ class Database:
                 media["clip_duration"] = row["clip_duration"]
 
     def __process_photo_row(self, all_media, row, download_source, is_raw):
-        # pylint: disable=too-many-locals
+        # pylint: disable=too-many-locals,too-many-statements
         if row["orientation"] == 6:
             rotate = 90
         elif row["orientation"] == 3:
@@ -253,20 +256,33 @@ class Database:
         exiv2_metadata = pyexiv2.ImageMetadata(row["filename"])
         exiv2_metadata.read()
 
+        transformations = self.__parse_transformations(row["transformations"])
+
         media_id = "thumb%016x" % (row["id"])
         (metadata_text, exif_metadata) = self.thumbnailer.write_exif_txt(row["filename"], media_id)
 
+        # Get the original shotwell image width/height and pass that to create_animated_gif()
+        # since that's the pixel count that shotwell expects. Note that the width/height are
+        # recalculted further down in this function.
+        (width, height) = (row["width"], row["height"])
+        if rotate in (90, -90):
+            (width, height) = (height, width)
+
         reg_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
                                                                  rotate, exif_metadata,
+                                                                 transformations, width, height,
                                                                  ThumbnailType.REGULAR)
         large_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
                                                                    rotate, exif_metadata,
+                                                                   transformations, width, height,
                                                                    ThumbnailType.LARGE)
         small_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
                                                                    rotate, exif_metadata,
+                                                                   transformations, width, height,
                                                                    ThumbnailType.SMALL_SQ)
         medium_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
                                                                     rotate, exif_metadata,
+                                                                    transformations, width, height,
                                                                     ThumbnailType.MEDIUM_SQ)
 
         if is_raw:
@@ -291,7 +307,7 @@ class Database:
             medium_overlay_icon = None
 
         media = self.__add_media(all_media, row, media_id, download_source, row["filename"],
-                                 row["transformations"], rotate, reg_overlay_icon,
+                                 transformations, rotate, reg_overlay_icon,
                                  large_overlay_icon, small_overlay_icon, medium_overlay_icon,
                                  reg_short_mp_path, large_short_mp_path, small_short_mp_path,
                                  medium_short_mp_path, metadata_text)
@@ -299,14 +315,12 @@ class Database:
         media.update(self.__parse_photo_exiv2_metadata(exiv2_metadata))
 
         # Photos can be cropped and Shotwell doesn't contain the cropped size. Look it up again.
-        (width, height) = (row["width"], row["height"])
         if media["filename"].startswith("transformed/"):
             (width, height) = self.__get_image_dimensions(media["filename_fullpath"])
+            if rotate in (90, -90):
+                (width, height) = (height, width)
 
-        if rotate in (90, -90):
-            (media["width"], media["height"]) = (height, width)
-        else:
-            (media["width"], media["height"]) = (width, height)
+        (media["width"], media["height"]) = (width, height)
 
         media["is_raw"] = is_raw
 
@@ -491,12 +505,11 @@ class Database:
         return "transformed/" + self.__strip_path_prefix(path, self.transformed_origs_directory)
 
     def __transform_img(self, source_image, transformations, thumbnail):
-        parsed_transformations = self.__parse_transformations(transformations)
         transformed_path = os.path.join(self.transformed_origs_directory,
                                         self.__strip_path_prefix(source_image,
                                                                  self.input_media_path))
         return self.thumbnailer.transform_original_image(source_image, transformed_path,
-                                                         parsed_transformations, thumbnail)
+                                                         transformations, thumbnail)
 
     def __transform_video(self, source_video):
         if not self.video_convert_ext or source_video.lower().endswith(self.video_convert_ext):

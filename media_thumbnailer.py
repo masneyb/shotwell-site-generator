@@ -300,6 +300,20 @@ class Thumbnailer:
 
         return None
 
+    def _get_video_resolution(self, filename):
+        cmd = [self.ffprobe_command, "-v", "error", "-select_streams", "v:0", "-show_entries",
+               "stream=width,height", "-of", "csv=s=x:p=0", filename]
+        result = self._do_run_command(cmd, True)
+        if result.returncode != 0:
+            logging.error("Error running %s: %s", cmd, result.returncode)
+            return None
+
+        if not result.stdout:
+            return None
+
+        parts = result.stdout.decode("UTF-8").split("x")
+        return (int(parts[0]), int(parts[1]))
+
     def _get_num_video_frames(self, filename):
         cmd = [self.ffprobe_command, "-v", "error", "-select_streams", "v:0", "-count_packets",
                "-show_entries", "stream=nb_read_packets", "-of", "csv=p=0", filename]
@@ -313,8 +327,12 @@ class Thumbnailer:
 
         return int(result.stdout.decode("UTF-8").replace(',', '').replace('\n', ''))
 
+    def _scale_number(self, part, orig_fullsize, new_fullsize):
+        return int((new_fullsize * part) / orig_fullsize)
+
     def _get_ffmpeg_animated_gif_cmd(self, src_filename, is_video, thumbnail_type,
-                                     rotate, gif_dest_filename):
+                                     rotate, transformations, orig_img_width, orig_img_height,
+                                     gif_dest_filename):
         # pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
 
         max_frames = 100
@@ -375,6 +393,28 @@ class Thumbnailer:
             complex_filter += (f"select=not(mod(n-1\\,{select_frames}))[skip];"
                                f"[skip]setpts=N/({pts}*TB)[fps];[fps]")
 
+        # FIXME - some other transformations that are used in my library need to be implemented:
+        # adjustments.shadows, adjustments.exposure, and adjustments.saturation. There are others
+        # that are supported by shotwell that are not referenced here.
+        #
+        # straighten.angle and adjustments.expansion are implemented below in
+        # __get_imagemagick_transformation_cmd() and also need to be implemented here.
+
+        if transformations and "crop.left" in transformations:
+            # For the motion photos, the video resolution is different than the image
+            # resolution. The crop pixel counts are relative to the image resolution,
+            # so scale the numbers accordingly for the video.
+            (video_width, video_height) = self._get_video_resolution(src_filename)
+            crop_l = self._scale_number(int(transformations["crop.left"]), orig_img_width,
+                                        video_width)
+            crop_t = self._scale_number(int(transformations["crop.top"]), orig_img_height,
+                                        video_height)
+            crop_w = self._scale_number(int(transformations["crop.right"]), orig_img_width,
+                                        video_width) - crop_l
+            crop_h = self._scale_number(int(transformations["crop.bottom"]), orig_img_height,
+                                        video_height) - crop_t
+            complex_filter += (f"crop={crop_w}:{crop_h}:{crop_l}:{crop_t}[crop];[crop]")
+
         if rotate == 90:
             complex_filter += "transpose=1[rotate];[rotate]"
         elif rotate == 180:
@@ -421,7 +461,8 @@ class Thumbnailer:
 
         return (mp4_dest_filename, mp4_short_path)
 
-    def create_animated_gif(self, src_filename, media_id, rotate, photo_metadata, thumbnail_type):
+    def create_animated_gif(self, src_filename, media_id, rotate, photo_metadata, transformations,
+                            orig_img_width, orig_img_height, thumbnail_type):
         # pylint: disable=too-many-arguments
         if thumbnail_type == ThumbnailType.SMALL_SQ:
             path_part = "small"
@@ -450,7 +491,9 @@ class Thumbnailer:
         if not os.path.exists(gif_dest_filename):
             cmd = self._get_ffmpeg_animated_gif_cmd(src_filename,
                                                     photo_metadata is None,
-                                                    thumbnail_type, rotate, gif_dest_filename)
+                                                    thumbnail_type, rotate, transformations,
+                                                    orig_img_width, orig_img_height,
+                                                    gif_dest_filename)
             if not cmd:
                 return None
 
