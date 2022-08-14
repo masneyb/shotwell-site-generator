@@ -191,7 +191,7 @@ class Database:
 
         if self.__does_table_exist("VideoTable"):
             qry = "SELECT event_id, id, filename, title, comment, filesize, exposure_time, " + \
-                  "time_created, rating, clip_duration FROM VideoTable " + \
+                  "time_created, rating, clip_duration, width, height FROM VideoTable " + \
                   "WHERE event_id != -1 AND rating >= 0 " + \
                   "ORDER BY exposure_time"
             cursor = self.conn.cursor()
@@ -218,7 +218,8 @@ class Database:
                                          self.icons.play, self.icons.play, self.icons.play_small,
                                          self.icons.play_medium, reg_short_mp_path,
                                          large_short_mp_path, small_short_mp_path,
-                                         medium_short_mp_path, video_json)
+                                         medium_short_mp_path, video_json, row["width"],
+                                         row["height"])
                 media["clip_duration"] = row["clip_duration"]
 
     def __parse_orientation(self, orientation):
@@ -307,7 +308,8 @@ class Database:
         media = self.__add_media(all_media, row, media_id, transformed_image, rotate,
                                  reg_overlay_icon, large_overlay_icon, small_overlay_icon,
                                  medium_overlay_icon, reg_short_mp_path, large_short_mp_path,
-                                 small_short_mp_path, medium_short_mp_path, metadata_text)
+                                 small_short_mp_path, medium_short_mp_path, metadata_text,
+                                 width, height)
 
         media.update(self.__parse_photo_exiv2_metadata(exiv2_metadata))
         media["width"] = width
@@ -526,16 +528,18 @@ class Database:
         return image.size
 
     def __create_thumbnail(self, media, thumbnail_source, rotate, overlay_icon, thumbnail_type,
-                           path_part):
+                           path_part, orig_width, orig_height):
         # pylint: disable=too-many-arguments
         fspath = self.__get_thumbnail_fs_path(path_part)
         self.thumbnailer.create_thumbnail(thumbnail_source, media["media_id"].startswith("video"),
-                                          rotate, fspath, overlay_icon, thumbnail_type)
+                                          rotate, fspath, overlay_icon, thumbnail_type,
+                                          orig_width, orig_height)
         return fspath
 
     def __add_media(self, all_media, row, media_id, media_filename, rotate, reg_overlay_icon,
                     large_overlay_icon, small_overlay_icon, medium_overlay_icon, reg_motion_photo,
-                    large_motion_photo, small_motion_photo, medium_motion_photo, metadata_text):
+                    large_motion_photo, small_motion_photo, medium_motion_photo, metadata_text,
+                    orig_width, orig_height):
         # pylint: disable=too-many-arguments,too-many-locals,too-many-statements
         media = {}
         media["id"] = row["id"]
@@ -571,19 +575,23 @@ class Database:
         media["filename_fullpath"] = media_filename
 
         reg_fspath = self.__create_thumbnail(media, media_filename, rotate, reg_overlay_icon,
-                                             ThumbnailType.REGULAR, media["reg_thumbnail_path"])
+                                             ThumbnailType.REGULAR, media["reg_thumbnail_path"],
+                                             orig_width, orig_height)
         all_artifacts.add(reg_fspath)
         media["reg_thumbnail_width"] = self.__get_image_dimensions(reg_fspath)[0]
 
         all_artifacts.add(self.__create_thumbnail(media, media_filename, rotate,
                                                   large_overlay_icon, ThumbnailType.LARGE,
-                                                  media["thumbnail_path"]))
+                                                  media["thumbnail_path"],
+                                                  orig_width, orig_height))
         all_artifacts.add(self.__create_thumbnail(media, media_filename, rotate,
                                                   small_overlay_icon, ThumbnailType.SMALL_SQ,
-                                                  media["small_thumbnail_path"]))
+                                                  media["small_thumbnail_path"],
+                                                  orig_width, orig_height))
         all_artifacts.add(self.__create_thumbnail(media, media_filename, rotate,
                                                   medium_overlay_icon, ThumbnailType.MEDIUM_SQ,
-                                                  media["medium_thumbnail_path"]))
+                                                  media["medium_thumbnail_path"],
+                                                  orig_width, orig_height))
 
         all_media["media_by_id"][media_id] = media
 

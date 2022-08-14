@@ -233,7 +233,7 @@ class Thumbnailer:
         return [self.imagemagick_command, original_image, *args, transformed_image]
 
     def create_thumbnail(self, source_image, is_video, rotate, resized_image, overlay_icon,
-                         thumbnail_type):
+                         thumbnail_type, orig_width=None, orig_height=None):
         # pylint: disable=too-many-arguments,too-many-branches
         if not os.path.isfile(source_image):
             logging.warning("Cannot find filename %s", source_image)
@@ -258,8 +258,16 @@ class Thumbnailer:
             tn_size = f'{self.small_thumbnail_size}^'
         elif thumbnail_type == ThumbnailType.MEDIUM_SQ:
             tn_size = f'{self.medium_thumbnail_size}^'
+        elif orig_width:
+            # Note that we can pass x:height to have imagemagick automatically scale the image.
+            # I'm not doing that since ffmpeg and imagemagick round differently so the
+            # generated image and animated GIF for the regular thumbnails can be off by a
+            # pixel or two.
+            new_height = self.thumbnail_size.split('x')[1]
+            new_width = self._scale_number(orig_width, orig_height, int(new_height))
+            tn_size = f"{new_width}x{new_height}"
         else:
-            tn_size = 'x' + (self.thumbnail_size.split('x')[1])
+            tn_size = self.thumbnail_size
 
         resize_cmd = [self.imagemagick_command, source_image, "-strip", "-rotate", str(rotate),
                       "-thumbnail", tn_size]
@@ -421,7 +429,12 @@ class Thumbnailer:
             complex_filter += (f"scale='if(gt(iw,ih),-1,{height})':'if(gt(iw,ih),{width},-1)'"
                                f"[scale];[scale]crop={width}:{height}")
         else:
-            complex_filter += f"scale='-1:{height}'"
+            # Note that we can pass -1:height to have ffmpeg automatically scale the image.
+            # I'm not doing that since ffmpeg and imagemagick round differently so the
+            # generated image and animated GIF for the regular thumbnails can be off by a
+            # pixel or two.
+            new_width = self._scale_number(orig_img_width, orig_img_height, height)
+            complex_filter += f"scale='{new_width}:{height}'"
 
         if num_frames:
             if thumbnail_type == ThumbnailType.SMALL_SQ:

@@ -33,7 +33,7 @@ find "${HTML_BASE_DIR}/thumbnails/motion_photo/regular/" -name "thumb*.gif" | wh
 		DIFF_Y=$((DIFF_Y * -1))
 	fi
 
-	if [ ${DIFF_X} -lt 3 ] && [ ${DIFF_Y} -lt 3 ] ; then
+	if [ ${DIFF_X} -eq 0 ] && [ ${DIFF_Y} -eq 0 ] ; then
 		echo "OK: ${GIF_FILE}=${GIF_RESOLUTION}, ${JPG_FILE}=${JPG_RESOLUTION}"
 	else
 		echo "ERROR: ${GIF_FILE}=${GIF_RESOLUTION}, ${JPG_FILE}=${JPG_RESOLUTION}"
