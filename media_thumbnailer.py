@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (C) 2020-2021 Brian Masney <masneyb@onstation.org>
+# Copyright (C) 2020-2022 Brian Masney <masneyb@onstation.org>
 
 import enum
 import logging

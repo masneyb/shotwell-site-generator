@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (C) 2020-2021 Brian Masney <masneyb@onstation.org>
+# Copyright (C) 2020-2022 Brian Masney <masneyb@onstation.org>
 #
 # Functions that are common to writing out media for the JSON and HTML views.
 
