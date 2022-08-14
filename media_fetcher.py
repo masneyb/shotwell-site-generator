@@ -174,7 +174,7 @@ class Database:
               "rating >= 0 ORDER BY PhotoTable.exposure_time"
         cursor = self.conn.cursor()
         for row in cursor.execute(qry):
-            self.__process_photo_row(all_media, row, None, False)
+            self.__process_photo_row(all_media, row, None)
 
         if self.__does_table_exist("BackingPhotoTable"):
             # Now download RAW photos...
@@ -191,7 +191,7 @@ class Database:
                   "ORDER BY PhotoTable.exposure_time"
             cursor = self.conn.cursor()
             for row in cursor.execute(qry):
-                self.__process_photo_row(all_media, row, row["download_filename"], True)
+                self.__process_photo_row(all_media, row, row["download_filename"])
 
         if self.__does_table_exist("VideoTable"):
             qry = "SELECT event_id, id, filename, title, comment, filesize, exposure_time, " + \
@@ -225,7 +225,7 @@ class Database:
                                          medium_short_mp_path, video_json)
                 media["clip_duration"] = row["clip_duration"]
 
-    def __process_photo_row(self, all_media, row, download_source, is_raw):
+    def __process_photo_row(self, all_media, row, raw_download_source):
         # pylint: disable=too-many-locals,too-many-statements
         if row["orientation"] == 6:
             rotate = 90
@@ -285,7 +285,7 @@ class Database:
                                                                     transformations, width, height,
                                                                     ThumbnailType.MEDIUM_SQ)
 
-        if is_raw:
+        if raw_download_source is not None:
             reg_overlay_icon = self.icons.raw
             large_overlay_icon = self.icons.raw
             small_overlay_icon = None
@@ -306,7 +306,7 @@ class Database:
             small_overlay_icon = None
             medium_overlay_icon = None
 
-        media = self.__add_media(all_media, row, media_id, download_source, row["filename"],
+        media = self.__add_media(all_media, row, media_id, raw_download_source, row["filename"],
                                  transformations, rotate, reg_overlay_icon,
                                  large_overlay_icon, small_overlay_icon, medium_overlay_icon,
                                  reg_short_mp_path, large_short_mp_path, small_short_mp_path,
@@ -322,7 +322,7 @@ class Database:
 
         (media["width"], media["height"]) = (width, height)
 
-        media["is_raw"] = is_raw
+        media["is_raw"] = raw_download_source is not None
 
     def __parse_transformations(self, transformations):
         if not transformations:
