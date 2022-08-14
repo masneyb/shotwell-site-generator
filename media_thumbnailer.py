@@ -170,21 +170,20 @@ class Thumbnailer:
             part = part.replace('{infile}', original_video).replace('{outfile}', transformed_video)
             cmd.append(part)
 
-        return self.__run_cmd(cmd, transformed_video, None)
+        return self.__run_cmd(cmd, transformed_video)
 
-    def transform_original_image(self, original_image, transformed_image, transformations,
-                                 thumbnail):
+    def transform_original_image(self, original_image, transformed_image, transformations):
         # Use imagemagick to perform transformations on the original image that are defined in
         # Shotwell.
 
         cmd = self.__get_imagemagick_transformation_cmd(original_image, transformed_image,
                                                         transformations)
         if not cmd:
-            return original_image
+            return (original_image, False)
 
-        return self.__run_cmd(cmd, transformed_image, thumbnail)
+        return (self.__run_cmd(cmd, transformed_image), True)
 
-    def __run_cmd(self, cmd, transformed_image, thumbnail):
+    def __run_cmd(self, cmd, transformed_image):
         self.generated_artifacts.add(transformed_image)
 
         base_dir = os.path.dirname(transformed_image)
@@ -197,10 +196,6 @@ class Thumbnailer:
 
         if self.__is_thumbnail_up_to_date(transformed_image, idx_file, idx_contents):
             return transformed_image
-
-        if thumbnail and os.path.exists(thumbnail):
-            # This will be recreated later based on the transformed image
-            os.unlink(thumbnail)
 
         logging.info("Transforming original image: %s", " ".join(cmd))
         self._do_run_command(cmd, False)
@@ -419,7 +414,7 @@ class Thumbnailer:
             complex_filter += "transpose=1[rotate];[rotate]"
         elif rotate == 180:
             complex_filter += "transpose=1,transpose=1[rotate];[rotate]"
-        elif rotate == 270:
+        elif rotate == -90:
             complex_filter += "transpose=2[rotate];[rotate]"
 
         if thumbnail_type in (ThumbnailType.SMALL_SQ, ThumbnailType.MEDIUM_SQ, ThumbnailType.LARGE):

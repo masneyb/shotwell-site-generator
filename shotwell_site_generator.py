@@ -56,9 +56,6 @@ def process_photos(options):
                                 __get_image_path(options, "play-icon.png"),
                                 __get_image_path(options, "play-icon-small.png"),
                                 __get_image_path(options, "play-icon-medium.png"),
-                                __get_image_path(options, "raw-icon.png"),
-                                __get_image_path(options, "raw-icon-small.png"),
-                                __get_image_path(options, "raw-icon-medium.png"),
                                 __get_image_path(options, "motion-photo.png"),
                                 __get_image_path(options, "motion-photo-small.png"),
                                 __get_image_path(options, "motion-photo-medium.png"))

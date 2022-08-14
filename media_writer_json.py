@@ -136,8 +136,6 @@ class Json(CommonWriter):
 
     def __get_media_type(self, media):
         if media["media_id"].startswith("thumb"):
-            if media["is_raw"]:
-                return "raw_photo"
             if "motion_photo" in media and media["motion_photo"]:
                 return "motion_photo"
 

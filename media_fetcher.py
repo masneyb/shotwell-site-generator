@@ -17,7 +17,6 @@ class Icons:
     # pylint: disable=too-many-instance-attributes,too-many-arguments,too-few-public-methods
     def __init__(self, panorama, panorama_small, panorama_medium,
                  play, play_small, play_medium,
-                 raw, raw_small, raw_medium,
                  motion_photo, motion_photo_small, motion_photo_medium):
         self.panorama = panorama
         self.panorama_small = panorama_small
@@ -25,9 +24,6 @@ class Icons:
         self.play = play
         self.play_small = play_small
         self.play_medium = play_medium
-        self.raw = raw
-        self.raw_small = raw_small
-        self.raw_medium = raw_medium
         self.motion_photo = motion_photo
         self.motion_photo_small = motion_photo_small
         self.motion_photo_medium = motion_photo_medium
@@ -174,7 +170,7 @@ class Database:
               "rating >= 0 ORDER BY PhotoTable.exposure_time"
         cursor = self.conn.cursor()
         for row in cursor.execute(qry):
-            self.__process_photo_row(all_media, row, None)
+            self.__process_photo_row(all_media, row)
 
         if self.__does_table_exist("BackingPhotoTable"):
             # Now download RAW photos...
@@ -191,7 +187,7 @@ class Database:
                   "ORDER BY PhotoTable.exposure_time"
             cursor = self.conn.cursor()
             for row in cursor.execute(qry):
-                self.__process_photo_row(all_media, row, row["download_filename"])
+                self.__process_photo_row(all_media, row)
 
         if self.__does_table_exist("VideoTable"):
             qry = "SELECT event_id, id, filename, title, comment, filesize, exposure_time, " + \
@@ -218,23 +214,30 @@ class Database:
                                                                             ThumbnailType.MEDIUM_SQ)
                 video = self.__transform_video(row["filename"])
                 video_json = self.thumbnailer.write_video_json(video, media_id)
-                media = self.__add_media(all_media, row, media_id, video, video, None, 0,
+                media = self.__add_media(all_media, row, media_id, video, 0,
                                          self.icons.play, self.icons.play, self.icons.play_small,
                                          self.icons.play_medium, reg_short_mp_path,
                                          large_short_mp_path, small_short_mp_path,
                                          medium_short_mp_path, video_json)
                 media["clip_duration"] = row["clip_duration"]
 
-    def __process_photo_row(self, all_media, row, raw_download_source):
+    def __parse_orientation(self, orientation):
+        if orientation == 6:
+            return 90
+        if orientation == 3:
+            return 180
+        if orientation == 8:
+            return -90
+        return 0
+
+    def __process_photo_row(self, all_media, row):
         # pylint: disable=too-many-locals,too-many-statements
-        if row["orientation"] == 6:
-            rotate = 90
-        elif row["orientation"] == 3:
-            rotate = 180
-        elif row["orientation"] == 8:
-            rotate = -90
-        else:
-            rotate = 0
+
+        transformations = self.__parse_transformations(row["transformations"])
+        rotate = self.__parse_orientation(row["orientation"])
+        (transformed_image, width, height) = self.__transform_img(row["filename"], transformations,
+                                                                  row["width"], row["height"],
+                                                                  rotate)
 
         # Read the EXIV/XMP/IPTC metadata two separate times: the first using
         # python (and in turn libexiv2) since it provides a nice easy way to
@@ -256,46 +259,41 @@ class Database:
         exiv2_metadata = pyexiv2.ImageMetadata(row["filename"])
         exiv2_metadata.read()
 
-        transformations = self.__parse_transformations(row["transformations"])
-
         media_id = "thumb%016x" % (row["id"])
         (metadata_text, exif_metadata) = self.thumbnailer.write_exif_txt(row["filename"], media_id)
 
         # Get the original shotwell image width/height and pass that to create_animated_gif()
         # since that's the pixel count that shotwell expects. Note that the width/height are
         # recalculted further down in this function.
-        (width, height) = (row["width"], row["height"])
+        (orig_width, orig_height) = (row["width"], row["height"])
         if rotate in (90, -90):
-            (width, height) = (height, width)
+            (orig_width, orig_height) = (orig_height, orig_width)
 
         reg_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
                                                                  rotate, exif_metadata,
-                                                                 transformations, width, height,
-                                                                 ThumbnailType.REGULAR)
+                                                                 transformations, orig_width,
+                                                                 orig_height, ThumbnailType.REGULAR)
         large_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
                                                                    rotate, exif_metadata,
-                                                                   transformations, width, height,
-                                                                   ThumbnailType.LARGE)
+                                                                   transformations, orig_width,
+                                                                   orig_height, ThumbnailType.LARGE)
         small_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
                                                                    rotate, exif_metadata,
-                                                                   transformations, width, height,
+                                                                   transformations, orig_width,
+                                                                   orig_height,
                                                                    ThumbnailType.SMALL_SQ)
         medium_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
                                                                     rotate, exif_metadata,
-                                                                    transformations, width, height,
+                                                                    transformations, orig_width,
+                                                                    orig_height,
                                                                     ThumbnailType.MEDIUM_SQ)
 
-        if raw_download_source is not None:
-            reg_overlay_icon = self.icons.raw
-            large_overlay_icon = self.icons.raw
-            small_overlay_icon = None
-            medium_overlay_icon = None
-        elif reg_short_mp_path:
+        if reg_short_mp_path:
             reg_overlay_icon = self.icons.motion_photo
             large_overlay_icon = self.icons.motion_photo
             small_overlay_icon = None
             medium_overlay_icon = None
-        elif row["width"] / row["height"] >= 2.0:
+        elif width / height >= 2.0:
             reg_overlay_icon = None
             large_overlay_icon = self.icons.panorama
             small_overlay_icon = self.icons.panorama_small
@@ -306,23 +304,14 @@ class Database:
             small_overlay_icon = None
             medium_overlay_icon = None
 
-        media = self.__add_media(all_media, row, media_id, raw_download_source, row["filename"],
-                                 transformations, rotate, reg_overlay_icon,
-                                 large_overlay_icon, small_overlay_icon, medium_overlay_icon,
-                                 reg_short_mp_path, large_short_mp_path, small_short_mp_path,
-                                 medium_short_mp_path, metadata_text)
+        media = self.__add_media(all_media, row, media_id, transformed_image, rotate,
+                                 reg_overlay_icon, large_overlay_icon, small_overlay_icon,
+                                 medium_overlay_icon, reg_short_mp_path, large_short_mp_path,
+                                 small_short_mp_path, medium_short_mp_path, metadata_text)
 
         media.update(self.__parse_photo_exiv2_metadata(exiv2_metadata))
-
-        # Photos can be cropped and Shotwell doesn't contain the cropped size. Look it up again.
-        if media["filename"].startswith("transformed/"):
-            (width, height) = self.__get_image_dimensions(media["filename_fullpath"])
-            if rotate in (90, -90):
-                (width, height) = (height, width)
-
-        (media["width"], media["height"]) = (width, height)
-
-        media["is_raw"] = raw_download_source is not None
+        media["width"] = width
+        media["height"] = height
 
     def __parse_transformations(self, transformations):
         if not transformations:
@@ -504,12 +493,23 @@ class Database:
 
         return "transformed/" + self.__strip_path_prefix(path, self.transformed_origs_directory)
 
-    def __transform_img(self, source_image, transformations, thumbnail):
+    def __transform_img(self, source_image, transformations, width, height, rotate):
+        # pylint: disable=too-many-arguments
         transformed_path = os.path.join(self.transformed_origs_directory,
                                         self.__strip_path_prefix(source_image,
                                                                  self.input_media_path))
-        return self.thumbnailer.transform_original_image(source_image, transformed_path,
-                                                         transformations, thumbnail)
+        (new_file, transformed) = self.thumbnailer.transform_original_image(source_image,
+                                                                            transformed_path,
+                                                                            transformations)
+
+        if transformed:
+            # Photos can be cropped and Shotwell doesn't contain the cropped size. Look it up again.
+            (width, height) = self.__get_image_dimensions(new_file)
+
+        if rotate in (90, -90):
+            (width, height) = (height, width)
+
+        return (new_file, width, height)
 
     def __transform_video(self, source_video):
         if not self.video_convert_ext or source_video.lower().endswith(self.video_convert_ext):
@@ -533,9 +533,8 @@ class Database:
                                           rotate, fspath, overlay_icon, thumbnail_type)
         return fspath
 
-    def __add_media(self, all_media, row, media_id, download_source, thumbnail_source,
-                    transformations, rotate, reg_overlay_icon, large_overlay_icon,
-                    small_overlay_icon, medium_overlay_icon, reg_motion_photo,
+    def __add_media(self, all_media, row, media_id, media_filename, rotate, reg_overlay_icon,
+                    large_overlay_icon, small_overlay_icon, medium_overlay_icon, reg_motion_photo,
                     large_motion_photo, small_motion_photo, medium_motion_photo, metadata_text):
         # pylint: disable=too-many-arguments,too-many-locals,too-many-statements
         media = {}
@@ -567,33 +566,22 @@ class Database:
         media["small_thumbnail_path"] = "media/small/%s/%s.jpg" % (dir_shard, media["media_id"])
         media["medium_thumbnail_path"] = "media/medium/%s/%s.jpg" % (dir_shard, media["media_id"])
 
-        if download_source:
-            all_artifacts.add(download_source)
-            media["filename"] = self.__get_html_basepath(download_source)
-            media["filename_fullpath"] = download_source
-        else:
-            # Overwrite the passed in thumbnail_source so that the transformed image is used
-            # as the input image to generate the thumbnail.
-            all_artifacts.add(thumbnail_source)
-            thumbnail_source = self.__transform_img(thumbnail_source, transformations,
-                                                    os.path.join(self.dest_thumbs_directory,
-                                                                 media["thumbnail_path"]))
-            all_artifacts.add(thumbnail_source)
-            media["filename"] = self.__get_html_basepath(thumbnail_source)
-            media["filename_fullpath"] = thumbnail_source
+        all_artifacts.add(media_filename)
+        media["filename"] = self.__get_html_basepath(media_filename)
+        media["filename_fullpath"] = media_filename
 
-        reg_fspath = self.__create_thumbnail(media, thumbnail_source, rotate, reg_overlay_icon,
+        reg_fspath = self.__create_thumbnail(media, media_filename, rotate, reg_overlay_icon,
                                              ThumbnailType.REGULAR, media["reg_thumbnail_path"])
         all_artifacts.add(reg_fspath)
         media["reg_thumbnail_width"] = self.__get_image_dimensions(reg_fspath)[0]
 
-        all_artifacts.add(self.__create_thumbnail(media, thumbnail_source, rotate,
+        all_artifacts.add(self.__create_thumbnail(media, media_filename, rotate,
                                                   large_overlay_icon, ThumbnailType.LARGE,
                                                   media["thumbnail_path"]))
-        all_artifacts.add(self.__create_thumbnail(media, thumbnail_source, rotate,
+        all_artifacts.add(self.__create_thumbnail(media, media_filename, rotate,
                                                   small_overlay_icon, ThumbnailType.SMALL_SQ,
                                                   media["small_thumbnail_path"]))
-        all_artifacts.add(self.__create_thumbnail(media, thumbnail_source, rotate,
+        all_artifacts.add(self.__create_thumbnail(media, media_filename, rotate,
                                                   medium_overlay_icon, ThumbnailType.MEDIUM_SQ,
                                                   media["medium_thumbnail_path"]))
 
