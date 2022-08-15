@@ -91,7 +91,7 @@ class Database:
             os.makedirs(thumbnail_basedir)
 
         for year, year_block in all_media["events_by_year"].items():
-            year_block["thumbnail_path"] = "year/large/%s" % ("%s.png" % (year))
+            year_block["thumbnail_path"] = "year/large/%s" % ("%s.jpg" % (year))
             fspath = self.__get_thumbnail_fs_path(year_block["thumbnail_path"])
             candidate_photos = self.__get_year_candidate_composite_photos(all_media,
                                                                           year,
@@ -99,15 +99,15 @@ class Database:
             self.thumbnailer.create_composite_media_thumbnail("year %s" % (year),
                                                               candidate_photos, fspath)
 
-            year_block["small_thumbnail_path"] = "year/small/%s" % ("%s.png" % (year))
+            year_block["small_thumbnail_path"] = "year/small/%s" % ("%s.jpg" % (year))
             small_fspath = self.__get_thumbnail_fs_path(year_block["small_thumbnail_path"])
             self.thumbnailer.create_thumbnail(fspath, False, 0, small_fspath, None,
-                                              ThumbnailType.SMALL_SQ)
+                                              ThumbnailType.SMALL_SQ, None, None)
 
-            year_block["medium_thumbnail_path"] = "year/medium/%s" % ("%s.png" % (year))
+            year_block["medium_thumbnail_path"] = "year/medium/%s" % ("%s.jpg" % (year))
             medium_fspath = self.__get_thumbnail_fs_path(year_block["medium_thumbnail_path"])
             self.thumbnailer.create_thumbnail(fspath, False, 0, medium_fspath, None,
-                                              ThumbnailType.MEDIUM_SQ)
+                                              ThumbnailType.MEDIUM_SQ, None, None)
 
             year_block["events"].sort(key=lambda event: event["stats"]["min_date"], reverse=True)
 
@@ -198,19 +198,27 @@ class Database:
             for row in cursor.execute(qry):
                 media_id = "video-%016x" % (row["id"])
                 reg_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
-                                                                         0, None, None, None, None,
+                                                                         0, None, None,
+                                                                         row["width"],
+                                                                         row["height"],
                                                                          ThumbnailType.REGULAR)
                 large_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"],
                                                                            media_id, 0, None,
-                                                                           None, None, None,
+                                                                           None,
+                                                                           row["width"],
+                                                                           row["height"],
                                                                            ThumbnailType.LARGE)
                 small_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"],
                                                                            media_id, 0, None,
-                                                                           None, None, None,
+                                                                           None,
+                                                                           row["width"],
+                                                                           row["height"],
                                                                            ThumbnailType.SMALL_SQ)
                 medium_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"],
                                                                             media_id, 0, None,
-                                                                            None, None, None,
+                                                                            None,
+                                                                            row["width"],
+                                                                            row["height"],
                                                                             ThumbnailType.MEDIUM_SQ)
                 video = self.__transform_video(row["filename"])
                 video_json = self.thumbnailer.write_video_json(video, media_id)
@@ -378,10 +386,10 @@ class Database:
                 self.__add_media_to_stats(stats, media)
 
         if not year:
-            thumbnail_basename = "%d.png" % (event["id"])
+            thumbnail_basename = "%d.jpg" % (event["id"])
             descr = "event %s (all years)" % (cleanup_event_title(event))
         else:
-            thumbnail_basename = "%d_%s.png" % (event["id"], year)
+            thumbnail_basename = "%d_%s.jpg" % (event["id"], year)
             descr = "event %s, year %s" % (cleanup_event_title(event), year)
 
         thumbnail_path = "event/large/%s/%s" % (dirhash, thumbnail_basename)
@@ -392,12 +400,12 @@ class Database:
         small_thumbnail_path = "event/small/%s/%s" % (dirhash, thumbnail_basename)
         small_fspath = self.__get_thumbnail_fs_path(small_thumbnail_path)
         self.thumbnailer.create_thumbnail(fspath, False, 0, small_fspath, None,
-                                          ThumbnailType.SMALL_SQ)
+                                          ThumbnailType.SMALL_SQ, None, None)
 
         medium_thumbnail_path = "event/medium/%s/%s" % (dirhash, thumbnail_basename)
         medium_fspath = self.__get_thumbnail_fs_path(medium_thumbnail_path)
         self.thumbnailer.create_thumbnail(fspath, False, 0, medium_fspath, None,
-                                          ThumbnailType.MEDIUM_SQ)
+                                          ThumbnailType.MEDIUM_SQ, None, None)
 
         return {"thumbnail_path": thumbnail_path, "small_thumbnail_path": small_thumbnail_path,
                 "medium_thumbnail_path": medium_thumbnail_path, "stats": stats}
@@ -442,7 +450,7 @@ class Database:
 
                 self.__add_media_to_stats(tag["stats"], media)
 
-            thumbnail_basename = "%d.png" % (tag["id"])
+            thumbnail_basename = "%d.jpg" % (tag["id"])
             dir_shard = get_dir_hash(thumbnail_basename)
             tag["thumbnail_path"] = "tag/large/%s/%s" % (dir_shard, thumbnail_basename)
             fspath = self.__get_thumbnail_fs_path(tag["thumbnail_path"])
@@ -452,12 +460,12 @@ class Database:
             tag["small_thumbnail_path"] = "tag/small/%s/%s" % (dir_shard, thumbnail_basename)
             small_fspath = self.__get_thumbnail_fs_path(tag["small_thumbnail_path"])
             self.thumbnailer.create_thumbnail(fspath, False, 0, small_fspath, None,
-                                              ThumbnailType.SMALL_SQ)
+                                              ThumbnailType.SMALL_SQ, None, None)
 
             tag["medium_thumbnail_path"] = "tag/medium/%s/%s" % (dir_shard, thumbnail_basename)
             medium_fspath = self.__get_thumbnail_fs_path(tag["medium_thumbnail_path"])
             self.thumbnailer.create_thumbnail(fspath, False, 0, medium_fspath, None,
-                                              ThumbnailType.MEDIUM_SQ)
+                                              ThumbnailType.MEDIUM_SQ, None, None)
 
             all_media["tags_by_id"][row["id"]] = tag
             tags_by_name[row["name"]] = tag

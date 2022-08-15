@@ -233,7 +233,7 @@ class Thumbnailer:
         return [self.imagemagick_command, original_image, *args, transformed_image]
 
     def create_thumbnail(self, source_image, is_video, rotate, resized_image, overlay_icon,
-                         thumbnail_type, orig_width=None, orig_height=None):
+                         thumbnail_type, orig_width, orig_height):
         # pylint: disable=too-many-arguments,too-many-branches
         if not os.path.isfile(source_image):
             logging.warning("Cannot find filename %s", source_image)
