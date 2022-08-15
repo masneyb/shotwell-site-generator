@@ -565,7 +565,7 @@ class Database:
         media["tags"] = set([])
 
         dir_shard = get_dir_hash(media["media_id"])
-        media["thumbnail_path"] = "media/large/%s/%s.png" % (dir_shard, media["media_id"])
+        media["thumbnail_path"] = "media/large/%s/%s.jpg" % (dir_shard, media["media_id"])
         media["reg_thumbnail_path"] = "media/regular/%s/%s.jpg" % (dir_shard, media["media_id"])
         media["small_thumbnail_path"] = "media/small/%s/%s.jpg" % (dir_shard, media["media_id"])
         media["medium_thumbnail_path"] = "media/medium/%s/%s.jpg" % (dir_shard, media["media_id"])
