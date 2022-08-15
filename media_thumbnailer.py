@@ -418,6 +418,9 @@ class Thumbnailer:
                                         video_height) - crop_t
             complex_filter += (f"crop={crop_w}:{crop_h}:{crop_l}:{crop_t}[crop];[crop]")
 
+            orig_img_width = int(transformations["crop.right"]) - int(transformations["crop.left"])
+            orig_img_height = int(transformations["crop.bottom"]) - int(transformations["crop.top"])
+
         if rotate == 90:
             complex_filter += "transpose=1[rotate];[rotate]"
         elif rotate == 180:
