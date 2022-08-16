@@ -267,7 +267,7 @@ class Thumbnailer:
             new_width = self._scale_number(orig_width, orig_height, int(new_height))
             tn_size = f"{new_width}x{new_height}"
         else:
-            tn_size = self.thumbnail_size
+            tn_size = 'x' + (self.thumbnail_size.split('x')[1])
 
         resize_cmd = [self.imagemagick_command, source_image, "-strip", "-rotate", str(rotate),
                       "-thumbnail", tn_size]
@@ -431,13 +431,15 @@ class Thumbnailer:
         if thumbnail_type in (ThumbnailType.SMALL_SQ, ThumbnailType.MEDIUM_SQ, ThumbnailType.LARGE):
             complex_filter += (f"scale='if(gt(iw,ih),-1,{height})':'if(gt(iw,ih),{width},-1)'"
                                f"[scale];[scale]crop={width}:{height}")
-        else:
+        elif orig_img_width:
             # Note that we can pass -1:height to have ffmpeg automatically scale the image.
             # I'm not doing that since ffmpeg and imagemagick round differently so the
             # generated image and animated GIF for the regular thumbnails can be off by a
             # pixel or two.
             new_width = self._scale_number(orig_img_width, orig_img_height, height)
             complex_filter += f"scale='{new_width}:{height}'"
+        else:
+            complex_filter += f"scale='-1:{height}'"
 
         if num_frames:
             if thumbnail_type == ThumbnailType.SMALL_SQ:

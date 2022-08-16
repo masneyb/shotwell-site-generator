@@ -191,34 +191,26 @@ class Database:
 
         if self.__does_table_exist("VideoTable"):
             qry = "SELECT event_id, id, filename, title, comment, filesize, exposure_time, " + \
-                  "time_created, rating, clip_duration, width, height FROM VideoTable " + \
+                  "time_created, rating, clip_duration FROM VideoTable " + \
                   "WHERE event_id != -1 AND rating >= 0 " + \
                   "ORDER BY exposure_time"
             cursor = self.conn.cursor()
             for row in cursor.execute(qry):
                 media_id = "video-%016x" % (row["id"])
                 reg_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"], media_id,
-                                                                         0, None, None,
-                                                                         row["width"],
-                                                                         row["height"],
+                                                                         0, None, None, None, None,
                                                                          ThumbnailType.REGULAR)
                 large_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"],
                                                                            media_id, 0, None,
-                                                                           None,
-                                                                           row["width"],
-                                                                           row["height"],
+                                                                           None, None, None,
                                                                            ThumbnailType.LARGE)
                 small_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"],
                                                                            media_id, 0, None,
-                                                                           None,
-                                                                           row["width"],
-                                                                           row["height"],
+                                                                           None, None, None,
                                                                            ThumbnailType.SMALL_SQ)
                 medium_short_mp_path = self.thumbnailer.create_animated_gif(row["filename"],
                                                                             media_id, 0, None,
-                                                                            None,
-                                                                            row["width"],
-                                                                            row["height"],
+                                                                            None, None, None,
                                                                             ThumbnailType.MEDIUM_SQ)
                 video = self.__transform_video(row["filename"])
                 video_json = self.thumbnailer.write_video_json(video, media_id)
@@ -226,8 +218,7 @@ class Database:
                                          self.icons.play, self.icons.play, self.icons.play_small,
                                          self.icons.play_medium, reg_short_mp_path,
                                          large_short_mp_path, small_short_mp_path,
-                                         medium_short_mp_path, video_json, row["width"],
-                                         row["height"])
+                                         medium_short_mp_path, video_json, None, None)
                 media["clip_duration"] = row["clip_duration"]
 
     def __parse_orientation(self, orientation):
