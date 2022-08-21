@@ -894,8 +894,18 @@
           exitImageFullscreen(event);
         }
       };
-      document.addEventListener('swiped-left', (event) => { showNextImageFullscreen(event, true); });
-      document.addEventListener('swiped-right', showPreviousImageFullscreen);
+
+      const fullImageEle = document.querySelector('#fullimage_container');
+      fullImageEle.addEventListener('swiped-left', (event) => {
+        if (window.visualViewport.scale === 1.0) {
+          showNextImageFullscreen(event, true);
+        }
+      });
+      fullImageEle.addEventListener('swiped-right', (event) => {
+        if (window.visualViewport.scale === 1.0) {
+          showPreviousImageFullscreen(event);
+        }
+      });
 
       window.onpopstate = function () {
         processJson(populateMedia);
