@@ -264,9 +264,11 @@ function doShowFullscreenImage(manuallyInvoked) {
     recordImageUrlAsCached(imageEle.src);
   }
 
-  // Cache the nearby images to make the page faster
-  prefetchImage(getNextImageIndex());
-  prefetchImage(getPreviousImageIndex());
+  setInterval(() => {
+    // Cache the nearby images to make the page faster
+    prefetchImage(getNextImageIndex());
+    prefetchImage(getPreviousImageIndex());
+  });
 }
 
 function isImageFullscreen() {
