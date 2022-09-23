@@ -155,11 +155,11 @@ function enableFullscreenPhotoUpdateTimer() {
 }
 
 function getNextImageIndex() {
-  return allMediaFullscreenIndex >= allMedia.length - 1 ? 0 : allMediaFullscreenIndex + 1;
+  return allMediaFullscreenIndex >= allMedia.length - 1 ? allMediaFullscreenIndex : allMediaFullscreenIndex + 1;
 }
 
 function getPreviousImageIndex() {
-  return allMediaFullscreenIndex === 0 ? allMedia.length - 1 : allMediaFullscreenIndex - 1;
+  return allMediaFullscreenIndex === 0 ? allMediaFullscreenIndex : allMediaFullscreenIndex - 1;
 }
 
 function getFullscreenImageUrl(index) {
