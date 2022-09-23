@@ -11,8 +11,6 @@ let fullScreenPhotoUpdateSecs = 0;
 let fullscreenPhotoUpdateTimer = null;
 let fullscreenReinstateSlideshowSecs = 0;
 let fullscreenReinstateSlideshowTimer = null;
-const cachedImages = new Set();
-let numCachedImages = 0;
 let wakeLock = null;
 
 function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMetadata, extraOnClick) {
@@ -176,28 +174,6 @@ function getFullscreenImageUrl(index) {
   return allMedia[index].thumbnail.large;
 }
 
-function recordImageUrlAsCached(imageUrl) {
-  new Image().src = imageUrl;
-  if (numCachedImages > 100) {
-    // Don't chew up a bunch of memory when running in photo frame mode
-    cachedImages.clear();
-    numCachedImages = 0;
-  }
-  cachedImages.add(imageUrl);
-  numCachedImages += 1;
-}
-
-function prefetchImage(index) {
-  if (allMedia[index].type === 'video') {
-    return;
-  }
-
-  const imageUrl = getFullscreenImageUrl(index);
-  if (!cachedImages.has(imageUrl)) {
-    recordImageUrlAsCached(imageUrl);
-  }
-}
-
 function updateMediaDescriptionText(descrEle) {
   descrEle.replaceChildren(createMediaStatsHtml(allMedia[allMediaFullscreenIndex], eventNames, tags, true, false, (event) => {
     exitImageFullscreen(event);
@@ -246,8 +222,6 @@ function doShowFullscreenImage(manuallyInvoked) {
     videoEle.style.display = 'block';
 
     updateMediaDescriptionText(descrEle);
-
-    recordImageUrlAsCached(videoEle.src);
   } else {
     const videoEle = document.querySelector('#fullvideo');
     videoEle.pause();
@@ -260,15 +234,7 @@ function doShowFullscreenImage(manuallyInvoked) {
     };
     imageEle.style.display = 'block';
     imageEle.src = getFullscreenImageUrl(allMediaFullscreenIndex);
-
-    recordImageUrlAsCached(imageEle.src);
   }
-
-  setInterval(() => {
-    // Cache the nearby images to make the page faster
-    prefetchImage(getNextImageIndex());
-    prefetchImage(getPreviousImageIndex());
-  });
 }
 
 function isImageFullscreen() {
