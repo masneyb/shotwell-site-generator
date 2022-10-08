@@ -98,6 +98,12 @@ function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMeta
 
   if ('lat' in entity) {
     extStats.push(createSearchLink(`GPS ${entity.lat},${entity.lon}`, 'GPS Coordinate', 'is within', `${entity.lat},${entity.lon},0.01`, extraOnClick));
+
+    const mapAnchor = document.createElement('a');
+    mapAnchor.target = '_new';
+    mapAnchor.href = `https://www.openstreetmap.org/?mlat=${entity.lat}&mlon=${entity.lon}#map=16/${entity.lat}/${entity.lon}`;
+    mapAnchor.innerText = 'OpenStreetMap';
+    extStats.push(mapAnchor);
   }
 
   if ('metadata_text' in entity) {
