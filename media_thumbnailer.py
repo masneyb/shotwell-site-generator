@@ -315,7 +315,8 @@ class Thumbnailer:
             return None
 
         parts = result.stdout.decode("UTF-8").strip().split("x")
-        (width, height, rotate) = (int(parts[0]), int(parts[1]), int(parts[2]))
+        (width, height) = (int(parts[0]), int(parts[1]))
+        rotate = int(parts[2]) if len(parts) > 2 else 0
         if rotate in (90, -90):
             (width, height) = (height, width)
 
