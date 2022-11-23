@@ -305,7 +305,7 @@ class Thumbnailer:
 
     def _get_video_resolution(self, filename):
         cmd = [self.ffprobe_command, "-v", "error", "-select_streams", "v:0", "-show_entries",
-               "stream=width,height", "-of", "csv=s=x:p=0", filename]
+               "stream=width,height:side_data=rotation", "-of", "csv=s=x:p=0", filename]
         result = self._do_run_command(cmd, True)
         if result.returncode != 0:
             logging.error("Error running %s: %s", cmd, result.returncode)
@@ -314,8 +314,12 @@ class Thumbnailer:
         if not result.stdout:
             return None
 
-        parts = result.stdout.decode("UTF-8").split("x")
-        return (int(parts[0]), int(parts[1]))
+        parts = result.stdout.decode("UTF-8").strip().split("x")
+        (width, height, rotate) = (int(parts[0]), int(parts[1]), int(parts[2]))
+        if rotate in (90, -90):
+            (width, height) = (height, width)
+
+        return (width, height)
 
     def _get_num_video_frames(self, filename):
         cmd = [self.ffprobe_command, "-v", "error", "-select_streams", "v:0", "-count_packets",
@@ -408,6 +412,7 @@ class Thumbnailer:
             # resolution. The crop pixel counts are relative to the image resolution,
             # so scale the numbers accordingly for the video.
             (video_width, video_height) = self._get_video_resolution(src_filename)
+            logging.debug("%s video resolution is %dx%d", src_filename, video_width, video_height)
             crop_l = self._scale_number(int(transformations["crop.left"]), orig_img_width,
                                         video_width)
             crop_t = self._scale_number(int(transformations["crop.top"]), orig_img_height,
