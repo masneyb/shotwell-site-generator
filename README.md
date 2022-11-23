@@ -24,12 +24,12 @@ Ensure that you have the proper dependencies installed on your system:
 
     # Red Hat-based systems
     sudo dnf install -y exiv2 exiv2-devel ffmpeg ImageMagick boost-python3 python3 \
-                        python3-dateutil python3-humanize python3-pip
-    pip3 install py3exiv2
+                        python3-dateutil python3-exiv2 python3-humanize python3-pillow python3-pip
 
     # Debian-based systems
     sudo apt-get install -y exiv2 ffmpeg imagemagick libboost-python-dev libexiv2-dev python3 \
-                            python3-dateutil python3-humanize python3-pip python3-pkg-resources
+                            python3-dateutil python3-humanize python3-pil python3-pip \
+                            python3-pkg-resources
     pip3 install py3exiv2
     
 Backup your Shotwell database/library and then generate a static HTML site:
