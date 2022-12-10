@@ -77,6 +77,12 @@ function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMeta
     extStats.push(createSearchLink(entity.camera, 'Camera', 'equals', entity.camera, extraOnClick));
   }
 
+  if ('exif' in entity) {
+    for (const exif of entity.exif) {
+      extStats.push(createTextMediaStat(exif));
+    }
+  }
+
   if (entity.event_id && entity.type !== 'events') {
     extStats.push(createSearchLink(`Event: ${eventNames[entity.event_id]}`, 'Event ID', 'equals', entity.event_id, extraOnClick));
   }
