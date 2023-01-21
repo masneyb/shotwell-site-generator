@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: GPL-3.0
 # Copyright (C) 2020-2023 Brian Masney <masneyb@onstation.org>
 #
 # Exports a static HTML view of your shotwell photo/video library.
