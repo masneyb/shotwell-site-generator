@@ -102,6 +102,19 @@ function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMeta
     }
   }
 
+  if ('metadata_text' in entity) {
+    extStats.push(createOpenInNewTabLink('Metadata', entity.metadata_text));
+  }
+
+  if ('rating' in entity) {
+    const stars = '★'.repeat(entity.rating) + '☆'.repeat(5 - entity.rating);
+    extStats.push(createSearchLink(stars, 'Rating', 'is at least', entity.rating, extraOnClick));
+  }
+
+  if ('motion_photo' in entity && 'mp4' in entity.motion_photo) {
+    extStats.push(createOpenInNewTabLink('Motion Photo', entity.motion_photo.mp4));
+  }
+
   if ('lat' in entity) {
     extStats.push(createSearchLink(`GPS ${entity.lat},${entity.lon}`, 'GPS Coordinate', 'is within', `${entity.lat},${entity.lon},0.01`, extraOnClick));
 
@@ -109,15 +122,7 @@ function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMeta
     mapAnchor.target = '_new';
     mapAnchor.href = `https://www.openstreetmap.org/?mlat=${entity.lat}&mlon=${entity.lon}#map=16/${entity.lat}/${entity.lon}`;
     mapAnchor.innerText = 'OpenStreetMap';
-    extStats.push(mapAnchor);
-  }
-
-  if ('metadata_text' in entity) {
-    extStats.push(createOpenInNewTabLink('Metadata', entity.metadata_text));
-  }
-
-  if ('motion_photo' in entity && 'mp4' in entity.motion_photo) {
-    extStats.push(createOpenInNewTabLink('Motion Photo', entity.motion_photo.mp4));
+    extStats.push(createMediaStat(mapAnchor));
   }
 
   if (entity.type === 'video' || entity.type === 'photo') {
@@ -127,12 +132,7 @@ function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMeta
     downloadAnchor.onclick = (event) => {
       showDownloadPage(entity.link);
     };
-    extStats.push(downloadAnchor);
-  }
-
-  if ('rating' in entity) {
-    const stars = '★'.repeat(entity.rating) + '☆'.repeat(5 - entity.rating);
-    extStats.push(createSearchLink(stars, 'Rating', 'is at least', entity.rating, extraOnClick));
+    extStats.push(createMediaStat(downloadAnchor));
   }
 
   if (extStats.length == stats.length) {
