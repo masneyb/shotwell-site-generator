@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
- * Copyright (C) 2020-2022 Brian Masney <masneyb@onstation.org>
+ * Copyright (C) 2020-2023 Brian Masney <masneyb@onstation.org>
  */
 
 let preFullscreenScrollX = -1;
@@ -121,7 +121,13 @@ function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMeta
   }
 
   if (entity.type === 'video' || entity.type === 'photo') {
-    extStats.push(createOpenInNewTabLink('Download', entity.link));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.href = '#';
+    downloadAnchor.innerText = 'Download';
+    downloadAnchor.onclick = (event) => {
+      showDownloadPage(entity.link);
+    };
+    extStats.push(downloadAnchor);
   }
 
   if ('rating' in entity) {
@@ -202,6 +208,45 @@ function getFullscreenVideoUrl(entity) {
   return null;
 }
 
+function getDownloadFullUrl(path) {
+  let location = window.location.toString();
+  if (location.includes('#')) {
+    location = location.split('#')[0];
+  }
+  if (location.includes('?')) {
+    location = location.split('?')[0];
+  }
+  if (location.includes('/index.html')) {
+    location = location.split('/index.html')[0];
+  }
+  if (!location.endsWith('/')) {
+    location += '/';
+  }
+  return location + path;
+}
+
+function showDownloadPage(path) {
+  setFullImageDisplay(true);
+
+  const imageEle = document.querySelector('#fullimage');
+  imageEle.style.display = 'none';
+
+  const videoEle = document.querySelector('#fullvideo');
+  videoEle.style.display = 'none';
+
+  const downloadEle = document.querySelector('#download_container');
+  downloadEle.style.display = 'block';
+
+  const downloadUrl = getDownloadFullUrl(path);
+
+  const downloadAnchor = document.querySelector('#download_anchor');
+  downloadAnchor.href = downloadUrl;
+
+  const qrcodeEle = document.getElementById('qrcode');
+  removeAllChildren(qrcodeEle);
+  new QRious({ element: qrcodeEle, value: downloadUrl, size: 300 });
+}
+
 function doShowFullscreenImage(manuallyInvoked) {
   const descrEle = document.querySelector('#description');
   addStatusMessage(descrEle, 'Loading');
@@ -222,6 +267,9 @@ function doShowFullscreenImage(manuallyInvoked) {
   if (hideDescr) {
     descrEle.style.display = 'none';
   }
+
+  const qrcodeEle = document.querySelector('#download_container');
+  qrcodeEle.style.display = 'none';
 
   const videoUrl = getFullscreenVideoUrl(allMedia[allMediaFullscreenIndex]);
   if (videoUrl !== null) {
@@ -308,6 +356,9 @@ function setFullImageDisplay(shown) {
     const videoEle = document.querySelector('#fullvideo');
     videoEle.pause();
     videoEle.removeAttribute('src');
+
+    const qrcodeEle = document.getElementById('qrcode');
+    removeAllChildren(qrcodeEle);
   }
 }
 
