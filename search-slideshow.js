@@ -131,6 +131,8 @@ function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMeta
     downloadAnchor.innerText = 'Download';
     downloadAnchor.onclick = (event) => {
       showDownloadPage(entity.link);
+      event.preventDefault();
+      event.stopPropagation();
     };
     extStats.push(createMediaStat(downloadAnchor));
   }
@@ -228,11 +230,8 @@ function getDownloadFullUrl(path) {
 function showDownloadPage(path) {
   setFullImageDisplay(true);
 
-  const imageEle = document.querySelector('#fullimage');
+  const imageEle = document.querySelector('#fullmedia_container');
   imageEle.style.display = 'none';
-
-  const videoEle = document.querySelector('#fullvideo');
-  videoEle.style.display = 'none';
 
   const downloadEle = document.querySelector('#download_container');
   downloadEle.style.display = 'block';
@@ -245,6 +244,24 @@ function showDownloadPage(path) {
   const qrcodeEle = document.getElementById('qrcode');
   removeAllChildren(qrcodeEle);
   new QRious({ element: qrcodeEle, value: downloadUrl, size: 300 });
+}
+
+function doCloseDownloadPage() {
+  const imageEle = document.querySelector('#fullmedia_container');
+  imageEle.style.display = 'block';
+
+  const downloadEle = document.querySelector('#download_container');
+  downloadEle.style.display = 'none';
+}
+
+function closeDownloadPage(event) {
+  doCloseDownloadPage();
+  if (!inPhotoFrameMode) {
+    setFullImageDisplay(false);
+  }
+
+  event.preventDefault();
+  event.stopPropagation();
 }
 
 function doShowFullscreenImage(manuallyInvoked) {
@@ -268,8 +285,8 @@ function doShowFullscreenImage(manuallyInvoked) {
     descrEle.style.display = 'none';
   }
 
-  const qrcodeEle = document.querySelector('#download_container');
-  qrcodeEle.style.display = 'none';
+  const dlEle = document.querySelector('#download_container');
+  dlEle.style.display = 'none';
 
   const videoUrl = getFullscreenVideoUrl(allMedia[allMediaFullscreenIndex]);
   if (videoUrl !== null) {
@@ -425,28 +442,33 @@ function checkForPhotoFrameMode() {
 }
 
 function exitImageFullscreen(event) {
-  if (isImageFullscreen()) {
-    event.preventDefault();
-    event.stopPropagation();
+  if (!isImageFullscreen()) {
+    return;
 
-    if (fullscreenPhotoUpdateTimer != null) {
-      clearInterval(fullscreenPhotoUpdateTimer);
-      fullscreenPhotoUpdateTimer = null;
-
-      const searchParams = new URLSearchParams(window.location.search);
-      searchParams.delete('photo_frame');
-      searchParams.delete('photo_update_secs');
-      window.history.pushState({}, '', `?${searchParams.toString()}#`);
-
-      releaseWakeLock();
-    }
-
-    fullScreenPhotoUpdateSecs = 0;
-    fullscreenReinstateSlideshowSecs = 0;
-    document.body.style.cursor = 'auto';
-    setFullImageDisplay(false);
-    window.scrollTo(preFullscreenScrollX, preFullscreenScrollY);
   }
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  doCloseDownloadPage();
+
+  if (fullscreenPhotoUpdateTimer != null) {
+    clearInterval(fullscreenPhotoUpdateTimer);
+    fullscreenPhotoUpdateTimer = null;
+
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.delete('photo_frame');
+    searchParams.delete('photo_update_secs');
+    window.history.pushState({}, '', `?${searchParams.toString()}#`);
+
+    releaseWakeLock();
+  }
+
+  fullScreenPhotoUpdateSecs = 0;
+  fullscreenReinstateSlideshowSecs = 0;
+  document.body.style.cursor = 'auto';
+  setFullImageDisplay(false);
+  window.scrollTo(preFullscreenScrollX, preFullscreenScrollY);
 }
 
 function toggleFullscreenDescription() {

@@ -196,6 +196,11 @@ a {
 	padding: 10px;
 }
 
+#fullmedia_container {
+	width: 100%;
+	height: 100%;
+}
+
 #fullimage_background {
 	position: fixed;
 	left: 0px;
