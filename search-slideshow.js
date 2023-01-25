@@ -13,6 +13,17 @@ let fullscreenReinstateSlideshowSecs = 0;
 let fullscreenReinstateSlideshowTimer = null;
 let wakeLock = null;
 
+function createStatsSpan(stats) {
+  const ret = document.createElement('span');
+  for (let i = 0; i < stats.length; i += 1) {
+    if (i > 0) {
+      ret.appendChild(document.createTextNode(' '));
+    }
+    ret.appendChild(stats[i]);
+  }
+  return ret;
+}
+
 function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMetadata, extraOnClick) {
   const stats = [];
   const extStats = [];

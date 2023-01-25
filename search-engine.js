@@ -66,17 +66,6 @@ function createOpenInNewTabLink(label, link) {
   return createMediaStat(anchor);
 }
 
-function createStatsSpan(stats) {
-  const ret = document.createElement('span');
-  for (let i = 0; i < stats.length; i += 1) {
-    if (i > 0) {
-      ret.appendChild(document.createTextNode(' '));
-    }
-    ret.appendChild(stats[i]);
-  }
-  return ret;
-}
-
 function generateSearchUrl(criterias, matchPolicy, iconSize, groupBy, sortBy) {
   const qs = [];
   for (const criteria of criterias) {
