@@ -227,22 +227,6 @@ a {
 	image-orientation: from-image;
 }
 
-#download_container {
-	background: white;
-	width: 100%;
-	height: 100%;
-	text-align: center;
-	position: relative;
-}
-
-#inner_download_container {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	margin: 0px;
-	transform: translate(-50%, -50%);
-}
-
 #qrcode {
 	margin-left: auto;
 	margin-right: auto;
@@ -265,6 +249,10 @@ a {
 #close:hover {
 	color: darkgray;
 	cursor: pointer;
+}
+
+.qrcode {
+	float: right;
 }
 
 #description {

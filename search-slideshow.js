@@ -137,15 +137,7 @@ function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMeta
   }
 
   if (entity.type === 'video' || entity.type === 'photo') {
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.href = '#';
-    downloadAnchor.innerText = 'Download';
-    downloadAnchor.onclick = (event) => {
-      showDownloadPage(entity.link);
-      event.preventDefault();
-      event.stopPropagation();
-    };
-    extStats.push(createMediaStat(downloadAnchor));
+    extStats.push(createOpenInNewTabLink('Download', entity.link));
   }
 
   if (extStats.length == stats.length) {
@@ -205,22 +197,6 @@ function getFullscreenImageUrl(index) {
   return allMedia[index].thumbnail.large;
 }
 
-function updateMediaDescriptionText(descrEle) {
-  descrEle.replaceChildren(createMediaStatsHtml(allMedia[allMediaFullscreenIndex], eventNames, tags, true, false, (event) => {
-    exitImageFullscreen(event);
-  }));
-}
-
-function getFullscreenVideoUrl(entity) {
-  if (window.alwaysShowAnimations && 'motion_photo' in entity && 'mp4' in entity.motion_photo) {
-    return entity.motion_photo.mp4;
-  }
-  if (entity.type === 'video') {
-    return entity.link;
-  }
-  return null;
-}
-
 function getDownloadFullUrl(path) {
   let location = window.location.toString();
   if (location.includes('#')) {
@@ -238,41 +214,37 @@ function getDownloadFullUrl(path) {
   return location + path;
 }
 
-function showDownloadPage(path) {
-  setFullImageDisplay(true);
+function updateMediaDescriptionText(descrEle) {
+  const entity = allMedia[allMediaFullscreenIndex];
 
-  const imageEle = document.querySelector('#fullmedia_container');
-  imageEle.style.display = 'none';
+  const containerEle = document.createElement('div');
 
-  const downloadEle = document.querySelector('#download_container');
-  downloadEle.style.display = 'block';
+  const qrCodeEle = document.createElement('canvas');
+  new QRious({
+    background: 'lightgray',
+    element: qrCodeEle,
+    size: 76,
+    value: getDownloadFullUrl(entity.link),
+  });
+  qrCodeEle.className = 'qrcode';
+  containerEle.appendChild(qrCodeEle);
 
-  const downloadUrl = getDownloadFullUrl(path);
+  const textEle = createMediaStatsHtml(entity, eventNames, tags, true, false, (event) => {
+    exitImageFullscreen(event);
+  });
+  containerEle.appendChild(textEle);
 
-  const downloadAnchor = document.querySelector('#download_anchor');
-  downloadAnchor.href = downloadUrl;
-
-  const qrcodeEle = document.getElementById('qrcode');
-  removeAllChildren(qrcodeEle);
-  new QRious({ element: qrcodeEle, value: downloadUrl, size: 300 });
+  descrEle.replaceChildren(containerEle);
 }
 
-function doCloseDownloadPage() {
-  const imageEle = document.querySelector('#fullmedia_container');
-  imageEle.style.display = 'block';
-
-  const downloadEle = document.querySelector('#download_container');
-  downloadEle.style.display = 'none';
-}
-
-function closeDownloadPage(event) {
-  doCloseDownloadPage();
-  if (!inPhotoFrameMode) {
-    setFullImageDisplay(false);
+function getFullscreenVideoUrl(entity) {
+  if (window.alwaysShowAnimations && 'motion_photo' in entity && 'mp4' in entity.motion_photo) {
+    return entity.motion_photo.mp4;
   }
-
-  event.preventDefault();
-  event.stopPropagation();
+  if (entity.type === 'video') {
+    return entity.link;
+  }
+  return null;
 }
 
 function doShowFullscreenImage(manuallyInvoked) {
@@ -295,9 +267,6 @@ function doShowFullscreenImage(manuallyInvoked) {
   if (hideDescr) {
     descrEle.style.display = 'none';
   }
-
-  const dlEle = document.querySelector('#download_container');
-  dlEle.style.display = 'none';
 
   const videoUrl = getFullscreenVideoUrl(allMedia[allMediaFullscreenIndex]);
   if (videoUrl !== null) {
@@ -384,9 +353,6 @@ function setFullImageDisplay(shown) {
     const videoEle = document.querySelector('#fullvideo');
     videoEle.pause();
     videoEle.removeAttribute('src');
-
-    const qrcodeEle = document.getElementById('qrcode');
-    removeAllChildren(qrcodeEle);
   }
 }
 
@@ -455,13 +421,10 @@ function checkForPhotoFrameMode() {
 function exitImageFullscreen(event) {
   if (!isImageFullscreen()) {
     return;
-
   }
 
   event.preventDefault();
   event.stopPropagation();
-
-  doCloseDownloadPage();
 
   if (fullscreenPhotoUpdateTimer != null) {
     clearInterval(fullscreenPhotoUpdateTimer);
