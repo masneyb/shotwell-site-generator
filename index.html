@@ -371,9 +371,11 @@
           return iconSize;
         }
 
-        if (window.innerWidth < 750) {
-          return preferLargeIcons ? 'large' : 'small_medium';
-        }
+        /*
+         * if (window.innerWidth < 750) {
+         *   return preferLargeIcons ? 'large' : 'small_medium';
+         * }
+         */
         if (window.innerWidth <= 1200) {
           return 'small_medium_large';
         }
