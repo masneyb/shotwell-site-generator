@@ -9,6 +9,11 @@
   #description {
     color: black;
   }
+
+  select, input {
+    background-color: lightgray;
+    color: black;
+  }
 }
 
 @media (prefers-color-scheme: light) {
