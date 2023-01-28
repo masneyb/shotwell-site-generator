@@ -1,5 +1,23 @@
 /* SPDX-License-Identifier: GPL-3.0 */
 
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #202124;
+    color: white;
+  }
+
+  #description {
+    color: black;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  body {
+    background: white;
+    color: black;
+  }
+}
+
 body {
 	text-align: center;
 	margin: 0px;
