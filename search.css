@@ -3,7 +3,7 @@
 @media (prefers-color-scheme: dark) {
   body {
     background: #202124;
-    color: white;
+    color: lightgray;
   }
 
   #description {
