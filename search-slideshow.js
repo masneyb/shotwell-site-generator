@@ -211,8 +211,10 @@ function getFullscreenImageUrl(index) {
 
 function getDownloadFullUrl(path) {
   const searchParams = new URLSearchParams(window.location.search);
-  searchParams.delete('photo_frame');
-  searchParams.append('photo_frame', '1');
+  searchParams.delete('slideshow');
+  searchParams.append('slideshow', '1');
+
+  searchParams.delete('photo_update_secs');
 
   searchParams.delete('random_seed');
   const seed = getRandomSeed();
@@ -419,8 +421,8 @@ function startSlideshow() {
 
 function slideshowClicked() {
   const searchParams = new URLSearchParams(window.location.search);
-  searchParams.delete('photo_frame');
-  searchParams.append('photo_frame', '1');
+  searchParams.delete('slideshow');
+  searchParams.append('slideshow', '1');
   searchParams.delete('photo_update_secs');
   searchParams.append('photo_update_secs', '10');
   window.history.pushState({}, '', `?${searchParams.toString()}#`);
@@ -428,14 +430,19 @@ function slideshowClicked() {
 }
 
 function checkForPhotoFrameMode() {
-  if (getIntQueryParameter('photo_frame', 0) === 0) {
-    return;
+  let slideshow = false;
+  if (getIntQueryParameter('photo_frame', 0) === 1) {
+    slideshow = true;
+    inPhotoFrameMode = true;
+    document.body.style.cursor = 'none';
+    document.querySelector('#close').style.display = 'none';
+  } else if (getIntQueryParameter('slideshow', 0) === 1) {
+    slideshow = true;
   }
 
-  inPhotoFrameMode = true;
-  document.body.style.cursor = 'none';
-  document.querySelector('#close').style.display = 'none';
-  startSlideshow();
+  if (slideshow) {
+    startSlideshow();
+  }
 }
 
 function exitImageFullscreen(event) {
@@ -453,6 +460,7 @@ function exitImageFullscreen(event) {
     const searchParams = new URLSearchParams(window.location.search);
     searchParams.delete('photo_frame');
     searchParams.delete('photo_update_secs');
+    searchParams.delete('slideshow');
     window.history.pushState({}, '', `?${searchParams.toString()}#`);
 
     releaseWakeLock();
