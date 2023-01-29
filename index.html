@@ -895,7 +895,7 @@
         }
       };
       document.onfullscreenchange = (event) => {
-        if (!isFullscreen()) {
+        if (document.fullscreenElement == null) {
           exitImageFullscreen(event);
         }
       };

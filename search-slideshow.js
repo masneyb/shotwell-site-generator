@@ -368,6 +368,9 @@ function setFullImageDisplay(shown) {
 
   if (shown) {
     document.body.style.overflow = 'hidden';
+    if (document.fullscreenElement == null) {
+      document.documentElement.requestFullscreen();
+    }
   } else {
     document.body.style.overflow = 'auto';
     document.querySelector('#fullimage').removeAttribute('src');
@@ -375,6 +378,9 @@ function setFullImageDisplay(shown) {
     const videoEle = document.querySelector('#fullvideo');
     videoEle.pause();
     videoEle.removeAttribute('src');
+    if (document.fullscreenElement != null) {
+      document.exitFullscreen();
+    }
   }
 }
 
