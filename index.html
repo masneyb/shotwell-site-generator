@@ -894,11 +894,6 @@
           toggleFullscreenDescription();
         }
       };
-      document.onfullscreenchange = (event) => {
-        if (document.fullscreenElement == null) {
-          exitImageFullscreen(event);
-        }
-      };
 
       const fullImageEle = document.querySelector('#fullimage_container');
       fullImageEle.addEventListener('swiped-left', (event) => {
