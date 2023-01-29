@@ -140,6 +140,18 @@ function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMeta
     extStats.push(createOpenInNewTabLink('Download', entity.link));
   }
 
+  if (document.fullscreenElement == null && document.fullscreenEnabled) {
+    const fullscreenAnchor = document.createElement('a');
+    fullscreenAnchor.href = '#';
+    fullscreenAnchor.innerText = 'Fullscreen';
+    fullscreenAnchor.onclick = (event) => {
+      document.documentElement.requestFullscreen();
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    extStats.push(createMediaStat(fullscreenAnchor));
+  }
+
   if (extStats.length == stats.length) {
     return createStatsSpan(stats);
   }
