@@ -3,6 +3,12 @@
  * Copyright (C) 2020-2022 Brian Masney <masneyb@onstation.org>
  */
 
+let randomSeed = null;
+
+function getRandomSeed() {
+  return randomSeed;
+}
+
 function getQueryParameter(name, defaultValue) {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.has(name) ? urlParams.get(name) : defaultValue;
@@ -86,13 +92,23 @@ function generateSearchUrl(criterias, matchPolicy, iconSize, groupBy, sortBy) {
   return `index.html?${qs.join('&')}#`;
 }
 
-function shuffleArray(arr) {
+function shuffleArray(arr, seed) {
   if (arr === null) {
     return;
   }
 
+  /*
+   * Use the Fisher-Yates algorithm to shuffle the array in place. Math.random() is not used
+   * here since the Javascript random number implementation doesn't offer a way to provide a
+   * starting seed. Use a simple Linear Congruential Generator (LCG) to generate
+   * pseudo-randomized numbers. A starting seed is needed so that the QR code that's generated
+   * on the slideshow can provide that seed so that a slideshow can be easily transfered in
+   * place to a separate mobile device.
+   */
+  let rand = seed;
   for (let i = arr.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * i);
+    rand = (rand * 1103515245 + 12345) & 0x7fffffff;
+    const j = rand % (i + 1);
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 }
@@ -969,8 +985,10 @@ function performSearch(allItems, allCriteria, defaultSort) {
   }
 
   if (sortBy === 'random') {
-    shuffleArray(ret);
+    randomSeed = getIntQueryParameter('random_seed', Date.now());
+    shuffleArray(ret, randomSeed);
   } else {
+    randomSeed = null;
     let sortField;
     let sortValLt;
     let sortValGt;

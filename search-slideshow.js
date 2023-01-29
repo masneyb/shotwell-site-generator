@@ -210,6 +210,19 @@ function getFullscreenImageUrl(index) {
 }
 
 function getDownloadFullUrl(path) {
+  const searchParams = new URLSearchParams(window.location.search);
+  searchParams.delete('photo_frame');
+  searchParams.append('photo_frame', '1');
+
+  searchParams.delete('random_seed');
+  const seed = getRandomSeed();
+  if (seed != null) {
+    searchParams.append('random_seed', seed);
+  }
+
+  searchParams.delete('slideshow_index');
+  searchParams.append('slideshow_index', allMediaFullscreenIndex);
+
   let location = window.location.toString();
   if (location.includes('#')) {
     location = location.split('#')[0];
@@ -217,13 +230,8 @@ function getDownloadFullUrl(path) {
   if (location.includes('?')) {
     location = location.split('?')[0];
   }
-  if (location.includes('/index.html')) {
-    location = location.split('/index.html')[0];
-  }
-  if (!location.endsWith('/')) {
-    location += '/';
-  }
-  return location + path;
+
+  return `${location}?${searchParams.toString()}`;
 }
 
 function updateMediaDescriptionText(descrEle) {
@@ -403,7 +411,7 @@ function startSlideshow() {
   fullScreenPhotoUpdateSecs = getIntQueryParameter('photo_update_secs', 10);
   fullscreenReinstateSlideshowSecs = getIntQueryParameter('reinstate_slideshow_secs', 300);
   setFullImageDisplay(true);
-  allMediaFullscreenIndex = 0;
+  allMediaFullscreenIndex = getIntQueryParameter('slideshow_index', 0);
   doShowFullscreenImage(false);
   toggleSlideshowTimers();
   requestWakeLock();
