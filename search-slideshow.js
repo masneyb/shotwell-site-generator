@@ -24,11 +24,11 @@ function createStatsSpan(stats) {
   return ret;
 }
 
-function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMetadata, extraOnClick) {
+function createMediaStatsHtml(entity, eventNames, tags, onSlideshowPage, showBriefMetadata, extraOnClick) {
   const stats = [];
   const extStats = [];
 
-  if (showTitle && 'title' in entity && entity.title) {
+  if (onSlideshowPage && 'title' in entity && entity.title) {
     const title = entity.title_prefix ? entity.title_prefix + entity.title : entity.title;
     const val = entity.title_prefix + entity.title;
     stats.push(createTextMediaStat(val));
@@ -140,7 +140,7 @@ function createMediaStatsHtml(entity, eventNames, tags, showTitle, showBriefMeta
     extStats.push(createOpenInNewTabLink('Download', entity.link));
   }
 
-  if (document.fullscreenElement == null && document.fullscreenEnabled) {
+  if (onSlideshowPage && document.fullscreenElement == null && document.fullscreenEnabled) {
     const fullscreenAnchor = document.createElement('a');
     fullscreenAnchor.href = '#';
     fullscreenAnchor.innerText = 'Fullscreen';
