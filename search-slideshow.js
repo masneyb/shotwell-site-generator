@@ -209,12 +209,13 @@ function getFullscreenImageUrl(index) {
   return allMedia[index].thumbnail.large;
 }
 
-function getDownloadFullUrl(path) {
+function getQRCodeUrl(path) {
   const searchParams = new URLSearchParams(window.location.search);
   searchParams.delete('slideshow');
   searchParams.append('slideshow', '1');
 
   searchParams.delete('photo_update_secs');
+  searchParams.append('photo_update_secs', '0');
 
   searchParams.delete('random_seed');
   const seed = getRandomSeed();
@@ -245,8 +246,8 @@ function updateMediaDescriptionText(descrEle) {
   new QRious({
     background: 'lightgray',
     element: qrCodeEle,
-    size: 76,
-    value: getDownloadFullUrl(entity.link),
+    size: 120,
+    value: getQRCodeUrl(entity.link),
   });
   qrCodeEle.className = 'qrcode';
   containerEle.appendChild(qrCodeEle);
