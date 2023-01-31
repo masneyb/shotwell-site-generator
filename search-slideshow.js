@@ -24,6 +24,18 @@ function createStatsSpan(stats) {
   return ret;
 }
 
+function requestFullscreen() {
+  if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen();
+  }
+}
+
+function exitFullscreen() {
+  if (document.exitFullscreen) {
+    document.exitFullscreen();
+  }
+}
+
 function createMediaStatsHtml(entity, eventNames, tags, onSlideshowPage, showBriefMetadata, extraOnClick) {
   const stats = [];
   const extStats = [];
@@ -145,7 +157,7 @@ function createMediaStatsHtml(entity, eventNames, tags, onSlideshowPage, showBri
     fullscreenAnchor.href = '#';
     fullscreenAnchor.innerText = 'Fullscreen';
     fullscreenAnchor.onclick = (event) => {
-      document.documentElement.requestFullscreen();
+      requestFullscreen();
       event.preventDefault();
       event.stopPropagation();
     };
@@ -370,7 +382,7 @@ function setFullImageDisplay(shown) {
   if (shown) {
     document.body.style.overflow = 'hidden';
     if (document.fullscreenElement == null) {
-      document.documentElement.requestFullscreen();
+      requestFullscreen();
     }
   } else {
     document.body.style.overflow = 'auto';
@@ -380,7 +392,7 @@ function setFullImageDisplay(shown) {
     videoEle.pause();
     videoEle.removeAttribute('src');
     if (document.fullscreenElement != null) {
-      document.exitFullscreen();
+      exitFullscreen();
     }
   }
 }
