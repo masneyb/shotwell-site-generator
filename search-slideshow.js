@@ -24,18 +24,6 @@ function createStatsSpan(stats) {
   return ret;
 }
 
-function requestFullscreen() {
-  if (document.documentElement.requestFullscreen) {
-    document.documentElement.requestFullscreen();
-  }
-}
-
-function exitFullscreen() {
-  if (document.exitFullscreen) {
-    document.exitFullscreen();
-  }
-}
-
 function createMediaStatsHtml(entity, eventNames, tags, onSlideshowPage, showBriefMetadata, extraOnClick) {
   const stats = [];
   const extStats = [];
@@ -152,12 +140,12 @@ function createMediaStatsHtml(entity, eventNames, tags, onSlideshowPage, showBri
     extStats.push(createOpenInNewTabLink('Download', entity.link));
   }
 
-  if (onSlideshowPage && document.fullscreenElement == null && document.fullscreenEnabled) {
+  if (onSlideshowPage && document.fullscreenElement == null && document.fullscreenEnabled && document.documentElement.requestFullscreen) {
     const fullscreenAnchor = document.createElement('a');
     fullscreenAnchor.href = '#';
     fullscreenAnchor.innerText = 'Fullscreen';
     fullscreenAnchor.onclick = (event) => {
-      requestFullscreen();
+      document.documentElement.requestFullscreen();
       event.preventDefault();
       event.stopPropagation();
     };
@@ -381,9 +369,6 @@ function setFullImageDisplay(shown) {
 
   if (shown) {
     document.body.style.overflow = 'hidden';
-    if (document.fullscreenElement == null) {
-      requestFullscreen();
-    }
   } else {
     document.body.style.overflow = 'auto';
     document.querySelector('#fullimage').removeAttribute('src');
@@ -391,8 +376,8 @@ function setFullImageDisplay(shown) {
     const videoEle = document.querySelector('#fullvideo');
     videoEle.pause();
     videoEle.removeAttribute('src');
-    if (document.fullscreenElement != null) {
-      exitFullscreen();
+    if (document.fullscreenElement != null && document.exitFullscreen) {
+      document.exitFullscreen();
     }
   }
 }
