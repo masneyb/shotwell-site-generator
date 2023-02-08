@@ -24,6 +24,14 @@ function createStatsSpan(stats) {
   return ret;
 }
 
+function createOpenInNewTabLink(label, link) {
+  const anchor = document.createElement('a');
+  anchor.target = '_new';
+  anchor.href = link;
+  anchor.innerText = label;
+  return createMediaStat(anchor);
+}
+
 function createMediaStatsHtml(entity, eventNames, tags, onSlideshowPage, showBriefMetadata, extraOnClick) {
   const stats = [];
   const extStats = [];

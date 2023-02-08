@@ -64,14 +64,6 @@ function createSearchLink(label, field, op, val, extraOnClick) {
   return createMediaStat(anchor);
 }
 
-function createOpenInNewTabLink(label, link) {
-  const anchor = document.createElement('a');
-  anchor.target = '_new';
-  anchor.href = link;
-  anchor.innerText = label;
-  return createMediaStat(anchor);
-}
-
 function generateSearchUrl(criterias, matchPolicy, iconSize, groupBy, sortBy) {
   const qs = [];
   for (const criteria of criterias) {
