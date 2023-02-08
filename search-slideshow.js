@@ -145,6 +145,12 @@ function createMediaStatsHtml(entity, eventNames, tags, onSlideshowPage, showBri
     fullscreenAnchor.href = '#';
     fullscreenAnchor.innerText = 'Fullscreen';
     fullscreenAnchor.onclick = (event) => {
+      /*
+       * Fullscreen is not requested when the slideshow is opened because the browsers won't allow
+       * pinch zooming on any element when requestFullscreen() is called. I work around this by
+       * using the manifest.json to request the fullscreen there. Pinch zooming works as expected
+       * with this method.
+       */
       document.documentElement.requestFullscreen();
       event.preventDefault();
       event.stopPropagation();
