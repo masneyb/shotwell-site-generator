@@ -111,22 +111,7 @@ a {
 	padding: 2px;
 }
 
-.media_medium_container {
-	padding: 0px;
-	text-align: left;
-}
-
-.media_medium_container_2h {
-	padding: 0px;
-	text-align: center;
-}
-
-.media_small_container {
-	padding: 0px;
-	text-align: left;
-}
-
-.media_small_container_2h {
+.media_medium_container, .media_medium_container_2h, .media_small_container, .media_small_container_2h {
 	padding: 0px;
 	text-align: left;
 }
