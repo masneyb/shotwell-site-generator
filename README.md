@@ -5,18 +5,25 @@ and videos. It supports publishing media to third-party sites, however that requ
 organizing the media again there, which is time consuming. Once the media is published, any
 metadata changes that are made in Shotwell will not be shown on that third-party site.
 
-This program exports a mobile-friendly HTML site of a Shotwell library. The generated site is
-fully self contained and does not require Internet access or any third-party resources for the
-long-term preservation of the library. With the exception of the search page, the use of
+This program exports a mobile-friendly static HTML site of a Shotwell library. The generated
+site is fully self contained and does not require Internet access or any third-party resources
+for the long-term preservation of the library. With the exception of the search page, the use of
 Javascript on the generated site is minimized for the long-term preservation of the library.
 
 The search page provides a rich, single-page user experience that allows browsing your
 library through various predefined views: all media over time, all events over time, year
-view, nested tag view. Additionally you can search your library 24 different fields.
+view, nested tag view. Additionally you can search your library using 24 different fields.
 
 The search page also allows you setting up a browser in kiosk mode
 on a small single board computer like a Raspberry Pi and use it as a photo frame as described
 on the [PHOTOFRAME.md](PHOTOFRAME.md) page.
+
+## Screenshots
+
+![Mobile Default View](screenshots/mobile-default-view-small.png?raw=1)
+
+See the [screenshots](screenshots/README.md) directory for more screenshots of the generated
+HTML site.
 
 ## Usage
 
