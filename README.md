@@ -23,7 +23,10 @@ on the [PHOTOFRAME.md](PHOTOFRAME.md) page.
 ![Mobile Default View](screenshots/mobile-default-view-small.png?raw=1)
 
 See the [screenshots](screenshots/README.md) directory for more screenshots of the generated
-HTML site.
+HTML site. You can serve these static files on a webserver such as nginx / apache2, and if
+desired, setup HTTP basic authentication. There's no complicated additional webserver plugins
+that need to be setup for a particular application runtime since you're just serving static
+files.
 
 ## Usage
 
