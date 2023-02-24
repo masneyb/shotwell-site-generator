@@ -264,7 +264,7 @@ function updateMediaDescriptionText(descrEle) {
     height: 120,
     colorDark: 'black',
     colorLight: 'lightgray',
-    correctLevel: QRCode.CorrectLevel.H,
+    correctLevel: QRCode.CorrectLevel.L,
   });
   containerEle.appendChild(qrCodeEle);
 
