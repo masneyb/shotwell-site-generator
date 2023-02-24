@@ -256,14 +256,16 @@ function updateMediaDescriptionText(descrEle) {
 
   const containerEle = document.createElement('div');
 
-  const qrCodeEle = document.createElement('canvas');
-  new QRious({
-    background: 'lightgray',
-    element: qrCodeEle,
-    size: 120,
-    value: getQRCodeUrl(entity.link),
-  });
+  const qrCodeEle = document.createElement('div');
   qrCodeEle.className = 'qrcode';
+  new QRCode(qrCodeEle, {
+    text: getQRCodeUrl(entity.link),
+    width: 120,
+    height: 120,
+    colorDark: 'black',
+    colorLight: 'lightgray',
+    correctLevel: QRCode.CorrectLevel.H,
+  });
   containerEle.appendChild(qrCodeEle);
 
   const textEle = createMediaStatsHtml(entity, eventNames, tags, true, false, (event) => {

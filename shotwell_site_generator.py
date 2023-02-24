@@ -101,8 +101,8 @@ def process_photos(options):
                    "media/index.html")
     shutil.copyfile(__get_assets_path(options, "index.html"),
                     os.path.join(options.dest_directory, "index.html"))
-    shutil.copyfile(__get_assets_path(options, "qrious.min.js"),
-                    os.path.join(options.dest_directory, "qrious.min.js"))
+    shutil.copyfile(__get_assets_path(options, "qrcode.min.js"),
+                    os.path.join(options.dest_directory, "qrcode.min.js"))
     shutil.copyfile(__get_assets_path(options, "search.css"),
                     os.path.join(options.dest_directory, "search.css"))
     shutil.copyfile(__get_assets_path(options, "search-375px-width.css"),
