@@ -58,7 +58,7 @@ Script to start the Chromium browser in kiosk mode with the proper URL with the 
     else
     	vcgencmd display_power 1
     fi
-    /usr/bin/chromium-browser --kiosk "http://YOUR_SERVER_HOSTNAME/screensaver.html?search=Rating%2Cis at least%2C5&match_policy=all&photo_update_secs=30&kiosk=1" &
+    /usr/bin/chromium-browser --kiosk "http://YOUR_SERVER_HOSTNAME/screensaver.html?search=Rating%2Cis at least%2C5&match=all&update_secs=30&kiosk=1" &
 
 Script to stop the Chromium browser in the file /usr/local/bin/stop-photos.sh:
 

@@ -78,18 +78,18 @@
 
     <span id="search_controls" style="display: none">
       <input type="button" onClick="addSearchInputRow();" value="+"></input>
-      <select id="match_policy" onChange="updateSearchCriteria();">
+      <select id="match" onChange="updateSearchCriteria();">
         <option value="any">Match Any</option>
         <option value="all">Match All</option>
         <option value="none">Match None</option>
       </select>
-      <select id="group_by" onChange="updateSearchCriteria();">
+      <select id="group" onChange="updateSearchCriteria();">
         <option value="none">No grouping</option>
         <option value="day">Group by day</option>
         <option value="month">Group by month</option>
         <option value="year">Group by year</option>
       </select>
-      <select id="sort_by" onChange="updateSearchCriteria();">
+      <select id="sort" onChange="updateSearchCriteria();">
         <option value="default">Default Sort</option>
         <option value="takenZA">Sort taken Z-A</option>
         <option value="takenAZ">Sort taken A-Z</option>
@@ -97,7 +97,7 @@
         <option value="createdAZ">Sort added A-Z</option>
         <option value="random">Sort random</option>
       </select>
-      <select id="icon_size" onChange="updateSearchCriteria();">
+      <select id="icons" onChange="updateSearchCriteria();">
         <option value="default">Default Icons</option>
         <option value="small">Small Icons</option>
         <option value="medium">Medium Icons</option>
@@ -151,7 +151,7 @@
       let preferLargeIcons = false;
       let preferredPageIconSize = null;
       let currentGroupName = null;
-      window.alwaysShowAnimations = getIntQueryParameter('show_animations', 0);
+      window.alwaysShowAnimations = getIntQueryParameter('animate', 0);
 
       function addStatusMessage(parentEle, text) {
         const msgEle = document.createElement('div');
@@ -311,9 +311,9 @@
           parts.push(criteria.join(','));
         }
 
-        const iconSize = getQueryParameter('icon_size', 'default');
-        const groupBy = getQueryParameter('group_by', 'none');
-        const sortBy = getQueryParameter('sort_by', 'default');
+        const iconSize = getQueryParameter('icons', 'default');
+        const groupBy = getQueryParameter('group', 'none');
+        const sortBy = getQueryParameter('sort', 'default');
         const search = generateSearchUrl(parts, matchPolicy, iconSize, groupBy, sortBy);
 
         // Check to see if the user control clicked the URL to request it be opened in a new tab.
@@ -366,7 +366,7 @@
         const validIconSizes = ['small', 'medium', 'small_medium', 'small_medium_large',
                                 'medium_large', 'large', 'large_full_meta', 'large_no_meta',
                                 'regular', 'regular_full_meta', 'regular_no_meta'];
-        const iconSize = getQueryParameter('icon_size', 'default');
+        const iconSize = getQueryParameter('icons', 'default');
         if (validIconSizes.includes(iconSize)) {
           return iconSize;
         }
@@ -766,7 +766,7 @@
       }
 
       function getMediaGroupByFunc() {
-        const groupBy = getQueryParameter('group_by', 'none');
+        const groupBy = getQueryParameter('group', 'none');
 
         if (groupBy === 'year') {
           return (input) => {

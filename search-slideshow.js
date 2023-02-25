@@ -228,17 +228,17 @@ function getQRCodeUrl(path) {
   searchParams.delete('slideshow');
   searchParams.append('slideshow', '1');
 
-  searchParams.delete('photo_update_secs');
-  searchParams.append('photo_update_secs', '0');
+  searchParams.delete('update_secs');
+  searchParams.append('update_secs', '0');
 
-  searchParams.delete('random_seed');
+  searchParams.delete('seed');
   const seed = getRandomSeed();
   if (seed != null) {
-    searchParams.append('random_seed', seed);
+    searchParams.append('seed', seed);
   }
 
-  searchParams.delete('slideshow_index');
-  searchParams.append('slideshow_index', allMediaFullscreenIndex);
+  searchParams.delete('idx');
+  searchParams.append('idx', allMediaFullscreenIndex);
 
   let location = window.location.toString();
   if (location.includes('#')) {
@@ -430,10 +430,10 @@ function releaseWakeLock() {
 }
 
 function startSlideshow() {
-  fullScreenPhotoUpdateSecs = getIntQueryParameter('photo_update_secs', 10);
-  fullscreenReinstateSlideshowSecs = getIntQueryParameter('reinstate_slideshow_secs', 300);
+  fullScreenPhotoUpdateSecs = getIntQueryParameter('update_secs', 10);
+  fullscreenReinstateSlideshowSecs = getIntQueryParameter('reinstate_secs', 300);
   setFullImageDisplay(true);
-  allMediaFullscreenIndex = getIntQueryParameter('slideshow_index', 0);
+  allMediaFullscreenIndex = getIntQueryParameter('idx', 0);
   doShowFullscreenImage(false);
   toggleSlideshowTimers();
   requestWakeLock();
@@ -443,15 +443,15 @@ function slideshowClicked() {
   const searchParams = new URLSearchParams(window.location.search);
   searchParams.delete('slideshow');
   searchParams.append('slideshow', '1');
-  searchParams.delete('photo_update_secs');
-  searchParams.append('photo_update_secs', '10');
+  searchParams.delete('update_secs');
+  searchParams.append('update_secs', '10');
   window.history.pushState({}, '', `?${searchParams.toString()}#`);
   startSlideshow();
 }
 
 function checkForPhotoFrameMode() {
   let slideshow = false;
-  if (getIntQueryParameter('photo_frame', 0) === 1) {
+  if (getIntQueryParameter('kiosk', 0) === 1) {
     slideshow = true;
     inPhotoFrameMode = true;
     document.body.style.cursor = 'none';
@@ -478,8 +478,8 @@ function exitImageFullscreen(event) {
     fullscreenPhotoUpdateTimer = null;
 
     const searchParams = new URLSearchParams(window.location.search);
-    searchParams.delete('photo_frame');
-    searchParams.delete('photo_update_secs');
+    searchParams.delete('kiosk');
+    searchParams.delete('update_secs');
     searchParams.delete('slideshow');
     window.history.pushState({}, '', `?${searchParams.toString()}#`);
 

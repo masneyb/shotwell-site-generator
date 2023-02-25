@@ -70,16 +70,16 @@ function generateSearchUrl(criterias, matchPolicy, iconSize, groupBy, sortBy) {
     qs.push(`search=${encodeURI(criteria)}`);
   }
   if (matchPolicy !== 'all') {
-    qs.push(`match_policy=${matchPolicy}`);
+    qs.push(`match=${matchPolicy}`);
   }
   if (iconSize !== 'default') {
-    qs.push(`icon_size=${iconSize}`);
+    qs.push(`icons=${iconSize}`);
   }
   if (groupBy !== 'none') {
-    qs.push(`group_by=${groupBy}`);
+    qs.push(`group=${groupBy}`);
   }
   if (sortBy !== 'default') {
-    qs.push(`sort_by=${sortBy}`);
+    qs.push(`sort=${sortBy}`);
   }
   return `index.html?${qs.join('&')}#`;
 }
@@ -911,7 +911,7 @@ function getPreferredView(allCriteria, mainTitle, eventNames, tags) {
 }
 
 function performSearch(allItems, allCriteria, defaultSort) {
-  const matchPolicy = getQueryParameter('match_policy', 'all'); // any,none,all
+  const matchPolicy = getQueryParameter('match', 'all'); // any,none,all
   let minDate;
   let minDatePretty;
   let maxDate;
@@ -971,13 +971,13 @@ function performSearch(allItems, allCriteria, defaultSort) {
     }
   }
 
-  let sortBy = getQueryParameter('sort_by', 'default'); // default,takenZA,takenAZ,createdZA,createdAZ,random
+  let sortBy = getQueryParameter('sort', 'default'); // default,takenZA,takenAZ,createdZA,createdAZ,random
   if (sortBy === 'default') {
     sortBy = defaultSort;
   }
 
   if (sortBy === 'random') {
-    randomSeed = getIntQueryParameter('random_seed', Date.now());
+    randomSeed = getIntQueryParameter('seed', Date.now());
     shuffleArray(ret, randomSeed);
   } else {
     randomSeed = null;

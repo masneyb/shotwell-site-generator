@@ -31,11 +31,11 @@ function updateSearchCriteria() {
       searchArgs.push(`search=${encodeURIComponent(search)}`);
     }
 
-    const matchPolicy = document.querySelector('#match_policy').value;
-    const sortBy = document.querySelector('#sort_by').value;
-    const iconSize = document.querySelector('#icon_size').value;
-    const groupBy = document.querySelector('#group_by').value;
-    window.history.pushState({}, '', `index.html?${searchArgs.join('&')}&match_policy=${matchPolicy}&sort_by=${sortBy}&icon_size=${iconSize}&group_by=${groupBy}#`);
+    const matchPolicy = document.querySelector('#match').value;
+    const sortBy = document.querySelector('#sort').value;
+    const iconSize = document.querySelector('#icons').value;
+    const groupBy = document.querySelector('#group').value;
+    window.history.pushState({}, '', `index.html?${searchArgs.join('&')}&match=${matchPolicy}&sort=${sortBy}&icons=${iconSize}&group=${groupBy}#`);
     processJson(populateMedia);
   }, 0);
 }
@@ -199,17 +199,17 @@ function populateSearchValuesFromUrl() {
     }
   }
 
-  const matchPolicy = getQueryParameter('match_policy', 'all'); // any,none,all
-  document.querySelector('#match_policy').value = matchPolicy;
+  const matchPolicy = getQueryParameter('match', 'all'); // any,none,all
+  document.querySelector('#match').value = matchPolicy;
 
-  const sortBy = getQueryParameter('sort_by', 'default');
-  document.querySelector('#sort_by').value = sortBy;
+  const sortBy = getQueryParameter('sort', 'default');
+  document.querySelector('#sort').value = sortBy;
 
-  const iconSize = getQueryParameter('icon_size', 'default');
-  document.querySelector('#icon_size').value = iconSize;
+  const iconSize = getQueryParameter('icons', 'default');
+  document.querySelector('#icons').value = iconSize;
 
-  const groupBy = getQueryParameter('group_by', 'none');
-  document.querySelector('#group_by').value = groupBy;
+  const groupBy = getQueryParameter('group', 'none');
+  document.querySelector('#group').value = groupBy;
 
   if (nextSearchInput === 0) {
     addSearchInputRow();
