@@ -225,6 +225,8 @@ function getFullscreenImageUrl(index) {
 
 function getQRCodeUrl(path) {
   const searchParams = new URLSearchParams(window.location.search);
+  searchParams.delete('kiosk');
+
   searchParams.delete('slideshow');
   searchParams.append('slideshow', '1');
 
