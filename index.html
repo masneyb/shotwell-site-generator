@@ -148,7 +148,6 @@
       let mediaWriter = null;
       let dateRange = null;
       let currentYearView = null;
-      let preferLargeIcons = false;
       let preferredPageIconSize = null;
       let currentGroupName = null;
       window.alwaysShowAnimations = getIntQueryParameter('animate', 0);
@@ -371,11 +370,6 @@
           return iconSize;
         }
 
-        /*
-         * if (window.innerWidth < 750) {
-         *   return preferLargeIcons ? 'large' : 'small_medium';
-         * }
-         */
         if (window.innerWidth <= 1200) {
           return 'small_medium_large';
         }
@@ -541,7 +535,6 @@
           }
         }
 
-        preferLargeIcons = preferredView.preferLargeIcons;
         preferredPageIconSize = getPageIconSize();
         setIconWriter();
 
@@ -655,8 +648,20 @@
         return preferredPageIconSize;
       }
 
-      function showLargeIconWithNoDescr(iconSize) {
-        return (['medium_large', 'small_medium_large'].includes(preferredPageIconSize) && !preferLargeIcons) || iconSize === 'large_no_meta';
+      function showLargeIconWithNoDescr(iconSize, mediaType) {
+        if (iconSize === 'large_no_meta') {
+          return true;
+        }
+
+        if (!['medium_large', 'small_medium_large'].includes(preferredPageIconSize)) {
+          return false;
+        }
+
+        if (['events', 'tags', 'years'].includes(mediaType)) {
+          return false;
+        }
+
+        return true;
       }
 
       function createMediaElement(index, media, iconSize) {
@@ -682,7 +687,7 @@
             mediaEle.className = 'media_medium';
           } else if (['large', 'large_full_meta', 'large_no_meta'].includes(iconSize) || !('reg_gif' in media.motion_photo)) {
             img.src = media.motion_photo.large_gif;
-            if (showLargeIconWithNoDescr(iconSize)) {
+            if (showLargeIconWithNoDescr(iconSize, media.type)) {
               mediaEle.className = 'media_no_descr';
             } else {
               mediaEle.className = 'media';
@@ -718,7 +723,7 @@
             img.ontouchstart = () => { img.src = media.motion_photo.large_gif; };
             img.ontouchend = () => { img.src = media.thumbnail.large; };
           }
-          if (showLargeIconWithNoDescr(iconSize)) {
+          if (showLargeIconWithNoDescr(iconSize, media.type)) {
             mediaEle.className = 'media_no_descr';
           } else {
             mediaEle.className = 'media';
@@ -735,7 +740,7 @@
           mediaEle.style.width = `${media.thumbnail.reg_width}px`;
         }
 
-        if (['large', 'large_full_meta', 'regular', 'regular_full_meta'].includes(iconSize) && !showLargeIconWithNoDescr(iconSize)) {
+        if (['large', 'large_full_meta', 'regular', 'regular_full_meta'].includes(iconSize) && !showLargeIconWithNoDescr(iconSize, media.type)) {
           if (media.title) {
             const name = `title${media.type}${media.id}`;
             const title = document.createElement('span');

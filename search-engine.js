@@ -833,12 +833,10 @@ function shortenPrettyDate(input) {
 function getPreferredView(allCriteria, mainTitle, eventNames, tags) {
   // Search criteria can be chained in any order. Get the distinct types and order below.
   let eventTitle = null;
-  let eventPreferLargeIcons = false;
   let eventDefaultSort = null;
   let yearTitle = null;
   let yearDefaultSort = null;
   let tagTitle = null;
-  let tagPreferLargeIcons = false;
   let tagView = null;
   let yearView = null;
 
@@ -853,7 +851,6 @@ function getPreferredView(allCriteria, mainTitle, eventNames, tags) {
       yearDefaultSort = 'takenAZ';
     } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'events') {
       eventTitle = `${mainTitle}: All Events`;
-      eventPreferLargeIcons = true;
       eventDefaultSort = 'takenZA';
     } else if (criteria.field.title === 'Event ID' && criteria.op.descr === 'equals') {
       let eventName = eventNames[criteria.searchValues[0]];
@@ -861,15 +858,12 @@ function getPreferredView(allCriteria, mainTitle, eventNames, tags) {
         eventName = 'Unknown event';
       }
       eventTitle = `${mainTitle}: ${eventName}`;
-      eventPreferLargeIcons = false;
       eventDefaultSort = 'takenAZ';
     } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'tags') {
       tagTitle = `${mainTitle}: All Tags`;
-      tagPreferLargeIcons = true;
     } else if (criteria.field.title === 'Tag ID' && criteria.op.descr === 'equals') {
       tagView = tags[criteria.searchValues[0]];
       tagTitle = `${mainTitle}: ${tagView !== undefined ? tagView.title : 'Unknown tag'}`;
-      tagPreferLargeIcons = false;
     }
   }
 
@@ -877,7 +871,6 @@ function getPreferredView(allCriteria, mainTitle, eventNames, tags) {
   const views = [{
                    title: eventTitle,
                    cssSelector: 'events_link',
-                   preferLargeIcons: eventPreferLargeIcons,
                    defaultSort: eventDefaultSort,
                    currentYearView: null,
                    searchTag: null,
@@ -885,7 +878,6 @@ function getPreferredView(allCriteria, mainTitle, eventNames, tags) {
                  {
                    title: yearTitle,
                    cssSelector: 'years_link',
-                   preferLargeIcons: true,
                    defaultSort: yearDefaultSort,
                    currentYearView: yearView,
                    searchTag: null,
@@ -893,7 +885,6 @@ function getPreferredView(allCriteria, mainTitle, eventNames, tags) {
                  {
                    title: tagTitle,
                    cssSelector: 'tags_link',
-                   preferLargeIcons: tagPreferLargeIcons,
                    defaultSort: 'takenZA',
                    currentYearView: null,
                    searchTag: tagView,
@@ -901,7 +892,6 @@ function getPreferredView(allCriteria, mainTitle, eventNames, tags) {
                  {
                    title: `${mainTitle}: Search`,
                    cssSelector: null,
-                   preferLargeIcons: false,
                    defaultSort: 'takenZA',
                    currentYearView: null,
                    searchTag: null,
