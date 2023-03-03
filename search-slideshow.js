@@ -148,7 +148,7 @@ function createMediaStatsHtml(entity, eventNames, tags, onSlideshowPage, showBri
     extStats.push(createOpenInNewTabLink('Download', entity.link));
   }
 
-  if (onSlideshowPage && document.fullscreenElement == null && document.fullscreenEnabled && document.documentElement.requestFullscreen) {
+  if (onSlideshowPage && !inPhotoFrameMode && document.fullscreenElement == null && document.fullscreenEnabled && document.documentElement.requestFullscreen) {
     const fullscreenAnchor = document.createElement('a');
     fullscreenAnchor.href = '#';
     fullscreenAnchor.innerText = 'Fullscreen';
