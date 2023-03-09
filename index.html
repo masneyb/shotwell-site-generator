@@ -52,6 +52,7 @@
     <span id="title" class="page_title">Search</span>
     <span class="summary_stats"></span>
     <span class="header_links" style="display: none">
+      <a class="header_link" href="#" onClick="searchPageLinkGenerator(event, [['Date', 'was taken on this day']], 'all', 'large_regular');">Today</a>
       <a class="header_link" id="toggle_animations" href="#" onClick="toggleAnimations();"></a>
       <a class="header_link" href="#" onClick="slideshowClicked();">Slideshow</a>
       <a class="header_link" href="#" id="csv_link">CSV</a>
@@ -304,14 +305,14 @@
         }
       }
 
-      function searchPageLinkGenerator(event, criterias, matchPolicy = 'all') {
+      function searchPageLinkGenerator(event, criterias, matchPolicy = 'all', overrideIconSize = null) {
         const parts = [];
         for (criteria of criterias) {
           // field,op,value
           parts.push(criteria.join(','));
         }
 
-        const iconSize = getQueryParameter('icons', 'default');
+        const iconSize = overrideIconSize !== null ? overrideIconSize : getQueryParameter('icons', 'default');
         const groupBy = getQueryParameter('group', 'none');
         const sortBy = getQueryParameter('sort', 'default');
         const search = generateSearchUrl(parts, matchPolicy, iconSize, groupBy, sortBy);
