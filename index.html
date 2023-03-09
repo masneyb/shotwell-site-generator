@@ -110,6 +110,7 @@
         <option value="regular">Regular Icons</option>
         <option value="regular_full_meta">Regular Icons (Full Metadata)</option>
         <option value="regular_no_meta">Regular Icons (No Metadata)</option>
+        <option value="large_regular">Large/Regular Icons</option>
       </select>
       <input class="button" type="button" onClick="clearSearchCriteria();" value="Clear"></input>
     </span>
@@ -370,6 +371,9 @@
           return iconSize;
         }
 
+        if (iconSize === 'large_regular') {
+          return window.innerWidth <= 1200 ? 'large' : 'regular';
+        }
         if (window.innerWidth <= 1200) {
           return 'small_medium_large';
         }
