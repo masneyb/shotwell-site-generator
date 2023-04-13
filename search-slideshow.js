@@ -275,7 +275,8 @@ function updateMediaDescriptionText(descrEle) {
   });
   containerEle.appendChild(textEle);
 
-  descrEle.replaceChildren(containerEle);
+  removeAllChildren(descrEle);
+  descrEle.appendChild(containerEle);
 }
 
 function getFullscreenVideoUrl(entity) {

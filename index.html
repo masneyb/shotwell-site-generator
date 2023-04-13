@@ -158,7 +158,8 @@
         const msgEle = document.createElement('div');
         msgEle.className = 'status';
         msgEle.appendChild(document.createTextNode(text));
-        parentEle.replaceChildren(msgEle);
+        removeAllChildren(parentEle);
+        parentEle.appendChild(msgEle);
       }
 
       function updateOverallStatusMessage(text) {
@@ -562,7 +563,8 @@
 
           anchor.appendChild(innerSpan);
           outerSpan.appendChild(anchor);
-          extraHeaderEle.replaceChildren(outerSpan);
+          removeAllChildren(extraHeaderEle);
+          extraHeaderEle.appendChild(outerSpan);
         }
 
         setPageTitleAndIconSize(preferredView);
@@ -891,7 +893,9 @@
 
           document.querySelector('#csv_link').onclick = (event) => { downloadCsv(event); };
 
-          document.querySelector('.summary_stats').replaceChildren(createAllStatsHtml());
+          const summaryStatsEle = document.querySelector('.summary_stats');
+          removeAllChildren(summaryStatsEle);
+          summaryStatsEle.appendChild(createAllStatsHtml());
         }, 0);
       }
 
