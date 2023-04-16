@@ -31,7 +31,7 @@ class Thumbnailer:
         self.medium_thumbnail_size = medium_thumbnail_size
         self.dest_thumbs_directory = os.path.join(dest_directory, "thumbnails")
         self.transformed_origs_directory = os.path.join(dest_directory, "transformed")
-        self.motion_photo_directory = os.path.join(self.dest_thumbs_directory, "motion_photo")
+        self.motion_photo_directory = os.path.join(dest_directory, "motion_photo")
         self.metadata_directory = os.path.join(dest_directory, "metadata")
         self.remove_stale_artifacts = remove_stale_artifacts
         self.imagemagick_command = imagemagick_command
