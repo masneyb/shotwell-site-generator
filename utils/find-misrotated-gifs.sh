@@ -13,7 +13,7 @@ if [ "${HTML_BASE_DIR}" = "" ] ; then
 	exit 1
 fi
 
-find "${HTML_BASE_DIR}/thumbnails/motion_photo/regular/" -name "thumb*.gif" | while read -r GIF_FILE ; do
+find "${HTML_BASE_DIR}/motion_photo/regular/" -name "thumb*.gif" | while read -r GIF_FILE ; do
 	GIF_RESOLUTION=$(identify "${GIF_FILE}" | head -n 1 | awk '{print $3}')
 	GIF_X=$(echo "${GIF_RESOLUTION}" | awk -Fx '{print $1}')
 	GIF_Y=$(echo "${GIF_RESOLUTION}" | awk -Fx '{print $2}')

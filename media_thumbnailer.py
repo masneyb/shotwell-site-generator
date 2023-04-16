@@ -498,7 +498,7 @@ class Thumbnailer:
             if not mp4_short_path:
                 return None
 
-            mp4_short_path = f"thumbnails/motion_photo/{mp4_short_path}"
+            mp4_short_path = f"motion_photo/{mp4_short_path}"
         else:
             mp4_short_path = None
 
@@ -519,7 +519,7 @@ class Thumbnailer:
             logging.info("Creating animated GIF for %s", src_filename)
             self._do_run_command(cmd, False)
 
-        return (mp4_short_path, f"thumbnails/motion_photo/{path_part}/{gif_short_path}")
+        return (mp4_short_path, f"motion_photo/{path_part}/{gif_short_path}")
 
     def _read_exif_txt(self, file_contents):
         ret = {}
