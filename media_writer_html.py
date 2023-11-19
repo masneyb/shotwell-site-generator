@@ -260,70 +260,68 @@ class Html(CommonWriter):
 
     def __write_media_metadata(self, output, media):
         # pylint: disable=too-many-branches
-        summary = []
-        detailed = []
+        items = []
 
         if "exposure_time" in media and media["exposure_time"] != 0:
-            summary.append(self._get_date_string(self._get_date_parts(media["exposure_time"]),
-                                                 True))
+            items.append(self._get_date_string(self._get_date_parts(media["exposure_time"]), True))
 
         if "width" in media and media["width"]:
-            summary.append("%.1fMP" % ((media["width"] * media["height"]) / (1000 * 1000)))
+            items.append("%.1fMP" % ((media["width"] * media["height"]) / (1000 * 1000)))
 
         if "filesize" in media and media["filesize"] > 0:
-            summary.append(humanize.naturalsize(media["filesize"], binary=True).replace(" ", ""))
+            items.append(humanize.naturalsize(media["filesize"], binary=True).replace(" ", ""))
 
         if "clip_duration" in media:
-            summary.append(humanize.naturaldelta(int(media["clip_duration"])))
+            items.append(humanize.naturaldelta(int(media["clip_duration"])))
 
         if "width" in media and media["width"]:
-            detailed.append("%sx%s" % (media["width"], media["height"]))
+            items.append("%sx%s" % (media["width"], media["height"]))
 
         if "camera" in media:
-            detailed.append("<a href='../../index.html?search=%s'>%s</a>" % \
-                            (urllib.parse.quote("Camera,equals,%s" % (media["camera"])),
-                             media["camera"]))
+            items.append("<a href='../../index.html?search=%s'>%s</a>" % \
+                         (urllib.parse.quote("Camera,equals,%s" % (media["camera"])),
+                          media["camera"]))
 
         if "exif" in media:
-            detailed += media["exif"]
-
-        if "metadata_text" in media and media["metadata_text"]:
-            detailed.append("<a target='_new' href='../../%s'>Metadata</a>" % \
-                            (media["metadata_text"]))
+            items += media["exif"]
 
         if "event_id" in media and media["event_id"]:
             title = common.cleanup_event_title(self.all_media["events_by_id"][media["event_id"]])
-            detailed.append("<a href='../event/%d.html'>Event: %s</a>" % \
-                            (media["event_id"], html.escape(title)))
+            items.append("<a href='../event/%d.html'>Event: %s</a>" % \
+                         (media["event_id"], html.escape(title)))
 
         if "tags" in media and media["tags"]:
             for tag_id, tag_name in self._cleanup_tags(media["tags"]):
-                detailed.append("<a href='../tag/%d.html'>Tag: %s</a>" % \
-                                (tag_id, html.escape(tag_name)))
+                items.append("<a href='../tag/%d.html'>Tag: %s</a>" % \
+                             (tag_id, html.escape(tag_name)))
+
+        if "metadata_text" in media and media["metadata_text"]:
+            items.append("<a target='_new' href='../../%s'>Metadata</a>" % \
+                         (media["metadata_text"]))
+
+        if "rating" in media:
+            items.append(("&starf;" * media["rating"]) + ("&star;" * (5 - media["rating"])))
+
+        if "large_motion_photo" in media and media["large_motion_photo"] and \
+           media["large_motion_photo"][0]:
+            items.append("<a target='_new' href='../../%s'>Motion Photo</a>" %
+                         (media["large_motion_photo"][0]))
 
         if "lat" in media:
             search = "%s,%s,%.5f,%.5f,0.1" % \
                      ("GPS Coordinate", "is within", media["lat"], media["lon"])
-            detailed.append("<a href='../../index.html?search=%s'>GPS %.5f,%.5f</a>" % \
-                            (urllib.parse.quote(search), media["lat"], media["lon"]))
+            items.append("<a href='../../index.html?search=%s'>GPS %.5f,%.5f</a>" % \
+                         (urllib.parse.quote(search), media["lat"], media["lon"]))
 
-        if "large_motion_photo" in media and media["large_motion_photo"] and \
-           media["large_motion_photo"][0]:
-            detailed.append("<a target='_new' href='../../%s'>Motion Photo</a>" %
-                            (media["large_motion_photo"][0]))
+            map_url = "https://www.openstreetmap.org/?mlat=%.5f&mlon=%.5f#map=16/%.5f/%.5f" % \
+                      (media["lat"], media["lon"], media["lat"], media["lon"])
+            items.append("<a href='%s' target='_new'>OpenStreetMap</a>" % (map_url))
 
-        if "rating" in media:
-            detailed.append(("&starf;" * media["rating"]) + ("&star;" * (5 - media["rating"])))
-
-        if not summary:
+        if not items:
             return
 
-        summary = [f"<span class='media_stat'>{x}</span>" for x in summary]
-        detailed = [f"<span class='media_stat'>{x}</span>" for x in detailed]
-        sep = " "
-        output.write(self.__get_expandable_element("meta%s" % (media["media_id"]),
-                                                   sep.join(summary), sep.join(summary + detailed),
-                                                   "media_metadata", "More"))
+        items = [f"<span class='media_stat'>{x}</span>" for x in items]
+        output.write("<span class='media_metadata'>%s</span>" % (" ".join(items)))
 
     def __js_hide_show(self, hide_element, show_element):
         return "document.getElementById('%s').style.display='block'; " % (show_element) + \
