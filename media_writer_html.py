@@ -7,7 +7,6 @@
 import html
 import os
 from collections import Counter
-import urllib.parse
 import humanize
 import common
 from media_writer_common import CommonWriter
@@ -153,13 +152,12 @@ class Html(CommonWriter):
 
         links.reverse()
 
+        if not links:
+            return ""
+
         ret = "<span class='header_links'>"
 
-        ret += self.__get_search_element("Tag ID", tag["id"])
-
-        if not links:
-            ret += "</span>"
-        elif len(links) <= 11:
+        if len(links) <= 11:
             ret += " " + " ".join(links)
             ret += "</span>"
         else:
@@ -278,9 +276,7 @@ class Html(CommonWriter):
             items.append("%sx%s" % (media["width"], media["height"]))
 
         if "camera" in media:
-            items.append("<a href='../../index.html?search=%s'>%s</a>" % \
-                         (urllib.parse.quote("Camera,equals,%s" % (media["camera"])),
-                          media["camera"]))
+            items.append(media["camera"])
 
         if "exif" in media:
             items += media["exif"]
@@ -308,10 +304,7 @@ class Html(CommonWriter):
                          (media["large_motion_photo"][0]))
 
         if "lat" in media:
-            search = "%s,%s,%.5f,%.5f,0.1" % \
-                     ("GPS Coordinate", "is within", media["lat"], media["lon"])
-            items.append("<a href='../../index.html?search=%s'>GPS %.5f,%.5f</a>" % \
-                         (urllib.parse.quote(search), media["lat"], media["lon"]))
+            items.append("GPS %.5f,%.5f</a>" % (media["lat"], media["lon"]))
 
             map_url = "https://www.openstreetmap.org/?mlat=%.5f&mlon=%.5f#map=16/%.5f/%.5f" % \
                       (media["lat"], media["lon"], media["lat"], media["lon"])
@@ -425,12 +418,6 @@ class Html(CommonWriter):
                "<span class='header_link'>Nearby Media</span>" + \
                "</a>"
 
-    def __get_search_element(self, search_field, search_val):
-        search = html.escape("%s,equals,%s" % (search_field, search_val))
-        return "<a href='../../index.html?search=%s'>" % (search) + \
-               "<span class='header_link'>Search</span>" + \
-               "</a>"
-
     def __write_event_index_file(self):
         shown_media = []
         for event in self.all_media["events_by_id"].values():
@@ -470,8 +457,6 @@ class Html(CommonWriter):
 
     def __get_event_extra_links(self, event, all_media_index, all_year_index, years):
         ret = "<span class='header_links'>"
-
-        ret += self.__get_search_element("Event ID", event["id"])
 
         if event["id"] in all_media_index["event"]:
             ret += " "
