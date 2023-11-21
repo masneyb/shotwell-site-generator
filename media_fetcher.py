@@ -73,7 +73,6 @@ class Database:
                     all_media["events_by_year"][year]["comment"] = None
                     all_media["events_by_year"][year]["events"] = []
                     all_media["events_by_year"][year]["stats"] = self.__create_new_stats()
-                    all_media["events_by_year"][year]["tags"] = []
 
                 all_media["events_by_year"][year]["events"].append(event)
                 all_media["events_by_year"][year]["stats"]["num_events"] += 1
@@ -343,7 +342,6 @@ class Database:
             event = self.__get_event(row["id"], all_media)
             event["title"] = row["name"]
             event["comment"] = row["comment"]
-            event["tags"] = []
 
             event["primary_source_id"] = row["primary_source_id"]
             if event["primary_source_id"] in all_media["media_by_id"]:
@@ -436,8 +434,6 @@ class Database:
 
                 all_media["tags"].append(row["id"])
                 all_media["media_by_id"][media["media_id"]]["tags"].add(row["id"])
-                all_media["events_by_year"][media["year"]]["tags"].append(row["id"])
-                all_media["events_by_id"][media["event_id"]]["tags"].append(row["id"])
 
                 self.__add_media_to_stats(tag["stats"], media)
 

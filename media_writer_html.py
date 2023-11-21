@@ -417,8 +417,6 @@ class Html(CommonWriter):
             ret += self.__get_all_media_link(all_media_index["year"][year])
             ret += "</span>"
 
-        ret += self.__get_popular_tag_header_links(self.all_media["events_by_year"][year]["tags"])
-
         return ret
 
     def __get_all_media_link(self, link):
@@ -497,8 +495,6 @@ class Html(CommonWriter):
         else:
             ret += "</span>"
             ret += self.__get_expandable_header_links("Years", year_links)
-
-        ret += self.__get_popular_tag_header_links(event["tags"])
 
         return ret
 
