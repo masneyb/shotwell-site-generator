@@ -175,6 +175,11 @@ function performGenericOp(fieldInfo, media, value, opFunc) {
   return false;
 }
 
+function getCurrentMonthDay() {
+  const today = new Date();
+  return `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+}
+
 const textSearch = {
   ops: [
     {
@@ -283,12 +288,8 @@ const dateSearch = {
             return false;
           }
 
-          const today = new Date();
-          const monthDay = `${String(today.getMonth() + 1).padStart(2, '0')}-${
-            String(today.getDate()).padStart(2, '0')}`;
-
           const compareTo = input.split('T')[0].split('-').slice(1, 3).join('-');
-          return compareTo === monthDay;
+          return compareTo === getCurrentMonthDay();
         });
       },
       numValues: 0,
