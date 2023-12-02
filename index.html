@@ -336,7 +336,7 @@
         const tagParentsEle = document.querySelector('#tag_parents');
         removeAllChildren(tagParentsEle);
 
-        if (searchTag !== null) {
+        if (searchTag != null) {
           let parentTag = searchTag.parent_tag_id;
           let firstChild = true;
           while (parentTag !== null) {
