@@ -59,6 +59,7 @@ function createSearchLink(label, field, op, val, extraOnClick) {
       extraOnClick(event);
     }
     searchPageLinkGenerator(event, [[field, op, val]]);
+    return false;
   };
   anchor.innerText = label;
   return createMediaStat(anchor);

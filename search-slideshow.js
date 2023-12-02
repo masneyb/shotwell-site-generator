@@ -506,6 +506,7 @@ function toggleFullscreenDescription() {
       setFullscreenDescriptionShown(!shown);
     }
   }
+  return false;
 }
 
 function enterSlideshowMode(allMediaIndex) {

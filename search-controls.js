@@ -79,7 +79,7 @@ function searchOpChanged(idx) {
       for (const validValue of field.validValues) {
         select.appendChild(createOptionNode(validValue[0], validValue[1]));
       }
-      select.onchange = () => { updateCritieraIfValuesPopulated(idx); };
+      select.onchange = () => { updateCritieraIfValuesPopulated(idx); return false; };
       values.appendChild(select);
     } else {
       const input = document.createElement('input');
@@ -101,7 +101,7 @@ function searchOpChanged(idx) {
         input.step = op.inputStep[i];
       }
 
-      input.onchange = () => { window.blur(); updateCritieraIfValuesPopulated(idx); };
+      input.onchange = () => { window.blur(); updateCritieraIfValuesPopulated(idx); return false; };
 
       if (i < existingValues.length && existingValues[i][0] === input.type && existingValues[i][1] === input.placeholder) {
         input.value = existingValues[i][2];
@@ -152,6 +152,7 @@ function addSearchInputRow() {
     return function () {
       searchFieldChanged(idx);
       updateCritieraIfValuesPopulated(idx);
+      return false;
     };
   };
   row.querySelector('.search_field').onchange = fieldOnChange(nextSearchInput);
@@ -160,6 +161,7 @@ function addSearchInputRow() {
     return function () {
       searchOpChanged(idx);
       updateCritieraIfValuesPopulated(idx);
+      return false;
     };
   };
   row.querySelector('.search_op').onchange = opOnChange(nextSearchInput);
@@ -169,6 +171,7 @@ function addSearchInputRow() {
       const ele = document.querySelector(`#search_criteria${idx}`);
       ele.remove();
       updateSearchCriteria();
+      return false;
     };
   };
   row.querySelector('.search_delete_row').onclick = delRow(nextSearchInput);

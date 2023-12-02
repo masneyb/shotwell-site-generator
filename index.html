@@ -55,25 +55,25 @@
     <span id="title" class="page_title">Search</span>
     <span class="summary_stats"></span>
     <span class="header_links" style="display: none">
-      <a class="header_link" href="#" onClick="searchPageLinkGenerator(event, [['Date', 'was taken on month/day', getCurrentMonthDay()], ['Type', 'is a', 'media']], 'all', 'large_regular');">Today</a>
-      <a class="header_link" id="toggle_animations" href="#" onClick="toggleAnimations();"></a>
-      <a class="header_link" href="#" onClick="slideshowClicked();">Slideshow</a>
+      <a class="header_link" href="#" onclick="searchPageLinkGenerator(event, [['Date', 'was taken on month/day', getCurrentMonthDay()], ['Type', 'is a', 'media']], 'all', 'large_regular'); return false;">Today</a>
+      <a class="header_link" id="toggle_animations" href="#" onclick="toggleAnimations(); return false;"></a>
+      <a class="header_link" href="#" onclick="slideshowClicked(); return false;">Slideshow</a>
       <a class="header_link" href="#" id="csv_link">CSV</a>
     </span>
     <span id="tag_parents" style="display: none;"></span>
 
     <span class="main_views">
       <span>
-        <a href="#" onclick="searchPageLinkGenerator(event, []);"><span class="main_view">Date</span></a>
+        <a href="#" onclick="searchPageLinkGenerator(event, []); return false;"><span class="main_view">Date</span></a>
       </span>
       <span>
-        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'events']]);"><span id="events_link" class="main_view">Event</span></a>
+        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'events']]); return false;"><span id="events_link" class="main_view">Event</span></a>
       </span>
       <span>
-        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'years']]);"><span id="years_link" class="main_view">Year</span></a>
+        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'years']]); return false;"><span id="years_link" class="main_view">Year</span></a>
       </span>
       <span>
-        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set']]);"><span id="tags_link" class="main_view">Tag</span></a>
+        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set']]); return false;"><span id="tags_link" class="main_view">Tag</span></a>
       </span>
       <span id="extra_header"></span>
     </span>
@@ -81,19 +81,19 @@
     <span id="search_criterias" style="display: none"></span>
 
     <span id="search_controls" style="display: none">
-      <input type="button" onClick="addSearchInputRow();" value="+"></input>
-      <select id="match" onChange="updateSearchCriteria();">
+      <input type="button" onclick="addSearchInputRow(); return false;" value="+"></input>
+      <select id="match" onchange="updateSearchCriteria(); return false;">
         <option value="any">Match Any</option>
         <option value="all">Match All</option>
         <option value="none">Match None</option>
       </select>
-      <select id="group" onChange="updateSearchCriteria();">
+      <select id="group" onchange="updateSearchCriteria(); return false;">
         <option value="none">No grouping</option>
         <option value="day">Group by day</option>
         <option value="month">Group by month</option>
         <option value="year">Group by year</option>
       </select>
-      <select id="sort" onChange="updateSearchCriteria();">
+      <select id="sort" onchange="updateSearchCriteria(); return false;">
         <option value="default">Default Sort</option>
         <option value="takenZA">Sort taken Z-A</option>
         <option value="takenAZ">Sort taken A-Z</option>
@@ -101,7 +101,7 @@
         <option value="createdAZ">Sort added A-Z</option>
         <option value="random">Sort random</option>
       </select>
-      <select id="icons" onChange="updateSearchCriteria();">
+      <select id="icons" onchange="updateSearchCriteria(); return false;">
         <option value="default">Default Icons</option>
         <option value="small">Small Icons</option>
         <option value="medium">Medium Icons</option>
@@ -116,7 +116,7 @@
         <option value="regular_no_meta">Regular Icons (No Metadata)</option>
         <option value="large_regular">Large/Regular Icons</option>
       </select>
-      <input class="button" type="button" onClick="clearSearchCriteria();" value="Clear"></input>
+      <input class="button" type="button" onclick="clearSearchCriteria(); return false;" value="Clear"></input>
     </span>
 
     <div id="all_media"><div class='status'>Loading</div></div>
@@ -130,7 +130,7 @@
 
     <div id="fullimage_background" style="display: none;"></div>
     <div id="fullimage_container" style="display: none;">
-      <a id="close" href="#" onclick="exitImageFullscreen(event);">&times;</a>
+      <a id="close" href="#" onclick="exitImageFullscreen(event); return false;">&times;</a>
       <div id="fullmedia_container">
         <img id="fullimage"></img>
         <video id="fullvideo" width="100%" height="100%" autoplay="true" loop="false" controls></video>
@@ -353,7 +353,7 @@
             const anchor = document.createElement('a');
             anchor.innerText = tag.title;
             anchor.href = '#';
-            anchor.onclick = (event) => { searchPageLinkGenerator(event, [['Tag ID', 'equals', tag.id]]); };
+            anchor.onclick = (event) => { searchPageLinkGenerator(event, [['Tag ID', 'equals', tag.id]]); return false; };
             span.appendChild(anchor);
 
             tagParentsEle.appendChild(span);
@@ -610,15 +610,15 @@
             }
           }
 
-          anchor.onclick = (event) => { searchPageLinkGenerator(event, search); };
+          anchor.onclick = (event) => { searchPageLinkGenerator(event, search); return false; };
         } else if (media.type === 'years') {
           anchor.href = '#';
           const search = [['Year', 'equals', media.id]];
-          anchor.onclick = (event) => { searchPageLinkGenerator(event, search); };
+          anchor.onclick = (event) => { searchPageLinkGenerator(event, search); return false; };
         } else if (media.type === 'tags') {
           anchor.href = '#';
           const search = [['Tag ID', 'equals', media.id]];
-          anchor.onclick = (event) => { searchPageLinkGenerator(event, search); };
+          anchor.onclick = (event) => { searchPageLinkGenerator(event, search); return false; };
         } else {
           anchor.href = '#';
           anchor.onclick = (event) => {
@@ -893,7 +893,7 @@
             ele.style.display = 'block';
           }
 
-          document.querySelector('#csv_link').onclick = (event) => { downloadCsv(event); };
+          document.querySelector('#csv_link').onclick = (event) => { downloadCsv(event); return false; };
 
           const summaryStatsEle = document.querySelector('.summary_stats');
           removeAllChildren(summaryStatsEle);
