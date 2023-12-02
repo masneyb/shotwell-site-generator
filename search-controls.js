@@ -91,6 +91,15 @@ function searchOpChanged(idx) {
       const size = 'inputSize' in op ? op.inputSize[i] : 6;
       input.style.width = `${size}em`;
       input.placeholder = 'placeholder' in op && op.placeholder[i] != null ? op.placeholder[i] : '';
+      if ('inputMin' in op && op.inputMin[i] != null) {
+        input.min = op.inputMin[i];
+      }
+      if ('inputMax' in op && op.inputMax[i] != null) {
+        input.max = op.inputMax[i];
+      }
+      if ('inputStep' in op && op.inputStep[i] != null) {
+        input.step = op.inputStep[i];
+      }
 
       input.onchange = () => { window.blur(); updateCritieraIfValuesPopulated(idx); };
 

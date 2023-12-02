@@ -408,7 +408,7 @@ const mediaTypeSearch = {
   ],
 };
 
-function createNumberSearch(placeholderText, showGtLt, showIsSet) {
+function createNumberSearch(placeholderText, showGtLt, showIsSet, inputMin, inputMax, inputStep) {
   const ops = [];
 
   if (showGtLt) {
@@ -420,6 +420,9 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
       placeholder: [placeholderText],
       numValues: 1,
       inputType: ['number'],
+      inputMin: [inputMin],
+      inputMax: [inputMax],
+      inputStep: [inputStep],
       inputSize: [5],
     });
 
@@ -431,6 +434,9 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
       placeholder: [placeholderText],
       numValues: 1,
       inputType: ['number'],
+      inputMin: [inputMin],
+      inputMax: [inputMax],
+      inputStep: [inputStep],
       inputSize: [5],
     });
   }
@@ -444,6 +450,9 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
     placeholder: [placeholderText],
     numValues: 1,
     inputType: ['number'],
+    inputMin: [inputMin],
+    inputMax: [inputMax],
+    inputStep: [inputStep],
     inputSize: [5],
   });
 
@@ -456,6 +465,9 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
     placeholder: [placeholderText],
     numValues: 1,
     inputType: ['number'],
+    inputMin: [inputMin],
+    inputMax: [inputMax],
+    inputStep: [inputStep],
     inputSize: [5],
   });
 
@@ -478,6 +490,14 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet) {
   }
 
   return { ops };
+}
+
+function createIntegerSearch(placeholderText, showGtLt, showIsSet, inputMin, inputMax) {
+  return createNumberSearch(placeholderText, showGtLt, showIsSet, inputMin, inputMax, 1);
+}
+
+function createDecimalSearch(placeholderText, showGtLt, showIsSet, inputMin, inputMax) {
+  return createNumberSearch(placeholderText, showGtLt, showIsSet, inputMin, inputMax, 0.1);
 }
 
 function gpsIsWithin(field, op, values, media) {
@@ -578,7 +598,7 @@ const searchFields = [
   },
   {
     title: 'Event ID',
-    search: createNumberSearch(null, false, false),
+    search: createIntegerSearch(null, false, false, 0, null),
     searchFields: ['event_id'],
   },
   {
@@ -598,7 +618,7 @@ const searchFields = [
   },
   {
     title: 'File Size',
-    search: createNumberSearch('bytes', true, false),
+    search: createDecimalSearch('bytes', true, false, 0, null),
     searchFields: ['filesize'],
   },
   {
@@ -608,23 +628,23 @@ const searchFields = [
   },
   {
     title: 'Height',
-    search: createNumberSearch('pixels', true, false),
+    search: createIntegerSearch('pixels', true, false, 0, null),
     searchFields: ['height'],
   },
   {
     title: 'Megapixels',
-    search: createNumberSearch(null, true, false),
+    search: createDecimalSearch(null, true, false, 0, null),
     searchFields: ['megapixels'],
   },
   {
     title: 'Rating',
-    search: createNumberSearch(null, true, false),
+    search: createIntegerSearch(null, true, false, 0, 5),
     searchFields: ['rating'],
     validValues: [['Unrated', '0'], ['★', '1'], ['★★', '2'], ['★★★', '3'], ['★★★★', '4'], ['★★★★★', '5']],
   },
   {
     title: 'Tag ID',
-    search: createNumberSearch(null, false, false),
+    search: createIntegerSearch(null, false, false, 0, null),
     searchFields: ['tag_id'],
   },
   {
@@ -634,7 +654,7 @@ const searchFields = [
   },
   {
     title: 'Tag Parent ID',
-    search: createNumberSearch(null, false, true),
+    search: createIntegerSearch(null, false, true, 0, null),
     searchFields: ['parent_tag_id'],
   },
   {
@@ -644,12 +664,12 @@ const searchFields = [
   },
   {
     title: 'Total Photos',
-    search: createNumberSearch(null, true, false),
+    search: createIntegerSearch(null, true, false, 0, null),
     searchFields: ['num_photos'],
   },
   {
     title: 'Total Videos',
-    search: createNumberSearch(null, true, false),
+    search: createIntegerSearch(null, true, false, 0, null),
     searchFields: ['num_videos'],
   },
   {
@@ -664,22 +684,22 @@ const searchFields = [
   },
   {
     title: 'Video Length',
-    search: createNumberSearch('secs', true, false),
+    search: createDecimalSearch('secs', true, false, 0, null),
     searchFields: ['clip_duration_secs'],
   },
   {
     title: 'Width',
-    search: createNumberSearch('pixels', true, false),
+    search: createIntegerSearch('pixels', true, false, 0, null),
     searchFields: ['width'],
   },
   {
     title: 'W/H Ratio',
-    search: createNumberSearch(null, true, false),
+    search: createDecimalSearch(null, true, false, 0, null),
     searchFields: ['photo_ratio'],
   },
   {
     title: 'Year',
-    search: createNumberSearch(null, true, false),
+    search: createIntegerSearch(null, true, false, 1800, null),
     searchFields: ['year'],
   },
 ];
