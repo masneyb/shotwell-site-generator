@@ -43,7 +43,7 @@ function updateSearchCriteria() {
 function updateCritieraIfValuesPopulated(idx) {
   const searchEles = document.querySelector(`#search_criteria${idx}`);
   for (const child of searchEles.querySelector('.search_values').children) {
-    if (child.value === '') {
+    if (child.value === '' || !child.checkValidity()) {
       return;
     }
   }
