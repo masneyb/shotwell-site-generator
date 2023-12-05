@@ -264,6 +264,7 @@ const dateSearch = {
         return performGenericOp(field, media, values[0], (input, value) => input != null && input.startsWith(value));
       },
       placeholder: ['yyyy-MM-dd'],
+      inputPattern: ['[0-9]{4}-[0-9]{2}-[0-9]{2}'],
       numValues: 1,
     },
     {
@@ -279,6 +280,7 @@ const dateSearch = {
         });
       },
       placeholder: ['MM-dd'],
+      inputPattern: ['[0-9]{2}-[0-9]{2}'],
       numValues: 1,
     },
     {
@@ -338,6 +340,7 @@ const dateSearch = {
         return performGenericOp(field, media, values[0], (input, value) => input != null && input < value);
       },
       placeholder: ['yyyy-MM-dd'],
+      inputPattern: ['[0-9]{4}-[0-9]{2}-[0-9]{2}'],
       numValues: 1,
     },
     {
@@ -346,6 +349,7 @@ const dateSearch = {
         return performGenericOp(field, media, values[0], (input, value) => input != null && input > value);
       },
       placeholder: ['yyyy-MM-dd'],
+      inputPattern: ['[0-9]{4}-[0-9]{2}-[0-9]{2}'],
       numValues: 1,
     },
     {
@@ -354,6 +358,7 @@ const dateSearch = {
         return performGenericOp(field, media, values, (input, value) => input != null && input >= value[0] && input <= value[1]);
       },
       placeholder: ['yyyy-MM-dd', 'yyyy-MM-dd'],
+      inputPattern: ['[0-9]{4}-[0-9]{2}-[0-9]{2}', '[0-9]{4}-[0-9]{2}-[0-9]{2}'],
       numValues: 2,
     },
     {

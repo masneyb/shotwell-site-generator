@@ -100,6 +100,9 @@ function searchOpChanged(idx) {
       if ('inputStep' in op && op.inputStep[i] != null) {
         input.step = op.inputStep[i];
       }
+      if ('inputPattern' in op && op.inputPattern[i] != null) {
+        input.pattern = op.inputPattern[i];
+      }
 
       input.onchange = () => { window.blur(); updateCritieraIfValuesPopulated(idx); return false; };
 
