@@ -310,6 +310,9 @@ class Html(CommonWriter):
                       (media["lat"], media["lon"], media["lat"], media["lon"])
             items.append("<a href='%s' target='_new'>OpenStreetMap</a>" % (map_url))
 
+            map_url = "https://www.google.com/maps?q=%.5f%%2C%.5f" % (media["lat"], media["lon"])
+            items.append("<a href='%s' target='_new'>Google Maps</a>" % (map_url))
+
         if not items:
             return
 
