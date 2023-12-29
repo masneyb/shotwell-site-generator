@@ -151,7 +151,7 @@ function createMediaStatsHtml(entity, eventNames, tags, onSlideshowPage, showBri
     extStats.push(createMediaStat(mapAnchor));
   }
 
-  if (entity.type === 'video' || entity.type === 'photo') {
+  if (['photo', 'motion_photo', 'video'].indexOf(entity.type) >= -1) {
     extStats.push(createOpenInNewTabLink('Download', entity.link));
   }
 
@@ -219,7 +219,7 @@ function getPreviousImageIndex() {
 }
 
 function getFullscreenImageUrl(index) {
-  if (allMedia[index].type === 'photo' || allMedia[index].type === 'video') {
+  if (['photo', 'motion_photo', 'video'].indexOf(allMedia[index].type) > -1) {
     return allMedia[index].link;
   }
 

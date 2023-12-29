@@ -638,7 +638,7 @@
       }
 
       function showLargerMedia(media) {
-        return media.rating === 5 || (media.type !== 'photo' && media.type !== 'video');
+        return media.rating === 5 || (['photo', 'motion_photo', 'video'].indexOf(media.type) === -1);
       }
 
       function getMediaIconSize(media) {
