@@ -290,6 +290,8 @@ class Thumbnailer:
         # Support the two types of Motion Photos from the Pixel phones:
         # v1 (MVIMG_*) and v2 (PXL_*.MP.jpg)
         mp_tags = [("Xmp.GCamera.MicroVideo", "1", "Xmp.GCamera.MicroVideoOffset"),
+                   ("Xmp.Container.Directory[3]/Container:Item/Item:Semantic", "MotionPhoto",
+                    "Xmp.Container.Directory[3]/Container:Item/Item:Length"),
                    ("Xmp.Container.Directory[2]/Container:Item/Item:Semantic", "MotionPhoto",
                     "Xmp.Container.Directory[2]/Container:Item/Item:Length"),
                    ("Xmp.Container_1_.Directory[2]/Container_1_:Item/Item_1_:Semantic",
