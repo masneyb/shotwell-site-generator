@@ -259,7 +259,7 @@ const textSearch = {
 const dateSearch = {
   ops: [
     {
-      descr: 'was taken on day',
+      descr: 'was taken on date',
       matches(field, op, values, media) {
         return performGenericOp(field, media, values[0], (input, value) => input != null && input.startsWith(value));
       },
