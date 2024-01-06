@@ -284,6 +284,22 @@ const dateSearch = {
       numValues: 1,
     },
     {
+      descr: 'was taken on month',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, null, (input, value) => {
+          if (input == null) {
+            return false;
+          }
+
+          const compareTo = input.split('T')[0].split('-').slice(1, 2).join('-');
+          return compareTo === values[0];
+        });
+      },
+      placeholder: ['MM'],
+      inputPattern: ['[0-9]{2}'],
+      numValues: 1,
+    },
+    {
       descr: 'was taken on this day',
       matches(field, op, values, media) {
         return performGenericOp(field, media, null, (input, value) => {
