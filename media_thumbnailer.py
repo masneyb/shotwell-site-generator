@@ -567,7 +567,7 @@ class Thumbnailer:
             return short_path
 
         cmd = [self.ffprobe_command, "-v", "quiet", "-print_format", "json", "-show_streams",
-               video_filename]
+               "-show_entries", "stream_tags:format_tags", video_filename]
 
         logging.debug("Executing %s", cmd)
         ret = subprocess.run(cmd, check=False, capture_output=True)
