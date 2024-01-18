@@ -107,8 +107,8 @@ class Json(CommonWriter):
             item["motion_photo"]["reg_gif"] = media["reg_motion_photo"][1]
 
         if "lat" in media:
-            item["lat"] = float("%.5f" % (media["lat"]))
-            item["lon"] = float("%.5f" % (media["lon"]))
+            item["lat"] = float("%.6f" % (media["lat"]))
+            item["lon"] = float("%.6f" % (media["lon"]))
 
         return item
 

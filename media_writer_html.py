@@ -307,13 +307,13 @@ class Html(CommonWriter):
                          (media["large_motion_photo"][0]))
 
         if "lat" in media:
-            items.append("GPS %.5f,%.5f</a>" % (media["lat"], media["lon"]))
+            items.append("GPS %.6f,%.6f</a>" % (media["lat"], media["lon"]))
 
-            map_url = "https://www.openstreetmap.org/?mlat=%.5f&mlon=%.5f#map=16/%.5f/%.5f" % \
+            map_url = "https://www.openstreetmap.org/?mlat=%.6f&mlon=%.6f#map=16/%.6f/%.6f" % \
                       (media["lat"], media["lon"], media["lat"], media["lon"])
             items.append("<a href='%s' target='_new'>OpenStreetMap</a>" % (map_url))
 
-            map_url = "https://www.google.com/maps?q=%.5f%%2C%.5f" % (media["lat"], media["lon"])
+            map_url = "https://www.google.com/maps?q=%.6f%%2C%.6f" % (media["lat"], media["lon"])
             items.append("<a href='%s' target='_new'>Google Maps</a>" % (map_url))
 
         if not items:
