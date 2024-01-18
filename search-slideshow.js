@@ -93,6 +93,10 @@ function createMediaStatsHtml(entity, eventNames, tags, onSlideshowPage, showBri
     extStats.push(createTextMediaStat(entity.clip_duration));
   }
 
+  if (entity.fps) {
+     extStats.push(createTextMediaStat(`${entity.fps} FPS`));
+  }
+
   if ('camera' in entity) {
     extStats.push(createSearchLink(entity.camera, 'Camera', 'equals', entity.camera, extraOnClick));
   }

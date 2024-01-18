@@ -60,7 +60,7 @@ class Json(CommonWriter):
 
     def __create_media_element(self, media):
         item = self.__copy_fields(["title", "comment", "event_id", "rating", "filesize",
-                                   "camera", "exif", "width", "height", "id"], media)
+                                   "fps", "camera", "exif", "width", "height", "id"], media)
         item["artifact_filesize"] = media["all_artifacts_size"]
 
         if "width" in media:

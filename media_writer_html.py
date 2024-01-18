@@ -272,6 +272,9 @@ class Html(CommonWriter):
         if "clip_duration" in media:
             items.append(humanize.naturaldelta(int(media["clip_duration"])))
 
+        if "fps" in media:
+            items.append("%s FPS" % (media["fps"]))
+
         if "width" in media and media["width"]:
             items.append("%sx%s" % (media["width"], media["height"]))
 

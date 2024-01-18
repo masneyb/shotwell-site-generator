@@ -644,6 +644,11 @@ const searchFields = [
     searchFields: ['filesize'],
   },
   {
+    title: 'FPS',
+    search: createIntegerSearch('fps', true, false, 0, null),
+    searchFields: ['fps'],
+  },
+  {
     title: 'GPS Coordinate',
     search: gpsSearch,
     searchFields: ['lat'],

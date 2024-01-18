@@ -8,6 +8,7 @@ import csv
 import datetime
 import logging
 import os
+import re
 import pyexiv2
 from PIL import Image
 from common import add_date_to_stats, cleanup_event_title, get_dir_hash
@@ -212,12 +213,13 @@ class Database:
                                                                             None, None, None,
                                                                             ThumbnailType.MEDIUM_SQ)
                 video = self.__transform_video(row["filename"])
-                video_json = self.thumbnailer.write_video_json(video, media_id)
+                (video_json, video_metadata) = self.thumbnailer.write_video_json(video, media_id)
                 media = self.__add_media(all_media, row, media_id, video, 0,
                                          self.icons.play, self.icons.play, self.icons.play_small,
                                          self.icons.play_medium, reg_short_mp_path,
                                          large_short_mp_path, small_short_mp_path,
                                          medium_short_mp_path, video_json, None, None)
+                media.update(self.__parse_video_format_tags(video_metadata))
                 media["clip_duration"] = row["clip_duration"]
 
     def __parse_orientation(self, orientation):
@@ -674,6 +676,56 @@ class Database:
 
         return ret
 
+    def __parse_camera_make_model(self, make, model):
+        if not make:
+            camera = model
+        elif not model:
+            camera = make
+        elif model.startswith(make):
+            camera = model
+        else:
+            camera = "%s %s" % (make, model)
+
+        if not camera:
+            return None
+        if camera in self.camera_transformations:
+            return self.camera_transformations[camera]
+        return camera
+
+    def __convert_lat_lon_strings(self, sign, num):
+        return float(num) * -1 if sign == '-' else float(num)
+
+    def __parse_video_format_tags(self, format_tags):
+        ret = {}
+
+        if "com.android.manufacturer" in format_tags:
+            camera_make = format_tags["com.android.manufacturer"]
+        elif "make" in format_tags:
+            camera_make = format_tags["make"]
+        else:
+            camera_make = None
+
+        if "com.android.model" in format_tags:
+            camera_model = format_tags["com.android.model"]
+        elif "model" in format_tags:
+            camera_model = format_tags["model"]
+        else:
+            camera_model = None
+
+        camera = self.__parse_camera_make_model(camera_make, camera_model)
+        if camera:
+            ret["camera"] = camera
+
+        if "com.android.capture.fps" in format_tags:
+            ret["fps"] = int(format_tags["com.android.capture.fps"].split(".")[0])
+
+        if "location" in format_tags:
+            parts = re.split(r'([-+])', format_tags["location"].split("/")[0])
+            ret["lat"] = self.__convert_lat_lon_strings(parts[1], parts[2])
+            ret["lon"] = self.__convert_lat_lon_strings(parts[3], parts[4])
+
+        return ret
+
     def __parse_photo_exiv2_metadata(self, exiv2_metadata):
         # pylint: disable=too-many-branches
         ret = {}
@@ -711,17 +763,9 @@ class Database:
         if "Exif.Image.Make" in exiv2_metadata:
             camera_make = exiv2_metadata["Exif.Image.Make"].value.strip()
             camera_model = exiv2_metadata["Exif.Image.Model"].value.strip()
-
-            if camera_make:
-                if camera_model.startswith(camera_make):
-                    camera = camera_model
-                else:
-                    camera = "%s %s" % (camera_make, camera_model)
-
-                if camera in self.camera_transformations:
-                    ret["camera"] = self.camera_transformations[camera]
-                else:
-                    ret["camera"] = camera
+            camera = self.__parse_camera_make_model(camera_make, camera_model)
+            if camera:
+                ret["camera"] = camera
 
         return ret
 

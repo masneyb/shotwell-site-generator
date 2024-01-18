@@ -3,6 +3,7 @@
 # Copyright (C) 2020-2022 Brian Masney <masneyb@onstation.org>
 
 import enum
+import json
 import logging
 import os
 import pathlib
@@ -557,6 +558,12 @@ class Thumbnailer:
 
         return (short_path, self._read_exif_txt(decoded_text.split('\n')))
 
+    def __read_video_json_format_tags(self, tags):
+        if "format" not in tags or "tags" not in tags["format"]:
+            return {}
+
+        return tags["format"]["tags"]
+
     def write_video_json(self, video_filename, media_id):
         (metadata_filename, short_path) = self.__get_hashed_file_path(self.metadata_directory,
                                                                       media_id, "json")
@@ -564,7 +571,8 @@ class Thumbnailer:
         self.generated_artifacts.add(metadata_filename)
 
         if self.skip_metadata_text_if_exists and os.path.exists(metadata_filename):
-            return short_path
+            with open(metadata_filename, "r", encoding="UTF-8") as infile:
+                return (short_path, self.__read_video_json_format_tags(json.load(infile)))
 
         cmd = [self.ffprobe_command, "-v", "quiet", "-print_format", "json", "-show_streams",
                "-show_entries", "stream_tags:format_tags", video_filename]
@@ -578,7 +586,7 @@ class Thumbnailer:
         with open(metadata_filename, "w", encoding="UTF-8") as file:
             file.write(decoded_text)
 
-        return short_path
+        return (short_path, self.__read_video_json_format_tags(json.loads(decoded_text)))
 
     def __get_hashed_file_path(self, dest_directory, media_id, file_ext):
         dirhash = common.get_dir_hash(media_id)
