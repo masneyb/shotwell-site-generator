@@ -645,7 +645,7 @@ const searchFields = [
   },
   {
     title: 'FPS',
-    search: createIntegerSearch('fps', true, false, 0, null),
+    search: createIntegerSearch('fps', true, true, 0, null),
     searchFields: ['fps'],
   },
   {
