@@ -133,3 +133,12 @@ class CommonWriter:
                 config["event"][media["media"]["event_id"]] = {"page": page_number}
 
             config["media"][media["media"]["media_id"]] = {"page": page_number}
+
+    def _get_media_type(self, media):
+        if media["media_id"].startswith("thumb"):
+            if "large_motion_photo" in media and media["large_motion_photo"]:
+                return "motion_photo"
+
+            return "photo"
+
+        return "video"

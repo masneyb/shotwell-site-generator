@@ -263,9 +263,6 @@ class Html(CommonWriter):
         if "exposure_time" in media and media["exposure_time"] != 0:
             items.append(self._get_date_string(self._get_date_parts(media["exposure_time"]), True))
 
-        if "width" in media and media["width"]:
-            items.append("%.1fMP" % ((media["width"] * media["height"]) / (1000 * 1000)))
-
         if "filesize" in media and media["filesize"] > 0:
             items.append(humanize.naturalsize(media["filesize"], binary=True).replace(" ", ""))
 
@@ -274,6 +271,9 @@ class Html(CommonWriter):
 
         if "fps" in media:
             items.append("%s FPS" % (media["fps"]))
+
+        if "width" in media and media["width"] and self._get_media_type(media) != "video":
+            items.append("%.1fMP" % ((media["width"] * media["height"]) / (1000 * 1000)))
 
         if "width" in media and media["width"]:
             items.append("%sx%s" % (media["width"], media["height"]))

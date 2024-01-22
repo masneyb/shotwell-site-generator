@@ -63,7 +63,9 @@ class Json(CommonWriter):
                                    "fps", "camera", "exif", "width", "height", "id"], media)
         item["artifact_filesize"] = media["all_artifacts_size"]
 
-        if "width" in media:
+        item["type"] = self._get_media_type(media)
+
+        if "width" in media and item["type"] != "video":
             item["megapixels"] = float("%.1f" % \
                                        ((media["width"] * media["height"]) / (1000 * 1000)))
 
@@ -90,8 +92,6 @@ class Json(CommonWriter):
         item["tags"] = []
         for tag_id, _ in self._cleanup_tags(media["tags"]):
             item["tags"].append(tag_id)
-
-        item["type"] = self.__get_media_type(media)
 
         if "metadata_text" in media and media["metadata_text"]:
             item["metadata_text"] = media["metadata_text"]
@@ -133,15 +133,6 @@ class Json(CommonWriter):
             ret["years"].append(year_block)
 
         return ret
-
-    def __get_media_type(self, media):
-        if media["media_id"].startswith("thumb"):
-            if "large_motion_photo" in media and media["large_motion_photo"]:
-                return "motion_photo"
-
-            return "photo"
-
-        return "video"
 
     def __get_tags(self):
         shown_tags = []

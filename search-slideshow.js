@@ -72,20 +72,10 @@ function createMediaStatsHtml(entity, eventNames, tags, onSlideshowPage, showBri
     extStats.push(createTextMediaStat(entity.date_range));
   }
 
-  if (entity.megapixels) {
-    const val = `${entity.megapixels}MP`;
-    stats.push(createTextMediaStat(val));
-    extStats.push(createTextMediaStat(val));
-  }
-
   if (entity.filesize) {
     const val = getPrettyFileSize(entity.filesize);
     stats.push(createTextMediaStat(val));
     extStats.push(createTextMediaStat(val));
-  }
-
-  if (entity.width) {
-    extStats.push(createTextMediaStat(`${entity.width}x${entity.height}`));
   }
 
   if (entity.clip_duration) {
@@ -94,7 +84,17 @@ function createMediaStatsHtml(entity, eventNames, tags, onSlideshowPage, showBri
   }
 
   if (entity.fps) {
-     extStats.push(createTextMediaStat(`${entity.fps} FPS`));
+    extStats.push(createTextMediaStat(`${entity.fps} FPS`));
+  }
+
+  if (entity.megapixels) {
+    const val = `${entity.megapixels}MP`;
+    stats.push(createTextMediaStat(val));
+    extStats.push(createTextMediaStat(val));
+  }
+
+  if (entity.width) {
+    extStats.push(createTextMediaStat(`${entity.width}x${entity.height}`));
   }
 
   if ('camera' in entity) {

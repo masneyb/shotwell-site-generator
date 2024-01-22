@@ -219,7 +219,7 @@ class Database:
                                          self.icons.play_medium, reg_short_mp_path,
                                          large_short_mp_path, small_short_mp_path,
                                          medium_short_mp_path, video_json, None, None)
-                media.update(self.__parse_video_format_tags(video_metadata))
+                media.update(self.__parse_video_tags(video_metadata))
                 media["clip_duration"] = row["clip_duration"]
 
     def __parse_orientation(self, orientation):
@@ -695,20 +695,32 @@ class Database:
     def __convert_lat_lon_strings(self, sign, num):
         return float(num) * -1 if sign == '-' else float(num)
 
-    def __parse_video_format_tags(self, format_tags):
+    def __parse_video_location(self, location):
+        ret = {}
+        parts = re.split(r'([-+])', location.split("/")[0])
+        ret["lat"] = self.__convert_lat_lon_strings(parts[1], parts[2])
+        ret["lon"] = self.__convert_lat_lon_strings(parts[3], parts[4])
+
+        return ret
+
+    def __parse_video_tags(self, tags):
         ret = {}
 
-        if "com.android.manufacturer" in format_tags:
-            camera_make = format_tags["com.android.manufacturer"]
-        elif "make" in format_tags:
-            camera_make = format_tags["make"]
+        if "com.android.manufacturer" in tags:
+            camera_make = tags["com.android.manufacturer"]
+        if "com.apple.quicktime.make" in tags:
+            camera_make = tags["com.apple.quicktime.make"]
+        elif "make" in tags:
+            camera_make = tags["make"]
         else:
             camera_make = None
 
-        if "com.android.model" in format_tags:
-            camera_model = format_tags["com.android.model"]
-        elif "model" in format_tags:
-            camera_model = format_tags["model"]
+        if "com.android.model" in tags:
+            camera_model = tags["com.android.model"]
+        elif "com.apple.quicktime.model" in tags:
+            camera_model = tags["com.apple.quicktime.model"]
+        elif "model" in tags:
+            camera_model = tags["model"]
         else:
             camera_model = None
 
@@ -716,13 +728,17 @@ class Database:
         if camera:
             ret["camera"] = camera
 
-        if "com.android.capture.fps" in format_tags:
-            ret["fps"] = int(format_tags["com.android.capture.fps"].split(".")[0])
+        if "com.android.capture.fps" in tags:
+            ret["fps"] = int(tags["com.android.capture.fps"].split(".")[0])
 
-        if "location" in format_tags:
-            parts = re.split(r'([-+])', format_tags["location"].split("/")[0])
-            ret["lat"] = self.__convert_lat_lon_strings(parts[1], parts[2])
-            ret["lon"] = self.__convert_lat_lon_strings(parts[3], parts[4])
+        if "location" in tags:
+            ret.update(self.__parse_video_location(tags["location"]))
+        elif "com.apple.quicktime.location.ISO6709" in tags:
+            ret.update(self.__parse_video_location(tags["com.apple.quicktime.location.ISO6709"]))
+
+        if "width" in tags:
+            ret["width"] = tags["width"]
+            ret["height"] = tags["height"]
 
         return ret
 

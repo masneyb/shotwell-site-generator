@@ -558,11 +558,20 @@ class Thumbnailer:
 
         return (short_path, self._read_exif_txt(decoded_text.split('\n')))
 
-    def __read_video_json_format_tags(self, tags):
-        if "format" not in tags or "tags" not in tags["format"]:
-            return {}
+    def __read_video_metadata(self, tags):
+        ret = {}
 
-        return tags["format"]["tags"]
+        if "streams" in tags:
+            for stream in tags["streams"]:
+                if "width" in stream and "height" in stream:
+                    ret["width"] = stream["width"]
+                    ret["height"] = stream["height"]
+                    break
+
+        if "format" in tags and "tags" in tags["format"]:
+            ret.update(tags["format"]["tags"])
+
+        return ret
 
     def write_video_json(self, video_filename, media_id):
         (metadata_filename, short_path) = self.__get_hashed_file_path(self.metadata_directory,
@@ -572,7 +581,7 @@ class Thumbnailer:
 
         if self.skip_metadata_text_if_exists and os.path.exists(metadata_filename):
             with open(metadata_filename, "r", encoding="UTF-8") as infile:
-                return (short_path, self.__read_video_json_format_tags(json.load(infile)))
+                return (short_path, self.__read_video_metadata(json.load(infile)))
 
         cmd = [self.ffprobe_command, "-v", "quiet", "-print_format", "json", "-show_streams",
                "-show_entries", "stream_tags:format_tags", video_filename]
@@ -586,7 +595,7 @@ class Thumbnailer:
         with open(metadata_filename, "w", encoding="UTF-8") as file:
             file.write(decoded_text)
 
-        return (short_path, self.__read_video_json_format_tags(json.loads(decoded_text)))
+        return (short_path, self.__read_video_metadata(json.loads(decoded_text)))
 
     def __get_hashed_file_path(self, dest_directory, media_id, file_ext):
         dirhash = common.get_dir_hash(media_id)
