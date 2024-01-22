@@ -187,8 +187,9 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--ffprobe-command", default="ffprobe")
     ARGPARSER.add_argument("--video-convert-command",
                            help="Standardize all videos to a common format. Example: ffmpeg " + \
-                                "-y -hide_banner -loglevel warning -i {infile} -c:v libx264 " + \
-                                "-preset slow -pix_fmt yuv420p -c:a aac -b:a 128k {outfile}")
+                                "-y -hide_banner -loglevel warning -i {infile} -map_metadata 0 " + \
+                                "-c:v libx264 -preset slow -pix_fmt yuv420p -c:a aac -b:a 128k " + \
+                                "-movflags use_metadata_tags {outfile}")
     ARGPARSER.add_argument("--video-convert-ext", help="example: mp4")
     ARGPARSER.add_argument("--exiv2-command", default="exiv2")
     ARGPARSER.add_argument("--skip-metadata-text-if-exists", action="store_true", default=False)
