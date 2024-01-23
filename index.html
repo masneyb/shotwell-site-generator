@@ -499,7 +499,6 @@
           }
 
           if (this.unprocessedItems.length === 3) {
-            this.dualWriter.flush();
             this.dualWriter.add(createMediaSmallContainer(this.unprocessedItems.slice(0, 2), this.dualWriter.hasPreviousGroup, this.smallIconSize), this.mediumIconSize);
             this.dualWriter.add(createMediaSmallContainer(this.unprocessedItems.slice(2), this.dualWriter.hasPreviousGroup, this.smallIconSize), this.mediumIconSize);
           } else {
