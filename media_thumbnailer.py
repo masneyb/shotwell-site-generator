@@ -563,6 +563,9 @@ class Thumbnailer:
 
         if "streams" in tags:
             for stream in tags["streams"]:
+                if "avg_frame_rate" in stream:
+                    ret["fps"] = stream["avg_frame_rate"].split("/")[0]
+
                 if "width" in stream and "height" in stream:
                     ret["width"] = stream["width"]
                     ret["height"] = stream["height"]

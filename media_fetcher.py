@@ -725,6 +725,8 @@ class Database:
 
         if "com.android.capture.fps" in tags:
             ret["fps"] = int(tags["com.android.capture.fps"].split(".")[0])
+        elif "fps" in tags:
+            ret["fps"] = tags["fps"]
 
         if "location" in tags:
             ret.update(self.__parse_video_location(tags["location"]))
