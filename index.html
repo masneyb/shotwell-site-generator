@@ -640,6 +640,11 @@
         return media.rating === 5 || (['photo', 'motion_photo', 'video'].indexOf(media.type) === -1);
       }
 
+      function addExtraFlush(media) {
+        return (['photo', 'motion_photo', 'video'].indexOf(media.type) === -1) &&
+               (['small_medium', 'medium_large', 'small_medium_large'].indexOf(preferredPageIconSize) !== -1);
+      }
+
       function getMediaIconSize(media) {
         if (preferredPageIconSize === 'small_medium') {
           return showLargerMedia(media) ? 'medium' : 'small';
@@ -843,6 +848,14 @@
             mediaWriter.currentGroupEle.appendChild(titleEle);
 
             allMediaEle.appendChild(mediaWriter.currentGroupEle);
+          }
+
+          /*
+           * When showing mixed icon sizes, the event icon will show up at the end with larger text.
+           * Add a flush to be sure it always shows up at the end as expected.
+           */
+          if (addExtraFlush(media)) {
+            mediaWriter.flush();
           }
 
           const mediaIconSize = getMediaIconSize(media);
