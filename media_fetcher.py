@@ -706,23 +706,18 @@ class Database:
     def __parse_video_tags(self, tags):
         ret = {}
 
-        if "com.android.manufacturer" in tags:
-            camera_make = tags["com.android.manufacturer"]
-        if "com.apple.quicktime.make" in tags:
-            camera_make = tags["com.apple.quicktime.make"]
-        elif "make" in tags:
-            camera_make = tags["make"]
-        else:
-            camera_make = None
+        camera_make = None
+        for tag in ["com.android.manufacturer", "com.apple.quicktime.make", "make", "make-eng",
+                    "Application", "software", "comment"]:
+            if tag in tags and tags[tag]:
+                camera_make = tags[tag]
+                break
 
-        if "com.android.model" in tags:
-            camera_model = tags["com.android.model"]
-        elif "com.apple.quicktime.model" in tags:
-            camera_model = tags["com.apple.quicktime.model"]
-        elif "model" in tags:
-            camera_model = tags["model"]
-        else:
-            camera_model = None
+        camera_model = None
+        for tag in ["com.android.model", "com.apple.quicktime.model", "model", "model-eng"]:
+            if tag in tags and tags[tag]:
+                camera_model = tags[tag]
+                break
 
         camera = self.__parse_camera_make_model(camera_make, camera_model)
         if camera:
