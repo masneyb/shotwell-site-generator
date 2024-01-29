@@ -948,6 +948,143 @@ function getPreferredView(allCriteria, mainTitle, eventNames, tags) {
   return views.find((ent) => ent.title !== null);
 }
 
+// Functions for grouping media
+
+function haversineDistance(coord1, coord2) {
+  // Haversine formula to calculate distance between two GPS coordinates
+  const [lat1, lon1] = coord1.map((deg) => deg * (Math.PI / 180));
+  const [lat2, lon2] = coord2.map((deg) => deg * (Math.PI / 180));
+
+  const dlat = lat2 - lat1;
+  const dlon = lon2 - lon1;
+
+  const a = Math.sin(dlat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dlon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return 6371 * c; // 6371 is the Earth's radius in km
+}
+
+function findGpsCenters(groups) {
+  const ret = [];
+  for (const entries of groups) {
+    // Groups with zero entries occur when groups are combined in processGpsGroups()
+    if (entries.length === 0) {
+      continue;
+    }
+
+    let totalLat = 0;
+    let totalLon = 0;
+    const indexes = [];
+    for (const entry of entries) { // entry = [mediaIndex, [lat, lon]]
+      indexes.push(entry[0]);
+      totalLat += entry[1][0];
+      totalLon += entry[1][1];
+    }
+    const avgLat = totalLat / entries.length;
+    const avgLon = totalLon / entries.length;
+    ret.push({ lat: avgLat, lon: avgLon, indexes });
+  }
+
+  ret.sort((a, b) => {
+    if (a.indexes.length === b.indexes.length) {
+      return 0;
+    }
+    return a.indexes.length > b.indexes.length ? -1 : 1;
+  });
+
+  return ret;
+}
+
+function processGpsGroups(allItems, maxDistanceKm) {
+  const groups = [];
+  for (const [index, media] of allItems.entries()) {
+    if (!('lat' in media)) {
+      media.groupIndex = Number.MAX_SAFE_INTEGER;
+      media.groupName = 'No Coordinate';
+      continue;
+    }
+
+    const newEntry = [index, [media.lat, media.lon]];
+    const matchedGroups = [];
+    for (const [groupIndex, group] of groups.entries()) {
+      if (group.some((groupCoord) => haversineDistance([media.lat, media.lon], groupCoord[1]) <= maxDistanceKm)) {
+        matchedGroups.push(groupIndex);
+      }
+    }
+
+    if (matchedGroups.length === 0) {
+      groups.push([newEntry]);
+    } else if (matchedGroups.length === 1) {
+      groups[matchedGroups[0]].push(newEntry);
+    } else {
+      // Combine the multiple groups
+      for (let i = 1; i < matchedGroups.length; i += 1) {
+        groups[matchedGroups[0]].push(...groups[matchedGroups[i]]);
+        groups[matchedGroups[i]] = [];
+      }
+      groups[matchedGroups[0]].push(newEntry);
+    }
+  }
+
+  const centers = findGpsCenters(groups);
+  for (const [groupIndex, group] of centers.entries()) {
+    const groupName = `${group.lat.toFixed(6)}, ${group.lon.toFixed(6)}`;
+    for (const index of group.indexes) {
+      allItems[index].groupIndex = groupIndex;
+      allItems[index].groupName = groupName;
+    }
+  }
+}
+
+function setZeroGroupIndexAndName(allItems, groupNameFunc) {
+  for (media of allItems) {
+    media.groupIndex = 0;
+    media.groupName = groupNameFunc(media);
+  }
+}
+
+function groupAllMedia(allItems) {
+  const groupBy = getQueryParameter('group', 'none');
+
+  if (groupBy === 'year') {
+    setZeroGroupIndexAndName(allItems, (media) => {
+      if (!('exposure_time_pretty' in media)) {
+        return null;
+      }
+      const parts = media.exposure_time_pretty.split(' ');
+      return parts.length === 1 ? parts[0] : parts[3];
+    });
+  } else if (groupBy === 'month') {
+    setZeroGroupIndexAndName(allItems, (media) => {
+      if (!('exposure_time_pretty' in media)) {
+        return null;
+      }
+      const parts = media.exposure_time_pretty.split(' ');
+      return parts.length === 1 ? parts[0] : `${parts[1]} ${parts[3]}`;
+    });
+  } else if (groupBy === 'day') {
+    setZeroGroupIndexAndName(allItems, (media) => {
+      if (!('exposure_time_pretty' in media)) {
+        return null;
+      }
+      const parts = media.exposure_time_pretty.split(' ');
+      return parts.length === 1 ? parts[0] : `${parts[0]} ${parts[1]} ${parts[2]} ${parts[3]}`;
+    });
+  } else if (groupBy === 'gps1km') {
+    processGpsGroups(allItems, 1);
+  } else if (groupBy === 'gps5km') {
+    processGpsGroups(allItems, 5);
+  } else if (groupBy === 'gps10km') {
+    processGpsGroups(allItems, 10);
+  } else if (groupBy === 'gps50km') {
+    processGpsGroups(allItems, 50);
+  } else if (groupBy === 'gps100km') {
+    processGpsGroups(allItems, 100);
+  } else {
+    setZeroGroupIndexAndName(allItems, (media) => { return null; });
+  }
+}
+
 function performSearch(allItems, allCriteria, defaultSort) {
   const matchPolicy = getQueryParameter('match', 'all'); // any,none,all
   let minDate;
@@ -989,6 +1126,8 @@ function performSearch(allItems, allCriteria, defaultSort) {
       }
     }
   }
+
+  groupAllMedia(ret);
 
   const sortedTypes = {
     photo: 1,
@@ -1041,6 +1180,13 @@ function performSearch(allItems, allCriteria, defaultSort) {
     }
 
     ret.sort((a, b) => {
+      if (a.groupIndex < b.groupIndex) {
+        return -1;
+      }
+      if (a.groupIndex > b.groupIndex) {
+        return 1;
+      }
+
       if (sortedTypes[a.type] < sortedTypes[b.type]) {
         return -1;
       }

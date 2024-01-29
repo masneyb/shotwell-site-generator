@@ -92,6 +92,11 @@
         <option value="day">Group by day</option>
         <option value="month">Group by month</option>
         <option value="year">Group by year</option>
+        <option value="gps1km">Group by GPS 1 km</option>
+        <option value="gps5km">Group by GPS 5 km</option>
+        <option value="gps10km">Group by GPS 10 km</option>
+        <option value="gps50km">Group by GPS 50 km</option>
+        <option value="gps100km">Group by GPS 100 km</option>
       </select>
       <select id="sort" onchange="updateSearchCriteria(); return false;">
         <option value="default">Default Sort</option>
@@ -778,33 +783,6 @@
         return mediaEle;
       }
 
-      function getMediaGroupByFunc() {
-        const groupBy = getQueryParameter('group', 'none');
-
-        if (groupBy === 'year') {
-          return (input) => {
-            const parts = input.split(' ');
-            return parts.length === 1 ? parts[0] : parts[3];
-          };
-        }
-
-        if (groupBy === 'month') {
-          return (input) => {
-            const parts = input.split(' ');
-            return parts.length === 1 ? parts[0] : `${parts[1]} ${parts[3]}`;
-          };
-        }
-
-        if (groupBy === 'day') {
-          return (input) => {
-            const parts = input.split(' ');
-            return parts.length === 1 ? parts[0] : `${parts[0]} ${parts[1]} ${parts[2]} ${parts[3]}`;
-          };
-        }
-
-        return (input) => { return null; };
-      }
-
       function doShowMedia(pageNumber) {
         let pageSize;
         if (preferredPageIconSize.includes('small')) {
@@ -821,7 +799,6 @@
         }
 
         const allMediaEle = document.querySelector('#all_media');
-        const groupBy = getMediaGroupByFunc();
         if (mediaWriter.currentGroupEle == null) {
           mediaWriter.currentGroupEle = allMediaEle;
         }
@@ -829,9 +806,8 @@
         const startIdx = (pageNumber - 1) * pageSize;
 
         for (const [index, media] of allMedia.slice(startIdx, startIdx + pageSize).entries()) {
-          const thisGroupName = 'exposure_time_pretty' in media ? groupBy(media.exposure_time_pretty) : null;
-          if (thisGroupName !== currentGroupName) {
-            currentGroupName = thisGroupName;
+          if (media.groupName !== currentGroupName) {
+            currentGroupName = media.groupName;
             mediaWriter.flush();
 
             mediaWriter.currentGroupEle = document.createElement('div');
@@ -839,7 +815,7 @@
 
             const titleEle = document.createElement('div');
             titleEle.className = 'media_group_title';
-            titleEle.innerText = thisGroupName;
+            titleEle.innerText = media.groupName;
             mediaWriter.currentGroupEle.appendChild(titleEle);
 
             allMediaEle.appendChild(mediaWriter.currentGroupEle);
