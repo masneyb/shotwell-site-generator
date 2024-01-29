@@ -140,7 +140,7 @@ function createMediaStatsHtml(entity, eventNames, tags, onSlideshowPage, showBri
   }
 
   if ('lat' in entity) {
-    extStats.push(createSearchLink(`GPS ${entity.lat},${entity.lon}`, 'GPS Coordinate', 'is within', `${entity.lat},${entity.lon},0.01`, extraOnClick));
+    extStats.push(createSearchLink(`GPS ${entity.lat},${entity.lon}`, 'GPS Coordinate', 'is within', `${entity.lat},${entity.lon},0.1`, extraOnClick));
 
     let mapAnchor = document.createElement('a');
     mapAnchor.target = '_new';

@@ -522,6 +522,20 @@ function createDecimalSearch(placeholderText, showGtLt, showIsSet, inputMin, inp
   return createNumberSearch(placeholderText, showGtLt, showIsSet, inputMin, inputMax, 0.1);
 }
 
+function haversineDistance(coord1, coord2) {
+  // Haversine formula to calculate distance between two GPS coordinates
+  const [lat1, lon1] = coord1.map((deg) => deg * (Math.PI / 180));
+  const [lat2, lon2] = coord2.map((deg) => deg * (Math.PI / 180));
+
+  const dlat = lat2 - lat1;
+  const dlon = lon2 - lon1;
+
+  const a = Math.sin(dlat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dlon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return 6371 * c; // 6371 is the Earth's radius in km
+}
+
 function gpsIsWithin(field, op, values, media) {
   if (!('lat' in media)) {
     return false;
@@ -529,10 +543,9 @@ function gpsIsWithin(field, op, values, media) {
 
   const userLat = parseFloat(values[0]);
   const userLon = parseFloat(values[1]);
-  const userRadius = parseFloat(values[2]);
+  const userDistKm = parseFloat(values[2]);
 
-  return (userLat - userRadius) <= media.lat && (userLat + userRadius) >= media.lat
-         && (userLon - userRadius) <= media.lon && (userLon + userRadius) >= media.lon;
+  return haversineDistance([userLat, userLon], [media.lat, media.lon]) <= userDistKm;
 }
 
 const gpsSearch = {
@@ -542,7 +555,7 @@ const gpsSearch = {
       matches(field, op, values, media) {
         return gpsIsWithin(field, op, values, media);
       },
-      placeholder: ['lat', 'lon', 'radius'],
+      placeholder: ['lat', 'lon', 'km'],
       numValues: 3,
       inputType: ['number', 'number', 'number'],
       inputStep: ['any', 'any', 'any'],
@@ -556,7 +569,7 @@ const gpsSearch = {
 
         return !gpsIsWithin(field, op, values, media);
       },
-      placeholder: ['lat', 'lon', 'radius'],
+      placeholder: ['lat', 'lon', 'km'],
       numValues: 3,
       inputType: ['number', 'number', 'number'],
       inputStep: ['any', 'any', 'any'],
