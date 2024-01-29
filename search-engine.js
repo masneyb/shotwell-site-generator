@@ -1010,6 +1010,41 @@ function processGpsGroups(allItems, maxDistanceKm) {
   }
 }
 
+function processCameraGroups(allItems) {
+  const cameraSet = {};
+  for (const [index, media] of allItems.entries()) {
+    if (!('camera' in media)) {
+      media.groupIndex = Number.MAX_SAFE_INTEGER;
+      media.groupName = 'No Camera Metadata';
+      continue;
+    }
+
+    if (media.camera in cameraSet) {
+      cameraSet[media.camera].push(index);
+    } else {
+      cameraSet[media.camera] = [index];
+    }
+  }
+
+  groups = [];
+  for (const camera of Object.keys(cameraSet)) {
+    groups.push([camera, cameraSet[camera]]);
+  }
+
+  groups.sort((a, b) => {
+    if (a[1].length === b[1].length) {
+      return 0;
+    }
+    return a[1].length > b[1].length ? -1 : 1;
+  });
+
+  for (let index = 0; index < groups.length; index += 1) {
+    for (const mediaId of groups[index][1]) {
+      allItems[mediaId].groupIndex = index;
+      allItems[mediaId].groupName = groups[index][0];
+    }
+  }
+}
 function setZeroGroupIndexAndName(allItems, groupNameFunc) {
   for (media of allItems) {
     media.groupIndex = 0;
@@ -1044,6 +1079,8 @@ function groupAllMedia(allItems) {
       const parts = media.exposure_time_pretty.split(' ');
       return parts.length === 1 ? parts[0] : `${parts[0]} ${parts[1]} ${parts[2]} ${parts[3]}`;
     });
+  } else if (groupBy === 'camera') {
+    processCameraGroups(allItems);
   } else if (groupBy === 'gps1km') {
     processGpsGroups(allItems, 1);
   } else if (groupBy === 'gps5km') {
