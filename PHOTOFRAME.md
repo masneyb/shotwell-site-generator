@@ -22,10 +22,10 @@ The screen is automatically powered off at night and comes back on in the mornin
 
 ## Base OS Install
 
-I used the 2021-11-08 64-bit release of Raspberry Pi OS from
+I used the 2024-03-15 64-bit release of Raspberry Pi OS from
 https://downloads.raspberrypi.org/raspios_arm64/images/.
 
-    sudo apt install -y libnss3-tools python3-rpi.gpio unattended-upgrades
+    sudo apt install -y libnss3-tools python3-lgpio unattended-upgrades
 
 If you are using the official Raspberry Pi 7" touchscreen, then
 add the following to /boot/config.txt:
@@ -56,7 +56,7 @@ Script to start the Chromium browser in kiosk mode with the proper URL with the 
     if [ -d /sys/class/backlight/rpi_backlight ] ; then
     	echo 0 > /sys/class/backlight/rpi_backlight/bl_power
     else
-    	vcgencmd display_power 1
+    	xrandr --output HDMI-1 --auto
     fi
     /usr/bin/chromium-browser --kiosk "http://YOUR_SERVER_HOSTNAME/screensaver.html?search=Rating%2Cis at least%2C5&match=all&update_secs=30&kiosk=1" &
 
@@ -64,10 +64,12 @@ Script to stop the Chromium browser in the file /usr/local/bin/stop-photos.sh:
 
     #!/usr/bin/env bash
     set -x
+    export DISPLAY=:0
+    export XAUTHORITY=/home/pi/.Xauthority
     if [ -d /sys/class/backlight/rpi_backlight ] ; then
     	echo 1 > /sys/class/backlight/rpi_backlight/bl_power
     else
-    	vcgencmd display_power 0
+    	xrandr --output HDMI-1 --off
     fi
     killall chromium-browser
 
@@ -82,23 +84,17 @@ and starting/stopping the Chromium browser. Code is placed in the file
     import argparse
     import subprocess
     import sys
-    import time
-    from RPi import GPIO
+    from gpiozero import Button
     
     def execute_command(command):
         subprocess.run([command], stdout=sys.stdout, stderr=sys.stderr, check=True)
     
     def wait_for_button_press(args):
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(args.pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        button = Button(args.pin)
     
         while True:
-            GPIO.wait_for_edge(args.pin, GPIO.FALLING)
-            time.sleep(0.1)
-            if GPIO.input(args.pin):
-                continue
-    
-            execute_command(args.toggle_command)
+            if button.wait_for_press():
+                execute_command(args.toggle_command)
     
     ARGPARSER = argparse.ArgumentParser()
     ARGPARSER.add_argument("--pin", type=int, default=17)
@@ -110,20 +106,17 @@ and starting/stopping the Chromium browser. Code is placed in the file
 Bash script /usr/local/bin/toggle-state.sh to toggle the screen state:
 
     #!/usr/bin/env bash
+    
     if [ -d /sys/class/backlight/rpi_backlight ] ; then
-    	VAL=$(cat /sys/class/backlight/rpi_backlight/bl_power)
-    	if [ "${VAL}" == "0" ] ; then
-    		ENABLED="1"
-    	else
-    		ENABLED="0"
-    	fi
+    	DISABLED=$(cat /sys/class/backlight/rpi_backlight/bl_power)
     else
-    	ENABLED=$(vcgencmd display_power | awk -F= '{print $2}')
+    	DISABLED=$(xrandr | grep "HDMI-1 connected primary (normal" | wc -l)
     fi
-    if [ "${ENABLED}" = "1" ] ; then
-    	/usr/local/bin/stop-photos.sh
-    else
+    
+    if [ "${DISABLED}" = "1" ] ; then
     	/usr/local/bin/start-photos.sh
+    else
+    	/usr/local/bin/stop-photos.sh
     fi
 
 ## Systemd units
@@ -139,6 +132,9 @@ Systemd units to automatically toggle the power of the screen at specific times 
     [Service]
     User=pi
     ExecStart=/usr/local/bin/power_button.py
+    Environment=DISPLAY=:0
+    Environment=XAUTHORITY=/home/pi/.Xauthority
+    WorkingDirectory=/home/pi
     KillMode=process
     Restart=on-failure
     
@@ -205,6 +201,16 @@ Enable the systemd units:
     sudo systemctl enable --now photos-off.timer
     sudo systemctl enable --now photos-on.timer
     sudo systemctl enable --now photos-button.service
+
+Configure the pi user to automatically start the photo site on startup via
+/home/pi/.config/autostart/photos.desktop:
+
+    [Desktop Entry]
+    Type=Application
+    Exec=/usr/local/bin/start-photos.sh
+
+Use raspi-config to configure the system to automatically log in as the
+`pi` username.
 
 # Reboot
 
