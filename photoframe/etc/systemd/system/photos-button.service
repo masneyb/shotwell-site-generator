@@ -1,0 +1,15 @@
+[Unit]
+Description=GPIO Power Button
+After=network.target
+
+[Service]
+User=pi
+ExecStart=/usr/local/bin/power_button.py
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/pi/.Xauthority
+WorkingDirectory=/home/pi
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
