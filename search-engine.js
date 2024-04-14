@@ -433,36 +433,6 @@ const mediaTypeSearch = {
 function createNumberSearch(placeholderText, showGtLt, showIsSet, inputMin, inputMax, inputStep) {
   const ops = [];
 
-  if (showGtLt) {
-    ops.push({
-      descr: 'is at least',
-      matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0], (input, value) => input != null && input >= value);
-      },
-      placeholder: [placeholderText],
-      numValues: 1,
-      inputType: ['number'],
-      inputMin: [inputMin],
-      inputMax: [inputMax],
-      inputStep: [inputStep],
-      inputSize: [5],
-    });
-
-    ops.push({
-      descr: 'is at most',
-      matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0], (input, value) => input != null && input <= value);
-      },
-      placeholder: [placeholderText],
-      numValues: 1,
-      inputType: ['number'],
-      inputMin: [inputMin],
-      inputMax: [inputMax],
-      inputStep: [inputStep],
-      inputSize: [5],
-    });
-  }
-
   ops.push({
     descr: 'equals',
     matches(field, op, values, media) {
@@ -492,6 +462,36 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet, inputMin, inpu
     inputStep: [inputStep],
     inputSize: [5],
   });
+
+  if (showGtLt) {
+    ops.push({
+      descr: 'is at least',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0], (input, value) => input != null && input >= value);
+      },
+      placeholder: [placeholderText],
+      numValues: 1,
+      inputType: ['number'],
+      inputMin: [inputMin],
+      inputMax: [inputMax],
+      inputStep: [inputStep],
+      inputSize: [5],
+    });
+
+    ops.push({
+      descr: 'is at most',
+      matches(field, op, values, media) {
+        return performGenericOp(field, media, values[0], (input, value) => input != null && input <= value);
+      },
+      placeholder: [placeholderText],
+      numValues: 1,
+      inputType: ['number'],
+      inputMin: [inputMin],
+      inputMax: [inputMax],
+      inputStep: [inputStep],
+      inputSize: [5],
+    });
+  }
 
   if (showIsSet) {
     ops.push({
