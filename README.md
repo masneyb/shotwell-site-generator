@@ -1,4 +1,4 @@
-# shotwell-site-generator
+## Take control of your media
 
 [Shotwell](https://wiki.gnome.org/Apps/Shotwell) is a fantastic program for organizing photos
 and videos. It supports publishing media to third-party sites, however that requires
@@ -7,25 +7,25 @@ metadata changes that are made in Shotwell will not be shown on that third-party
 
 This program exports a mobile-friendly static HTML site of a Shotwell library. The generated
 site is fully self contained and does not require Internet access or any third-party resources
-for the long-term preservation of the library. With the exception of the search page, the use of
-Javascript on the generated site is minimized for the long-term preservation of the library.
+for the long-term preservation of the library. The search page provides a rich, single-page
+user experience that allows browsing your library through various predefined views: all media
+over time, all events over time, year view, and nested tag view. Additionally you can search
+your library using 24 different fields.
 
-The search page provides a rich, single-page user experience that allows browsing your
-library through various predefined views: all media over time, all events over time, year
-view, nested tag view. Additionally you can search your library using 24 different fields.
+A second static site is generated where the use of Javascript is minimized for the long-term
+preservation of the library.
 
 Note that the generated website is readonly and you cannot make any changes to your media there.
-If you need to make a change to say add new media, change existing media, etc, then make those
-changes inside Shotwell. Once you are done, you can rerun this project and it'll update the
-generated website. I have automation setup so that when I backup my Shotwell library to my home
-server that my photo/video website is automatically regenerated.
+If you need to make a chang, then make those changes inside Shotwell, and rerun this project to
+incrementally update the generated website. I have automation setup so that when I backup my
+Shotwell library to my home server that my photo/video website is automatically regenerated.
 
 
 ## Screenshots
 
 ![Mobile Default View](screenshots/mobile-default-view-small.png?raw=1)
 
-See the [screenshots](screenshots/README.md) directory for more screenshots of the generated
+See the [screenshots page](screenshots/README.md) for more screenshots of the generated
 HTML site. You can serve these static files on a webserver such as nginx / apache2, and if
 desired, setup HTTP basic authentication. There's no complicated additional webserver plugins
 that need to be setup for a particular application runtime since you're just serving static
@@ -65,4 +65,6 @@ Backup your Shotwell database/library and then generate a static HTML site:
                 --src-assets-directory /path/to/this/repo \
                 --title "My Photos"
 
-Open the top level index.html file in your browser to view your library.
+Open the top level `index.html` file in your browser to view your library using the rich search
+experience. The file `static-site/media/index.html` contains the site that minimizes the use of
+Javascript.
