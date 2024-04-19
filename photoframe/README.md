@@ -1,5 +1,7 @@
 # Photo Frame
 
+![Photo Frame Back](../screenshots/photoframe-back.jpg?raw=1)
+
 My photo frame has the following hardware components:
 
 - Raspberry Pi 4
@@ -19,6 +21,8 @@ My photo frame has the following hardware components:
 - Power supply for pi.
 
 The screen is automatically powered off at night and comes back on in the morning.
+
+![Photo Frame Front](../screenshots/photoframe-front.jpg?raw=1)
 
 ## Base OS Install
 
