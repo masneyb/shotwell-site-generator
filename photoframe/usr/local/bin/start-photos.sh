@@ -10,7 +10,10 @@ if [ -d /sys/class/backlight/rpi_backlight ] ; then
 	echo 0 > /sys/class/backlight/rpi_backlight/bl_power
 else
 	xset dpms force on
-	xrandr --output HDMI-1 --auto
+	# This doesn't work on one my screens, and only the 'xset dpms' command
+	# above is enough. I had to comment this xrandr command out on the one
+	# pi where this was an issue.
+	xrandr --output HDMI-1 --auto || true
 fi
 
 /usr/bin/chromium-browser --kiosk "https://USER:PASS@HOSTNAME/photoframe.html" &
