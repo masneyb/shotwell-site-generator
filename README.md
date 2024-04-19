@@ -14,15 +14,12 @@ The search page provides a rich, single-page user experience that allows browsin
 library through various predefined views: all media over time, all events over time, year
 view, nested tag view. Additionally you can search your library using 24 different fields.
 
-The search page also allows you setting up a browser in kiosk mode
-on a small single board computer like a Raspberry Pi and use it as a photo frame as described
-on the [photo frame page](photoframe/README.md).
-
 Note that the generated website is readonly and you cannot make any changes to your media there.
 If you need to make a change to say add new media, change existing media, etc, then make those
 changes inside Shotwell. Once you are done, you can rerun this project and it'll update the
 generated website. I have automation setup so that when I backup my Shotwell library to my home
 server that my photo/video website is automatically regenerated.
+
 
 ## Screenshots
 
@@ -33,6 +30,16 @@ HTML site. You can serve these static files on a webserver such as nginx / apach
 desired, setup HTTP basic authentication. There's no complicated additional webserver plugins
 that need to be setup for a particular application runtime since you're just serving static
 files.
+
+
+## Photo Frame
+
+The search page also allows you setting up a browser in kiosk mode
+on a small single board computer like a Raspberry Pi and use it as a photo frame as described
+on the [photo frame page](photoframe/README.md).
+
+![Photo Frame Back](photoframe-back.jpg?raw=1)
+
 
 ## Usage
 
