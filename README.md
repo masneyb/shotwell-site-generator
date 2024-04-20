@@ -16,7 +16,7 @@ A second static site is generated where the use of Javascript is minimized for t
 preservation of the library.
 
 Note that the generated website is readonly and you cannot make any changes to your media there.
-If you need to make a chang, then make those changes inside Shotwell, and rerun this project to
+If you need to make a change, then make those changes inside Shotwell, and rerun this project to
 incrementally update the generated website. I have automation setup so that when I backup my
 Shotwell library to my home server that my photo/video website is automatically regenerated.
 
@@ -39,6 +39,13 @@ on a small single board computer like a Raspberry Pi and use it as a photo frame
 on the [photo frame page](photoframe/README.md).
 
 ![Photo Frame Back](screenshots/photoframe-back.jpg?raw=1)
+
+
+## How to create physical photo books
+
+The search page supports exporting the current view as a CSV file that can be used to create
+pages for a photo book one page at a time as described on
+[this page](photobook-helper/README.md).
 
 
 ## Usage
