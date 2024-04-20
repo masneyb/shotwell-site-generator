@@ -35,8 +35,8 @@ files.
 ## Photo Frame
 
 The search page also allows you setting up a browser in kiosk mode
-on a small single board computer like a Raspberry Pi and use it as a photo frame as described
-on the [photo frame page](photoframe/README.md).
+on a small single board computer like a Raspberry Pi and use it as a photo frame that pulls
+from your home server as described on the [photo frame page](photoframe/README.md).
 
 ![Photo Frame Back](screenshots/photoframe-back.jpg?raw=1)
 
@@ -48,6 +48,8 @@ pages for a photo book one page at a time as described on
 [this page](photobook-helper/README.md). For my photo books, I export a series of CSV files
 for events that occurred throughout the year, and chain together all of the images into a
 PDF that can be sent off to the book printer.
+
+![Photo Books](screenshots/photobooks.jpg?raw=1)
 
 
 ## Usage

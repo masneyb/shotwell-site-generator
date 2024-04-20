@@ -82,3 +82,5 @@ Use `raspi-config` to configure the system to automatically log in as the
 Reboot and Chromium should automatically start full screen on boot. Tap the screen to pause the
 slideshow. Metadata about the photo will pop up on the bottom of the screen. You can swipe left
 or right to manually change the photo that's shown. Tap the image again to continue the slideshow.
+
+[Back to main page](../README.md)

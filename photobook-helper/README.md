@@ -105,3 +105,5 @@ go back to update previous batches / pages if desired.
 
       --extra-header-link "photobooks/index.html"
       --extra-header-link-descr "Book"
+
+[Back to main page](../README.md)

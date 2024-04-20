@@ -39,4 +39,11 @@ described on the [photo frame page](../photoframe/README.md).
 
 ![Photo Frame Back](photoframe-back.jpg?raw=1)
 
+# Photo Books
+
+Instructions for how to create printed photo books with this project are described on
+the [photo book page](../photobook-helper/README.md).
+
+![Photo Books](photobooks.jpg?raw=1)
+
 [Back to main page](../README.md)
