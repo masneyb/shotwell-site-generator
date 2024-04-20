@@ -1,5 +1,7 @@
 # Photo Book Creation Instructions
 
+![Photo Books](../screenshots/photobooks.jpg?raw=1)
+
 This page details instructions about how to run the
 [photobook_helper.py script](photobook_helper.py) that reads a large list of images from a file,
 and sends them in batches to the

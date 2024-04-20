@@ -15,6 +15,11 @@ your library using 24 different fields.
 A second static site is generated where the use of Javascript is minimized for the long-term
 preservation of the library.
 
+You can serve these static files on a webserver such as nginx / apache2, and if desired, setup
+some kind of authentication (like HTTP basic auth over HTTPS). There's no complicated additional
+webserver plugins that need to be setup for a particular application runtime since you're just
+serving static content.
+
 Note that the generated website is readonly and you cannot make any changes to your media there.
 If you need to make a change, then make those changes inside Shotwell, and rerun this project to
 incrementally update the generated website. I have automation setup so that when I backup my
@@ -26,10 +31,7 @@ Shotwell library to my home server that my photo/video website is automatically 
 ![Mobile Default View](screenshots/mobile-default-view-small.png?raw=1)
 
 See the [screenshots page](screenshots/README.md) for more screenshots of the generated
-HTML site. You can serve these static files on a webserver such as nginx / apache2, and if
-desired, setup HTTP basic authentication. There's no complicated additional webserver plugins
-that need to be setup for a particular application runtime since you're just serving static
-files.
+HTML site.
 
 
 ## Photo Frame
@@ -43,13 +45,12 @@ from your home server as described on the [photo frame page](photoframe/README.m
 ![Photo Frame Front](screenshots/photo-frame-front.jpg?raw=1)
 
 
-## How to create physical photo books
+## How to create printed photo books
 
-The search page supports exporting the current view as a CSV file that can be used to create
-pages for a photo book one page at a time as described on
-[this page](photobook-helper/README.md). For my photo books, I export a series of CSV files
-for events that occurred throughout the year, and chain together all of the images into a
-PDF that can be sent off to the book printer.
+The search page supports exporting the current view as a CSV file. For my photo books, I
+export a series of CSV files for events that occurred throughout the year, and chain
+together all of the images into a PDF that can be sent off to the book printer. My process
+for creating these books is described on [this page](photobook-helper/README.md).
 
 ![Photo Books](screenshots/photobooks.jpg?raw=1)
 
@@ -67,7 +68,7 @@ Ensure that you have the proper dependencies installed on your system:
                             python3-dateutil python3-humanize python3-pil python3-pip \
                             python3-pkg-resources
     pip3 install py3exiv2
-    
+
 Backup your Shotwell database/library and then generate a static HTML site:
 
     shotwell_site_generator.py \
