@@ -45,7 +45,9 @@ on the [photo frame page](photoframe/README.md).
 
 The search page supports exporting the current view as a CSV file that can be used to create
 pages for a photo book one page at a time as described on
-[this page](photobook-helper/README.md).
+[this page](photobook-helper/README.md). For my photo books, I export a series of CSV files
+for events that occurred throughout the year, and chain together all of the images into a
+PDF that can be sent off to the book printer.
 
 
 ## Usage
