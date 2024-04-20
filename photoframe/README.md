@@ -1,6 +1,6 @@
 # Photo Frame
 
-![Photo Frame Back](../screenshots/photoframe-back.jpg?raw=1)
+![Photo Frame Back](../screenshots/photo-frame-back.jpg?raw=1)
 
 My photo frame has the following hardware components:
 
@@ -22,7 +22,7 @@ My photo frame has the following hardware components:
 
 The screen is automatically powered off at night and comes back on in the morning.
 
-![Photo Frame Front](../screenshots/photoframe-front.jpg?raw=1)
+![Photo Frame Front](../screenshots/photo-frame-front.jpg?raw=1)
 
 ## Base OS Install
 

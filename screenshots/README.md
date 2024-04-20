@@ -35,9 +35,9 @@ are generated based on the media that's contained inside.
 Instructions for how to build a photo frame and integrate it with this project are
 described on the [photo frame page](../photoframe/README.md).
 
-![Photo Frame Front](photoframe-front.jpg?raw=1)
+![Photo Frame Front](photo-frame-front.jpg?raw=1)
 
-![Photo Frame Back](photoframe-back.jpg?raw=1)
+![Photo Frame Back](photo-frame-back.jpg?raw=1)
 
 # Photo Books
 
