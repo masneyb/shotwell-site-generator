@@ -316,6 +316,14 @@ function getFullscreenVideoUrl(entity) {
   return null;
 }
 
+function showHidePlayIcon(entity) {
+  if ('motion_photo' in entity && 'mp4' in entity.motion_photo) {
+    document.querySelector('#play').style.display = 'inline-block';
+  } else {
+    document.querySelector('#play').style.display = 'none';
+  }
+}
+
 function doShowFullscreenImage(manuallyInvoked) {
   const descrEle = document.querySelector('#description');
   addStatusMessage(descrEle, 'Loading');
@@ -348,6 +356,7 @@ function doShowFullscreenImage(manuallyInvoked) {
     videoEle.src = videoUrl;
     videoEle.style.display = 'block';
 
+    showHidePlayIcon(entity);
     updateMediaDescriptionText(descrEle);
   } else {
     const videoEle = document.querySelector('#fullvideo');
@@ -357,18 +366,13 @@ function doShowFullscreenImage(manuallyInvoked) {
 
     const imageEle = document.querySelector('#fullimage');
     imageEle.onload = () => {
+      showHidePlayIcon(entity);
       updateMediaDescriptionText(descrEle);
     };
     imageEle.style.display = 'block';
     const imageUrl = getFullscreenImageUrl(allMediaFullscreenIndex);
     imageEle.src = imageUrl;
     cachedImages.add(imageUrl);
-  }
-
-  if ('motion_photo' in entity && 'mp4' in entity.motion_photo) {
-    document.querySelector('#play').style.display = 'inline-block';
-  } else {
-    document.querySelector('#play').style.display = 'none';
   }
 
   setTimeout(() => {
