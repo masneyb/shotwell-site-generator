@@ -307,7 +307,7 @@ function updateMediaDescriptionText(descrEle) {
 }
 
 function getFullscreenVideoUrl(entity) {
-  if (window.alwaysShowAnimations && 'motion_photo' in entity && 'mp4' in entity.motion_photo) {
+  if (window.alwaysAnimateMotionPhotos && 'motion_photo' in entity && 'mp4' in entity.motion_photo) {
     return entity.motion_photo.mp4;
   }
   if (entity.type === 'video') {
@@ -337,7 +337,8 @@ function doShowFullscreenImage(manuallyInvoked) {
     descrEle.style.display = 'none';
   }
 
-  const videoUrl = getFullscreenVideoUrl(allMedia[allMediaFullscreenIndex]);
+  const entity = allMedia[allMediaFullscreenIndex];
+  const videoUrl = getFullscreenVideoUrl(entity);
   if (videoUrl !== null) {
     const imageEle = document.querySelector('#fullimage');
     imageEle.removeAttribute('src');
@@ -362,6 +363,12 @@ function doShowFullscreenImage(manuallyInvoked) {
     const imageUrl = getFullscreenImageUrl(allMediaFullscreenIndex);
     imageEle.src = imageUrl;
     cachedImages.add(imageUrl);
+  }
+
+  if ('motion_photo' in entity && 'mp4' in entity.motion_photo) {
+    document.querySelector('#play').style.display = 'inline-block';
+  } else {
+    document.querySelector('#play').style.display = 'none';
   }
 
   setTimeout(() => {
@@ -494,6 +501,7 @@ function checkForPhotoFrameMode() {
     inPhotoFrameMode = true;
     document.body.style.cursor = 'none';
     document.querySelector('#close').style.display = 'none';
+    document.querySelector('#play').style.display = 'none';
   } else if (getIntQueryParameter('slideshow', 0) === 1) {
     slideshow = true;
   }
@@ -501,6 +509,19 @@ function checkForPhotoFrameMode() {
   if (slideshow) {
     startSlideshow();
   }
+}
+
+function playIconClicked(event) {
+  if (!isImageFullscreen()) {
+    return;
+  }
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  window.alwaysAnimateMotionPhotos = !window.alwaysAnimateMotionPhotos;
+  document.querySelector('#play').innerHTML = window.alwaysAnimateMotionPhotos ? '&lt;&gt;' : '&gt;';
+  doShowFullscreenImage(true);
 }
 
 function exitImageFullscreen(event) {
