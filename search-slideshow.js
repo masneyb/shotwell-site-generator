@@ -520,7 +520,7 @@ function playIconClicked(event) {
   event.stopPropagation();
 
   window.alwaysAnimateMotionPhotos = !window.alwaysAnimateMotionPhotos;
-  document.querySelector('#play').innerHTML = window.alwaysAnimateMotionPhotos ? '&lt;&gt;' : '&gt;';
+  document.querySelector('#play').innerHTML = window.alwaysAnimateMotionPhotos ? '&lt;&gt;' : '&gt;&gt;';
   doShowFullscreenImage(true);
 }
 
