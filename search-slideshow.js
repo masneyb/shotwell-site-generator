@@ -177,7 +177,7 @@ function createMediaStatsHtml(entity, eventNames, tags, onSlideshowPage, showBri
     extStats.push(createMediaStat(fullscreenAnchor));
   }
 
-  if (extStats.length == stats.length) {
+  if (extStats.length === stats.length) {
     return createStatsSpan(stats);
   }
 

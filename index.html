@@ -187,12 +187,6 @@
         document.querySelector('#toggle_animations').innerText = window.alwaysShowAnimations ? 'Stop Animations' : 'Show Animations';
       }
 
-      function toggleAnimations() {
-        window.alwaysShowAnimations = !window.alwaysShowAnimations;
-        updateAnimationsText();
-        showMedia();
-      }
-
       function createAllStatsSpan(stats) {
         const ret = document.createElement('span');
         for (let i = 0; i < stats.length; i += 1) {
@@ -554,40 +548,6 @@
         showParentTags(preferredView.searchTag);
       }
 
-      function populateMedia(newAllMedia, extraHeader, newDateRange, preferredView) {
-        allMedia = newAllMedia;
-        dateRange = newDateRange;
-        currentYearView = preferredView.currentYearView;
-
-        if (extraHeader) {
-          const extraHeaderEle = document.querySelector('#extra_header');
-          const outerSpan = document.createElement('span');
-          const anchor = document.createElement('a');
-          anchor.href = extraHeader.link;
-          const innerSpan = document.createElement('span');
-          innerSpan.className = 'main_view';
-          innerSpan.innerText = extraHeader.description;
-
-          anchor.appendChild(innerSpan);
-          outerSpan.appendChild(anchor);
-          removeAllChildren(extraHeaderEle);
-          extraHeaderEle.appendChild(outerSpan);
-        }
-
-        setPageTitleAndIconSize(preferredView);
-        showMedia();
-        populateSearchValuesFromUrl();
-      }
-
-      function windowSizeChanged() {
-        const prevPageIconSize = preferredPageIconSize;
-        preferredPageIconSize = getPageIconSize();
-        if (prevPageIconSize !== preferredPageIconSize) {
-          setIconWriter();
-          showMedia();
-        }
-      }
-
       function populateMediaAnchorTag(anchor, media, allMediaIndex) {
         if (media.type === 'events') {
           anchor.href = '#';
@@ -646,8 +606,7 @@
       }
 
       function addExtraFlush(media) {
-        return (['photo', 'motion_photo', 'video'].indexOf(media.type) === -1) &&
-               (['small_medium', 'medium_large', 'small_medium_large'].indexOf(preferredPageIconSize) !== -1);
+        return (['photo', 'motion_photo', 'video'].indexOf(media.type) === -1) && (['small_medium', 'medium_large', 'small_medium_large'].indexOf(preferredPageIconSize) !== -1);
       }
 
       function getMediaIconSize(media) {
@@ -887,6 +846,46 @@
           removeAllChildren(summaryStatsEle);
           summaryStatsEle.appendChild(createAllStatsHtml());
         }, 0);
+      }
+
+      function toggleAnimations() {
+        window.alwaysShowAnimations = !window.alwaysShowAnimations;
+        updateAnimationsText();
+        showMedia();
+      }
+
+      function populateMedia(newAllMedia, extraHeader, newDateRange, preferredView) {
+        allMedia = newAllMedia;
+        dateRange = newDateRange;
+        currentYearView = preferredView.currentYearView;
+
+        if (extraHeader) {
+          const extraHeaderEle = document.querySelector('#extra_header');
+          const outerSpan = document.createElement('span');
+          const anchor = document.createElement('a');
+          anchor.href = extraHeader.link;
+          const innerSpan = document.createElement('span');
+          innerSpan.className = 'main_view';
+          innerSpan.innerText = extraHeader.description;
+
+          anchor.appendChild(innerSpan);
+          outerSpan.appendChild(anchor);
+          removeAllChildren(extraHeaderEle);
+          extraHeaderEle.appendChild(outerSpan);
+        }
+
+        setPageTitleAndIconSize(preferredView);
+        showMedia();
+        populateSearchValuesFromUrl();
+      }
+
+      function windowSizeChanged() {
+        const prevPageIconSize = preferredPageIconSize;
+        preferredPageIconSize = getPageIconSize();
+        if (prevPageIconSize !== preferredPageIconSize) {
+          setIconWriter();
+          showMedia();
+        }
       }
 
       updateAnimationsText();
