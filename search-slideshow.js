@@ -155,7 +155,7 @@ function createMediaStatsHtml(entity, eventNames, tags, onSlideshowPage, showBri
     extStats.push(createMediaStat(mapAnchor));
   }
 
-  if (['photo', 'motion_photo', 'video'].indexOf(entity.type) >= -1) {
+  if (['photo', 'motion_photo', 'video'].indexOf(entity.type) > -1) {
     extStats.push(createOpenInNewTabLink('Download', entity.link));
   }
 
