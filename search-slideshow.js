@@ -316,15 +316,21 @@ function getFullscreenVideoUrl(entity) {
   return null;
 }
 
+function setPlayIconDisplay(display) {
+  document.querySelector('#play').style.display = display;
+}
+
 function showHidePlayIcon(entity) {
   if ('motion_photo' in entity && 'mp4' in entity.motion_photo) {
-    document.querySelector('#play').style.display = 'inline-block';
+    setPlayIconDisplay('inline-block');
   } else {
-    document.querySelector('#play').style.display = 'none';
+    setPlayIconDisplay('none');
   }
 }
 
 function doShowFullscreenImage(manuallyInvoked) {
+  setPlayIconDisplay('none');
+
   const descrEle = document.querySelector('#description');
   addStatusMessage(descrEle, 'Loading');
 
