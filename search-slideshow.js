@@ -320,8 +320,12 @@ function setPlayIconDisplay(display) {
   document.querySelector('#play').style.display = display;
 }
 
+function isKioskModeEnabled() {
+  return getIntQueryParameter('kiosk', 0) === 1;
+}
+
 function showHidePlayIcon(entity) {
-  if ('motion_photo' in entity && 'mp4' in entity.motion_photo) {
+  if ('motion_photo' in entity && 'mp4' in entity.motion_photo && !isKioskModeEnabled()) {
     setPlayIconDisplay('inline-block');
   } else {
     setPlayIconDisplay('none');
@@ -506,7 +510,7 @@ function slideshowClicked() {
 
 function checkForPhotoFrameMode() {
   let slideshow = false;
-  if (getIntQueryParameter('kiosk', 0) === 1) {
+  if (isKioskModeEnabled()) {
     slideshow = true;
     inPhotoFrameMode = true;
     document.body.style.cursor = 'none';
