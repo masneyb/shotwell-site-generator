@@ -137,8 +137,12 @@
     <div id="fullimage_background" style="display: none;"></div>
     <div id="fullimage_container" style="display: none;">
       <span id="close_play">
-        <a id="play" href="#" onclick="playIconClicked(event); return false;">&gt;&gt;</a>
-        <a id="close" href="#" onclick="exitImageFullscreen(event); return false;">&times;</a>
+        <a id="play" href="#" onclick="playIconClicked(event); return false;">
+          <img id="play_pause_icon" src="icons/play-web-icon.png"/>
+        </a>
+        <a id="close" href="#" onclick="exitImageFullscreen(event); return false;">
+          <img src="icons/close-web-icon.png"/>
+        </a>
       </span>
       <div id="fullmedia_container">
         <img id="fullimage"></img>

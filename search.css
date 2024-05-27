@@ -247,8 +247,6 @@ a {
 	top: 3px;
 	right: 30px;
 	color: lightgray;
-	font-size: 250%;
-	font-weight: bold;
 	z-index: 5;
 }
 
@@ -259,7 +257,6 @@ a {
 }
 
 #close:hover {
-	color: darkgray;
 	cursor: pointer;
 }
 
@@ -270,7 +267,6 @@ a {
 }
 
 #play:hover {
-	color: darkgray;
 	cursor: pointer;
 }
 

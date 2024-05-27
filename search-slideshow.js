@@ -534,7 +534,7 @@ function playIconClicked(event) {
   event.stopPropagation();
 
   window.alwaysAnimateMotionPhotos = !window.alwaysAnimateMotionPhotos;
-  document.querySelector('#play').innerHTML = window.alwaysAnimateMotionPhotos ? '&lt;&gt;' : '&gt;&gt;';
+  document.querySelector('#play_pause_icon').src = window.alwaysAnimateMotionPhotos ? 'icons/pause-web-icon.png' : 'icons/play-web-icon.png';
   doShowFullscreenImage(true);
 }
 
