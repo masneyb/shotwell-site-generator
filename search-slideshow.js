@@ -14,6 +14,25 @@ let fullscreenReinstateSlideshowTimer = null;
 const cachedImages = new Set();
 let wakeLock = null;
 
+function fullscreenSupported() {
+  return document.fullscreenEnabled && document.documentElement.requestFullscreen;
+}
+
+function fullscreenClicked(event) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  if (!fullscreenSupported()) {
+    return;
+  }
+
+  if (document.fullscreenElement == null) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+
 function createStatsSpan(stats) {
   const ret = document.createElement('span');
   for (let i = 0; i < stats.length; i += 1) {
@@ -157,24 +176,6 @@ function createMediaStatsHtml(entity, eventNames, tags, onSlideshowPage, showBri
 
   if (['photo', 'motion_photo', 'video'].indexOf(entity.type) > -1) {
     extStats.push(createOpenInNewTabLink('Download', entity.link));
-  }
-
-  if (onSlideshowPage && document.fullscreenElement == null && document.fullscreenEnabled && document.documentElement.requestFullscreen) {
-    const fullscreenAnchor = document.createElement('a');
-    fullscreenAnchor.href = '#';
-    fullscreenAnchor.innerText = 'Fullscreen';
-    fullscreenAnchor.onclick = (event) => {
-      /*
-       * Fullscreen is not requested when the slideshow is opened because the browsers won't allow
-       * pinch zooming on any element when requestFullscreen() is called. I work around this by
-       * using the manifest.json to request the fullscreen there. Pinch zooming works as expected
-       * with this method.
-       */
-      document.documentElement.requestFullscreen();
-      event.preventDefault();
-      event.stopPropagation();
-    };
-    extStats.push(createMediaStat(fullscreenAnchor));
   }
 
   if (extStats.length === stats.length) {
@@ -334,6 +335,9 @@ function showHidePlayIcon(entity) {
 
 function doShowFullscreenImage(manuallyInvoked) {
   setPlayIconDisplay('none');
+  if (!fullscreenSupported()) {
+    document.querySelector('#fullscreen').style.display = 'none';
+  }
 
   const descrEle = document.querySelector('#description');
   addStatusMessage(descrEle, 'Loading');
@@ -514,8 +518,7 @@ function checkForPhotoFrameMode() {
     slideshow = true;
     inPhotoFrameMode = true;
     document.body.style.cursor = 'none';
-    document.querySelector('#close').style.display = 'none';
-    document.querySelector('#play').style.display = 'none';
+    document.querySelector('#slideshow_controls').style.display = 'none';
   } else if (getIntQueryParameter('slideshow', 0) === 1) {
     slideshow = true;
   }

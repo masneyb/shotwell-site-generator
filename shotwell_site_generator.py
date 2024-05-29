@@ -123,6 +123,8 @@ def process_photos(options):
                     os.path.join(options.dest_directory, "swiped-events.js"))
     shutil.copyfile(__get_assets_path(options, "images/close-web-icon.png"),
                     os.path.join(options.dest_directory, "icons/close-web-icon.png"))
+    shutil.copyfile(__get_assets_path(options, "images/fullscreen-web-icon.png"),
+                    os.path.join(options.dest_directory, "icons/fullscreen-web-icon.png"))
     shutil.copyfile(__get_assets_path(options, "images/pause-web-icon.png"),
                     os.path.join(options.dest_directory, "icons/pause-web-icon.png"))
     shutil.copyfile(__get_assets_path(options, "images/play-web-icon.png"),
