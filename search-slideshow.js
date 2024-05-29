@@ -521,6 +521,8 @@ function checkForPhotoFrameMode() {
     document.querySelector('#slideshow_controls').style.display = 'none';
   } else if (getIntQueryParameter('slideshow', 0) === 1) {
     slideshow = true;
+  } else if (getIntQueryParameter('fullscreen', 0) === 1) {
+    document.querySelector('#fullscreen').style.display = 'none';
   }
 
   if (slideshow) {

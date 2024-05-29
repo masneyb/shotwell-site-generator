@@ -24,7 +24,7 @@ def write_manifest_json(options):
     vals["name"] = options.title
     vals["short_name"] = options.title
     vals["description"] = options.title
-    vals["start_url"] = "index.html"
+    vals["start_url"] = "index.html?fullscreen=1"
     vals["display"] = "fullscreen"
     vals["background_color"] = "#fff"
     vals["icons"] = [_app_icon_by_size("512x512"),
