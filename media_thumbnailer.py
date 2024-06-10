@@ -563,6 +563,9 @@ class Thumbnailer:
 
         if "streams" in tags:
             for stream in tags["streams"]:
+                if "duration" in stream:
+                    ret["clip_duration"] = float(stream["duration"])
+
                 if "avg_frame_rate" in stream:
                     parts = stream["avg_frame_rate"].split("/")
                     if parts[1] == "0":

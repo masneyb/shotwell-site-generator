@@ -220,7 +220,6 @@ class Database:
                                          large_short_mp_path, small_short_mp_path,
                                          medium_short_mp_path, video_json, None, None)
                 media.update(self.__parse_video_tags(video_metadata))
-                media["clip_duration"] = row["clip_duration"]
 
     def __parse_orientation(self, orientation):
         if orientation == 6:
@@ -736,6 +735,9 @@ class Database:
         if "width" in tags:
             ret["width"] = tags["width"]
             ret["height"] = tags["height"]
+
+        if "clip_duration" in tags:
+            ret["clip_duration"] = tags["clip_duration"]
 
         return ret
 
