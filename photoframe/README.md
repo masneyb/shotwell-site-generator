@@ -76,7 +76,27 @@ Enable the systemd units:
 Use `raspi-config` to configure the system to automatically log in as the
 `pi` username.
 
-# Reboot
+## photoframe.html
+
+Create a `photoframe.html` file and put it same directory with the `index.html`
+in the root of your photo library. This determines what search criteria is used
+when the photo frames start up. In this particular example, I have the photo
+frame pull photos that were taken after 2011, have a 5 start rating, ones that
+are only photos (no videos), sort the photos randomly, and switch to a new photo
+every 60 seconds.
+
+    <html>
+      <head>
+        <meta http-equiv='refresh' content='0;url=index.html?search=Rating%2Cis%20at%20least%2C5&search=Date%2Cis%20after%2C2011-01-01&search=Type%2Cis%20a%2Cphoto&sort=random&kiosk=1&update_secs=60'/>
+      </head>
+    </html>
+
+You can determine the URL parameters that you want to use by opening
+`index.html` in your browser, perform the search criteria(s) that you want, and
+copy that URL into `photoframe.html`. Be sure to add `&kiosk=1&update_secs=60`
+to the end of your URL.
+
+## Reboot
 
 Reboot and Chromium should automatically start full screen on boot. Tap the screen to pause the
 slideshow. Metadata about the photo will pop up on the bottom of the screen. You can swipe left
