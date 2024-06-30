@@ -7,18 +7,19 @@
 import argparse
 import logging
 import os
+import pathlib
 import re
 import sqlite3
 import subprocess
 import sys
 
 def fetch_events_from_media_table(conn, table_name, events):
-    qry = "SELECT EventTable.id, EventTable.name, " + \
+    qry = "SELECT EventTable.id, EventTable.name, EventTable.comment, " + \
           f"strftime('%Y', DATE(MIN({table_name}.exposure_time), 'unixepoch')) AS min_date, " + \
           f"strftime('%Y', DATE(MAX({table_name}.exposure_time), 'unixepoch')) AS max_date  " + \
           f"FROM {table_name}, EventTable " + \
           f"WHERE EventTable.id={table_name}.event_id " + \
-          "GROUP BY EventTable.id, EventTable.name"
+          "GROUP BY EventTable.id, EventTable.name, EventTable.comment"
     cursor = conn.cursor()
     for row in cursor.execute(qry):
         if row['id'] in events:
@@ -28,6 +29,7 @@ def fetch_events_from_media_table(conn, table_name, events):
             new_row = {}
             new_row['id'] = row['id']
             new_row['name'] = row['name']
+            new_row['comment'] = row['comment']
             new_row['min_date'] = row['min_date']
             new_row['max_date'] = row['max_date']
             events[row['id']] = new_row
@@ -37,7 +39,6 @@ def fetch_all_events(conn):
     fetch_events_from_media_table(conn, "PhotoTable", events)
     fetch_events_from_media_table(conn, "VideoTable", events)
 
-    event_paths = {}
     for (_, row) in events.items():
         if row['min_date'] == row['max_date']:
             year_str = row['min_date']
@@ -47,11 +48,11 @@ def fetch_all_events(conn):
         name = row['name'].replace(' ', '_')
         name = re.sub(r'[^\w\d_]+', '', name).replace('__', '_')
         name = "Untitled" if not name else name
-        event_paths[row['id']] = f"{year_str}/{name}"
+        row['path'] = f"{year_str}/{name}"
 
-    return event_paths
+    return events
 
-def process_media_table(options, conn, table_name, event_paths):
+def process_media_table(options, conn, table_name, events):
     seen_paths = set([])
     if table_name == 'BackingPhotoTable':
         qry = "select BackingPhotoTable.id, BackingPhotoTable.filepath as filename, " + \
@@ -63,7 +64,7 @@ def process_media_table(options, conn, table_name, event_paths):
 
     cursor = conn.cursor()
     for row in cursor.execute(qry):
-        event_path = event_paths[row['event_id']]
+        event_path = events[row['event_id']]['path']
         new_path = os.path.join(options.input_media_path, event_path,
                                 os.path.basename(row['filename']))
 
@@ -95,13 +96,22 @@ def process_media_table(options, conn, table_name, event_paths):
     cursor.close()
 
 
+def write_event_comments(options, events):
+    for (_, row) in events.items():
+        if not row['comment']:
+            continue
+
+        pathlib.Path(os.path.join(options.input_media_path, row['path'], 'comment.txt')) \
+            .write_text(row['comment'], encoding='UTF-8')
+
 def do_fetch_media(options):
     conn = sqlite3.connect(options.input_database)
     conn.row_factory = sqlite3.Row
-    event_paths = fetch_all_events(conn)
-    process_media_table(options, conn, "BackingPhotoTable", event_paths)
-    process_media_table(options, conn, "PhotoTable", event_paths)
-    process_media_table(options, conn, "VideoTable", event_paths)
+    events = fetch_all_events(conn)
+    process_media_table(options, conn, "BackingPhotoTable", events)
+    process_media_table(options, conn, "PhotoTable", events)
+    process_media_table(options, conn, "VideoTable", events)
+    write_event_comments(options, events)
 
 if __name__ == "__main__":
     ARGPARSER = argparse.ArgumentParser()
