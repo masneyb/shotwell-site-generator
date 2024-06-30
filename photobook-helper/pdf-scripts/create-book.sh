@@ -11,9 +11,9 @@ set -x
 #     sudo chmod 0600 ~/swapfile
 #     sudo swapon ~/swapfile
 
-find . -name page*.png -exec convert {} -quality 95 {}.jpg \;
+find . -name page*.png -exec magick {} -quality 95 {}.jpg \;
 
-convert $(find . -name page*.jpg | sort) \
+magick $(find . -name page*.jpg | sort) \
 	-gravity center \
 	-background black \
 	-extent 3788x3262 \

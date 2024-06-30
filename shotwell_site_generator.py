@@ -190,7 +190,7 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--expand-all-elements", action="store_true", default=False)
     ARGPARSER.add_argument("--remove-stale-artifacts", action="store_true", default=False)
     ARGPARSER.add_argument("--skip-original-symlink", action="store_true", default=False)
-    ARGPARSER.add_argument("--imagemagick-command", default="convert")
+    ARGPARSER.add_argument("--imagemagick-command", default="magick")
     ARGPARSER.add_argument("--ffmpeg-command", default="ffmpeg")
     ARGPARSER.add_argument("--ffprobe-command", default="ffprobe")
     ARGPARSER.add_argument("--video-convert-command",

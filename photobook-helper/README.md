@@ -64,7 +64,7 @@ go back to update previous batches / pages if desired.
 - If you want to add text to a page, then use ImageMagick to create that text on a separate image
   and add it to the top of `files.txt`:
 
-      convert -background black -gravity center -fill white -font FreeSans-Bold -size 1000x1000 \
+      magick -background black -gravity center -fill white -font FreeSans-Bold -size 1000x1000 \
           -pointsize 96 caption:'This is the title' caption.jpg
 
   The caption image can be moved around in PhotoCollage like any other image.
@@ -86,9 +86,9 @@ go back to update previous batches / pages if desired.
 
 - Once all of the individual pages are created, a single PDF can be generated with the command:
 
-      convert page* -gravity center -background black -extent 3788x3262 -units PixelsPerInch -density 300x300 book.pdf
+      magick page* -gravity center -background black -extent 3788x3262 -units PixelsPerInch -density 300x300 book.pdf
 
-- If the convert command fails, check to ensure that your /tmp directory has enough space. The
+- If the magick command fails, check to ensure that your /tmp directory has enough space. The
   command will also fail if the system runs out of memory. Additional swap space can be temporarily
   added by running:
 
