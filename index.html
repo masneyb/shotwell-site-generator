@@ -56,6 +56,7 @@
     <span class="summary_stats"></span>
     <span class="header_links" style="display: none">
       <a class="header_link" href="#" onclick="searchPageLinkGenerator(event, [['Date', 'was taken on month/day', getCurrentMonthDay()], ['Type', 'is a', 'media']], 'all', 'large_regular'); return false;">Today</a>
+      <a class="header_link" href="#" onclick="nearbyClicked(); return false;">Nearby</a>
       <a class="header_link" id="toggle_animations" href="#" onclick="toggleAnimations(); return false;"></a>
       <a class="header_link" href="#" onclick="slideshowClicked(); return false;">Slideshow</a>
       <a class="header_link" href="#" id="csv_link">CSV</a>
@@ -188,6 +189,16 @@
 
       function jsonLoadError() {
         updateOverallStatusMessage('Error loading media');
+      }
+
+      function nearbyClicked() {
+        if ('geolocation' in navigator) {
+          navigator.geolocation.getCurrentPosition((position) => {
+            searchPageLinkGenerator(null, [['GPS Coordinate', 'is within', position.coords.latitude, position.coords.longitude, 1]]);
+            return false;
+          });
+        }
+        return false;
       }
 
       function updateAnimationsText() {
@@ -333,7 +344,7 @@
         const search = generateSearchUrl(parts, matchPolicy, iconSize, groupBy, sortBy);
 
         // Check to see if the user control clicked the URL to request it be opened in a new tab.
-        if (event.ctrlKey || event.which === 2 || event.which === 3) {
+        if (event != null && (event.ctrlKey || event.which === 2 || event.which === 3)) {
           event.preventDefault();
           event.stopPropagation();
           window.open(search, '_blank');
