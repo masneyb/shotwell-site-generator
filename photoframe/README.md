@@ -8,10 +8,12 @@ My photo frame has the following hardware components:
 - One of the following screens:
   - The
     [Sunfounder 10.1" 1280x800 HDMI Touchscreen](https://www.sunfounder.com/products/10inch-touchscreen-for-raspberrypi)
-    is a higher-quality screen.
+    is a higher-quality screen. A stand can be 3D printed using
+    [this STL file](http://wiki.sunfounder.cc/index.php?title=File:Stand.zip).
   - Official Raspberry Pi 7" Touchscreen Display along with a
     [case for 7" touchscreen](https://thepihut.com/products/raspberry-pi-official-7-touchscreen-case).
-    If you go with this case, then you'll most likely want to get a
+    The Sunfounder screen above is a higher quality screen. If you go with this case, then you'll
+    most likely want to get a
     [90-degree USB-C adapter](https://thepihut.com/products/usb-c-angle-adapter) if you're going
     to set this on a flat surface. The [SmartPi Touch](https://www.sparkfun.com/products/14059) is
     another case with a stand.
