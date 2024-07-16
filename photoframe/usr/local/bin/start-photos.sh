@@ -16,4 +16,10 @@ else
 	xrandr --output HDMI-1 --auto || true
 fi
 
-/usr/bin/chromium-browser --kiosk "https://USER:PASS@HOSTNAME/photoframe.html" &
+# Prefer to pull the media from a USB thumb drive if possible
+LOCAL_FILE=/media/pi/PHOTOS/photos/photoframe.html
+if [ -f "${LOCAL_FILE}" ] ; then
+	/usr/bin/chromium-browser --kiosk "file://${LOCAL_FILE}" &
+else
+	/usr/bin/chromium-browser --kiosk "https://USER:PASS@HOSTNAME/photoframe.html" &
+fi
