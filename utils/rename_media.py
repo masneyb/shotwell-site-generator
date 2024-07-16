@@ -63,6 +63,10 @@ def process_media_table(options, conn, table_name, events):
         qry = f"select id, filename, event_id from {table_name}"
 
     for row in conn.cursor().execute(qry):
+        if row['event_id'] == -1:
+            logging.error("You have some media in the trash. Please clean the trash first.")
+            sys.exit(1)
+
         event_path = events[row['event_id']]['path']
         new_path = os.path.join(options.input_media_path, event_path,
                                 os.path.basename(row['filename']))
