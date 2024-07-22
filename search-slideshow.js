@@ -11,7 +11,6 @@ let fullScreenPhotoUpdateSecs = 0;
 let fullscreenPhotoUpdateTimer = null;
 let fullscreenReinstateSlideshowSecs = 0;
 let fullscreenReinstateSlideshowTimer = null;
-const cachedImages = new Set();
 let wakeLock = null;
 
 function fullscreenSupported() {
@@ -265,22 +264,6 @@ function getQRCodeUrl(path) {
   return `${location}?${searchParams.toString()}`;
 }
 
-function prefetchImage(index) {
-  if (allMedia[index].type === 'video') {
-    return;
-  }
-
-  const imageUrl = getFullscreenImageUrl(index);
-  if (!cachedImages.has(imageUrl)) {
-    new Image().src = imageUrl;
-    if (cachedImages.size > 50) {
-      // Don't chew up a bunch of memory when running in photo frame mode
-      cachedImages.clear();
-    }
-    cachedImages.add(imageUrl);
-  }
-}
-
 function updateMediaDescriptionText(descrEle) {
   const entity = allMedia[allMediaFullscreenIndex];
 
@@ -386,14 +369,7 @@ function doShowFullscreenImage(manuallyInvoked) {
     imageEle.style.display = 'block';
     const imageUrl = getFullscreenImageUrl(allMediaFullscreenIndex);
     imageEle.src = imageUrl;
-    cachedImages.add(imageUrl);
   }
-
-  setTimeout(() => {
-    // Cache the nearby images to make the page faster
-    prefetchImage(getNextImageIndex());
-    prefetchImage(getPreviousImageIndex());
-  });
 }
 
 function isImageFullscreen() {
