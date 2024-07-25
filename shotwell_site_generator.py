@@ -132,11 +132,11 @@ def process_photos(options):
     thumbnailer.remove_thumbnails()
     write_manifest_json(options)
 
-    if not options.skip_original_symlink:
-        media_symlink = os.path.join(options.dest_directory, "original")
-        if os.path.islink(media_symlink):
-            os.unlink(media_symlink)
-        os.symlink(options.input_media_path, media_symlink)
+    media_dir = os.path.join(options.dest_directory, "original")
+    if not options.skip_original_symlink and not os.path.exists(media_dir):
+        if os.path.islink(media_dir):
+            os.unlink(media_dir)
+        os.symlink(options.input_media_path, media_dir)
 
     photos = media_writer_html.Html(all_media,
                                     os.path.join(options.dest_directory, "static-site"),
