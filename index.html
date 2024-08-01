@@ -333,7 +333,7 @@
 
       function searchPageLinkGenerator(event, criterias, matchPolicy = 'all', overrideIconSize = null) {
         const parts = [];
-        for (criteria of criterias) {
+        for (const criteria of criterias) {
           // field,op,value
           parts.push(criteria.join(','));
         }
@@ -914,7 +914,7 @@
 
       document.onkeydown = (event) => {
         if (event.key === 'ArrowLeft') {
-          showPreviousImageFullscreen(event);
+          showPreviousImageFullscreen();
         } else if (event.key === 'ArrowRight') {
           showNextImageFullscreen(event, true);
         } else if (event.key === 'Escape') {
@@ -932,7 +932,7 @@
       });
       fullImageEle.addEventListener('swiped-right', (event) => {
         if (window.visualViewport.scale === 1.0) {
-          showPreviousImageFullscreen(event);
+          showPreviousImageFullscreen();
         }
       });
 

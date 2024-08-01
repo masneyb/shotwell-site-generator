@@ -234,7 +234,7 @@ function getFullscreenImageUrl(index) {
   return allMedia[index].thumbnail.large;
 }
 
-function getQRCodeUrl(path) {
+function getQRCodeUrl() {
   const searchParams = new URLSearchParams(window.location.search);
   searchParams.delete('kiosk');
 
@@ -272,7 +272,7 @@ function updateMediaDescriptionText(descrEle) {
   const qrCodeEle = document.createElement('div');
   qrCodeEle.className = 'qrcode';
   new QRCode(qrCodeEle, {
-    text: getQRCodeUrl(entity.link),
+    text: getQRCodeUrl(),
     width: 120,
     height: 120,
     colorDark: 'black',
@@ -384,7 +384,7 @@ function showNextImageFullscreen(event, manuallyInvoked) {
   }
 }
 
-function showPreviousImageFullscreen(event) {
+function showPreviousImageFullscreen() {
   if (isImageFullscreen()) {
     allMediaFullscreenIndex = getPreviousImageIndex();
     doShowFullscreenImage(true);

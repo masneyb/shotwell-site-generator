@@ -1255,7 +1255,7 @@ function processJson(readyFunc) {
     extraHeader = resp.extra_header;
     mainTitle = resp.title;
 
-    ele = document.querySelector('#generated_timestamp');
+    let ele = document.querySelector('#generated_timestamp');
     if (ele) {
       ele.innerText = `at ${resp.generated_at}`;
     }
