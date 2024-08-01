@@ -113,8 +113,7 @@ class Thumbnailer:
         ret = []
         remaining_spots = max_photos
         for rating in all_ratings:
-            source_media_by_rating[rating].sort(key=lambda media: media["exposure_time"],
-                                                reverse=True)
+            source_media_by_rating[rating].sort(key=lambda media: media["exposure_time"])
 
             num_media = len(source_media_by_rating[rating])
             if num_media <= remaining_spots:
