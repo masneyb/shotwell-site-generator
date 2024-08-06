@@ -191,16 +191,6 @@
         updateOverallStatusMessage('Error loading media');
       }
 
-      function nearbyClicked() {
-        if ('geolocation' in navigator) {
-          navigator.geolocation.getCurrentPosition((position) => {
-            searchPageLinkGenerator(null, [['GPS Coordinate', 'is within', position.coords.latitude, position.coords.longitude, 1]]);
-            return false;
-          });
-        }
-        return false;
-      }
-
       function updateAnimationsText() {
         document.querySelector('#toggle_animations').innerText = window.alwaysShowAnimations ? 'Stop Animations' : 'Show Animations';
       }
@@ -352,6 +342,16 @@
           window.history.pushState({}, '', search);
           processJson(populateMedia);
         }
+      }
+
+      function nearbyClicked() {
+        if ('geolocation' in navigator) {
+          navigator.geolocation.getCurrentPosition((position) => {
+            searchPageLinkGenerator(null, [['GPS Coordinate', 'is within', position.coords.latitude, position.coords.longitude, 1]]);
+            return false;
+          });
+        }
+        return false;
       }
 
       function showParentTags(searchTag) {
