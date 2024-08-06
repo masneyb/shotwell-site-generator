@@ -16,15 +16,15 @@ import sys
 
 def fetch_events_from_media_table(conn, table_name, events):
     qry = "SELECT EventTable.id, EventTable.name, EventTable.comment, " + \
-          f"strftime('%Y', DATE(MIN({table_name}.exposure_time), 'unixepoch')) AS min_date, " + \
-          f"strftime('%Y', DATE(MAX({table_name}.exposure_time), 'unixepoch')) AS max_date  " + \
+          f"strftime('%Y', DATE(MIN({table_name}.exposure_time), 'unixepoch', 'localtime')) AS min_date, " + \
+          f"strftime('%Y', DATE(MAX({table_name}.exposure_time), 'unixepoch', 'localtime')) AS max_date  " + \
           f"FROM {table_name}, EventTable " + \
           f"WHERE EventTable.id={table_name}.event_id " + \
           "GROUP BY EventTable.id, EventTable.name, EventTable.comment"
     for row in conn.cursor().execute(qry):
         if row['id'] in events:
             events[row['id']]['min_date'] = min(events[row['id']]['min_date'], row['min_date'])
-            events[row['id']]['max_date'] = min(events[row['id']]['max_date'], row['max_date'])
+            events[row['id']]['max_date'] = max(events[row['id']]['max_date'], row['max_date'])
         else:
             new_row = {}
             new_row['id'] = row['id']
