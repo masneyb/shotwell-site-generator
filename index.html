@@ -55,26 +55,26 @@
     <span id="title" class="page_title">Search</span>
     <span class="summary_stats"></span>
     <span class="header_links" style="display: none">
-      <a class="header_link" href="#" onclick="searchPageLinkGenerator(event, [['Date', 'was taken on month/day', getCurrentMonthDay()], ['Type', 'is a', 'media']], 'all', 'large_regular'); return false;">Today</a>
-      <a class="header_link" href="#" onclick="nearbyClicked(); return false;">Nearby</a>
-      <a class="header_link" id="toggle_animations" href="#" onclick="toggleAnimations(); return false;"></a>
-      <a class="header_link" href="#" onclick="slideshowClicked(); return false;">Slideshow</a>
+      <a class="header_link" href="#" id="today_link">Today</a>
+      <a class="header_link" href="#" id="nearby_link">Nearby</a>
+      <a class="header_link" href="#" id="animations_link"></a>
+      <a class="header_link" href="#" id="slideshow_link">Slideshow</a>
       <a class="header_link" href="#" id="csv_link">CSV</a>
     </span>
     <span id="tag_parents" style="display: none;"></span>
 
     <span class="main_views">
       <span>
-        <a href="#" onclick="searchPageLinkGenerator(event, []); return false;"><span class="main_view">Date</span></a>
+        <a href="#" id="date_link"><span class="main_view">Date</span></a>
       </span>
       <span>
-        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'events']]); return false;"><span id="events_link" class="main_view">Event</span></a>
+        <a href="#" id="event_link"><span id="events_link" class="main_view">Event</span></a>
       </span>
       <span>
-        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'years']]); return false;"><span id="years_link" class="main_view">Year</span></a>
+        <a href="#" id="year_link"><span id="years_link" class="main_view">Year</span></a>
       </span>
       <span>
-        <a href="#" onclick="searchPageLinkGenerator(event, [['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set']]); return false;"><span id="tags_link" class="main_view">Tag</span></a>
+        <a href="#" id="tag_link"><span id="tags_link" class="main_view">Tag</span></a>
       </span>
       <span id="extra_header"></span>
     </span>
@@ -82,13 +82,13 @@
     <span id="search_criterias" style="display: none"></span>
 
     <span id="search_controls" style="display: none">
-      <input type="button" onclick="addSearchInputRow(); return false;" value="+"></input>
-      <select id="match" onchange="updateSearchCriteria(); return false;">
+      <input type="button" id="add_search_row" value="+"></input>
+      <select id="match">
         <option value="any">Match Any</option>
         <option value="all">Match All</option>
         <option value="none">Match None</option>
       </select>
-      <select id="group" onchange="updateSearchCriteria(); return false;">
+      <select id="group">
         <option value="none">No grouping</option>
         <option value="day">Group by day</option>
         <option value="month">Group by month</option>
@@ -100,7 +100,7 @@
         <option value="gps50km">Group by GPS 50 km</option>
         <option value="gps100km">Group by GPS 100 km</option>
       </select>
-      <select id="sort" onchange="updateSearchCriteria(); return false;">
+      <select id="sort">
         <option value="default">Default Sort</option>
         <option value="takenZA">Sort taken Z-A</option>
         <option value="takenAZ">Sort taken A-Z</option>
@@ -108,7 +108,7 @@
         <option value="createdAZ">Sort added A-Z</option>
         <option value="random">Sort random</option>
       </select>
-      <select id="icons" onchange="updateSearchCriteria(); return false;">
+      <select id="icons">
         <option value="default">Default Icons</option>
         <option value="small">Small Icons</option>
         <option value="medium">Medium Icons</option>
@@ -123,7 +123,7 @@
         <option value="regular_no_meta">Regular Icons (No Metadata)</option>
         <option value="large_regular">Large/Regular Icons</option>
       </select>
-      <input class="button" type="button" onclick="clearSearchCriteria(); return false;" value="Clear"></input>
+      <input class="button" type="button" id="clear_search_criteria" value="Clear"></input>
     </span>
 
     <div id="all_media"><div class='status'>Loading</div></div>
@@ -138,13 +138,13 @@
     <div id="fullimage_background" style="display: none;"></div>
     <div id="fullimage_container" style="display: none;">
       <span id="slideshow_controls">
-        <a id="play" href="#" onclick="playIconClicked(event); return false;">
+        <a href="#" id="play">
           <img id="play_pause_icon" src="icons/play-web-icon.png"/>
         </a>
-        <a id="fullscreen" href="#" onclick="fullscreenClicked(event); return false;">
+        <a href="#" id="fullscreen">
           <img src="icons/fullscreen-web-icon.png"/>
         </a>
-        <a id="close" href="#" onclick="exitImageFullscreen(event); return false;">
+        <a href="#" id="close">
           <img src="icons/close-web-icon.png"/>
         </a>
       </span>
@@ -192,7 +192,7 @@
       }
 
       function updateAnimationsText() {
-        document.querySelector('#toggle_animations').innerText = window.alwaysShowAnimations ? 'Stop Animations' : 'Show Animations';
+        document.querySelector('#animations_link').innerText = window.alwaysShowAnimations ? 'Stop Animations' : 'Show Animations';
       }
 
       function createAllStatsSpan(stats) {
@@ -906,6 +906,12 @@
         }
       }
 
+      function stopEvent(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        return false;
+      }
+
       updateAnimationsText();
       window.onscroll = windowScrolled;
       window.onresize = windowSizeChanged;
@@ -938,6 +944,76 @@
 
       window.onpopstate = function () {
         processJson(populateMedia);
+      };
+
+      document.querySelector('#today_link').onclick = (event) => {
+        searchPageLinkGenerator(event, [['Date', 'was taken on month/day', getCurrentMonthDay()],
+                                        ['Type', 'is a', 'media']], 'all', 'large_regular');
+        return stopEvent(event);
+      };
+      document.querySelector('#nearby_link').onclick = (event) => {
+        nearbyClicked();
+        return stopEvent(event);
+      };
+      document.querySelector('#animations_link').onclick = (event) => {
+        toggleAnimations();
+        return stopEvent(event);
+      };
+      document.querySelector('#slideshow_link').onclick = (event) => {
+        slideshowClicked();
+        return stopEvent(event);
+      };
+      document.querySelector('#date_link').onclick = (event) => {
+        searchPageLinkGenerator(event, []);
+        return stopEvent(event);
+      };
+      document.querySelector('#event_link').onclick = (event) => {
+        searchPageLinkGenerator(event, [['Type', 'is a', 'events']]);
+        return stopEvent(event);
+      };
+      document.querySelector('#year_link').onclick = (event) => {
+        searchPageLinkGenerator(event, [['Type', 'is a', 'years']]);
+        return stopEvent(event);
+      };
+      document.querySelector('#tag_link').onclick = (event) => {
+        searchPageLinkGenerator(event, [['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set']]);
+        return stopEvent(event);
+      };
+      document.querySelector('#add_search_row').onclick = (event) => {
+        addSearchInputRow();
+        return stopEvent(event);
+      };
+      document.querySelector('#clear_search_criteria').onclick = (event) => {
+        clearSearchCriteria();
+        return stopEvent(event);
+      };
+      document.querySelector('#play').onclick = (event) => {
+        playIconClicked(event);
+        return stopEvent(event);
+      };
+      document.querySelector('#fullscreen').onclick = (event) => {
+        fullscreenClicked(event);
+        return stopEvent(event);
+      };
+      document.querySelector('#close').onclick = (event) => {
+        exitImageFullscreen(event);
+        return stopEvent(event);
+      };
+      document.querySelector('#match').onchange = (event) => {
+        updateSearchCriteria();
+        return stopEvent(event);
+      };
+      document.querySelector('#group').onchange = (event) => {
+        updateSearchCriteria();
+        return stopEvent(event);
+      };
+      document.querySelector('#sort').onchange = (event) => {
+        updateSearchCriteria();
+        return stopEvent(event);
+      };
+      document.querySelector('#icons').onchange = (event) => {
+        updateSearchCriteria();
+        return stopEvent(event);
       };
     </script>
   </body>
