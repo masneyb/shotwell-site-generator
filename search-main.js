@@ -1,5 +1,7 @@
 let currentPageNumber = 1;
 let allMedia = null;
+let eventNames = null;
+let tags = null;
 let mediaWriter = null;
 let dateRange = null;
 let currentYearView = null;
@@ -723,8 +725,10 @@ function toggleAnimations() {
   showMedia();
 }
 
-function populateMedia(newAllMedia, extraHeader, newDateRange, preferredView) {
+function populateMedia(newAllMedia, newEventNames, newTags, extraHeader, newDateRange, preferredView) {
   allMedia = newAllMedia;
+  eventNames = newEventNames;
+  tags = newTags;
   dateRange = newDateRange;
   currentYearView = preferredView.currentYearView;
 

@@ -1235,26 +1235,29 @@ function performSearch(allItems, allCriteria, defaultSort) {
   return [ret, dateRange];
 }
 
-let processedMedia = null;
-const eventNames = {};
-const tags = {};
-let extraHeader = null;
-let mainTitle = null;
+const processedMetadata = {
+  processedMedia: null,
+  eventNames: {},
+  tags: {},
+  mainTitle: null,
+  extraHeader: null,
+};
 
 function processJson(readyFunc) {
-  if (processedMedia == null) {
+  if (processedMetadata.processedMedia == null) {
     const resp = getAllMediaViaJsFile();
     for (const evt of resp.events) {
-      eventNames[evt.id] = 'title' in evt ? evt.title : `Unnamed ${evt.id}`;
+      processedMetadata.eventNames[evt.id] = 'title' in evt ? evt.title : `Unnamed ${evt.id}`;
     }
 
     for (const tag of resp.tags) {
-      tags[tag.id] = tag;
+      processedMetadata.tags[tag.id] = tag;
     }
 
-    processedMedia = doUpdateItems(resp, eventNames, tags);
-    extraHeader = resp.extra_header;
-    mainTitle = resp.title;
+    processedMetadata.processedMedia = doUpdateItems(resp, processedMetadata.eventNames,
+                                                     processedMetadata.tags);
+    processedMetadata.extraHeader = resp.extra_header;
+    processedMetadata.mainTitle = resp.title;
 
     let ele = document.querySelector('#generated_timestamp');
     if (ele) {
@@ -1268,7 +1271,10 @@ function processJson(readyFunc) {
   }
 
   const allCriteria = getSearchCriteria();
-  const preferredView = getPreferredView(allCriteria, mainTitle, eventNames, tags);
-  const searchResults = performSearch(processedMedia, allCriteria, preferredView.defaultSort);
-  readyFunc(searchResults[0], extraHeader, searchResults[1], preferredView);
+  const preferredView = getPreferredView(allCriteria, processedMetadata.mainTitle,
+                                         processedMetadata.eventNames, processedMetadata.tags);
+  const searchResults = performSearch(processedMetadata.processedMedia, allCriteria,
+                                      preferredView.defaultSort);
+  readyFunc(searchResults[0], processedMetadata.eventNames, processedMetadata.tags,
+            processedMetadata.extraHeader, searchResults[1], preferredView);
 }
