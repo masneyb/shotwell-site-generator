@@ -208,7 +208,7 @@ function enableFullscreenPhotoUpdateTimer() {
   if (fullscreenPhotoUpdateTimer != null) {
     clearInterval(fullscreenPhotoUpdateTimer);
   }
-  fullscreenPhotoUpdateTimer = setInterval((e) => { showNextImageFullscreen(e, false); }, fullScreenPhotoUpdateSecs * 1000);
+  fullscreenPhotoUpdateTimer = setInterval(() => { showNextImageFullscreen(false); }, fullScreenPhotoUpdateSecs * 1000);
 }
 
 function getNextImageIndex() {
@@ -375,7 +375,7 @@ function isImageFullscreen() {
   return fullImageEle.style.display !== 'none';
 }
 
-function showNextImageFullscreen(event, manuallyInvoked) {
+function showNextImageFullscreen(manuallyInvoked) {
   if (isImageFullscreen()) {
     allMediaFullscreenIndex = getNextImageIndex();
     doShowFullscreenImage(manuallyInvoked);

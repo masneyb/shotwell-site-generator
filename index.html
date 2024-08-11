@@ -175,6 +175,12 @@
       window.alwaysShowAnimations = getIntQueryParameter('animate', 0);
       window.alwaysAnimateMotionPhotos = getIntQueryParameter('animateMotionPhotos', 0);
 
+      function stopEvent(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        return false;
+      }
+
       function addStatusMessage(parentEle, text) {
         const msgEle = document.createElement('div');
         msgEle.className = 'status';
@@ -348,10 +354,8 @@
         if ('geolocation' in navigator) {
           navigator.geolocation.getCurrentPosition((position) => {
             searchPageLinkGenerator(null, [['GPS Coordinate', 'is within', position.coords.latitude, position.coords.longitude, 1]]);
-            return false;
           });
         }
-        return false;
       }
 
       function showParentTags(searchTag) {
@@ -375,7 +379,10 @@
             const anchor = document.createElement('a');
             anchor.innerText = tag.title;
             anchor.href = '#';
-            anchor.onclick = (event) => { searchPageLinkGenerator(event, [['Tag ID', 'equals', tag.id]]); return false; };
+            anchor.onclick = (event) => {
+              searchPageLinkGenerator(event, [['Tag ID', 'equals', tag.id]]);
+              return stopEvent(event);
+            };
             span.appendChild(anchor);
 
             tagParentsEle.appendChild(span);
@@ -592,21 +599,29 @@
             }
           }
 
-          anchor.onclick = (event) => { searchPageLinkGenerator(event, search); return false; };
+          anchor.onclick = (event) => {
+            searchPageLinkGenerator(event, search);
+            return stopEvent(event);
+          };
         } else if (media.type === 'years') {
           anchor.href = '#';
           const search = [['Year', 'equals', media.id]];
-          anchor.onclick = (event) => { searchPageLinkGenerator(event, search); return false; };
+          anchor.onclick = (event) => {
+            searchPageLinkGenerator(event, search);
+            return stopEvent(event);
+          };
         } else if (media.type === 'tags') {
           anchor.href = '#';
           const search = [['Tag ID', 'equals', media.id]];
-          anchor.onclick = (event) => { searchPageLinkGenerator(event, search); return false; };
+          anchor.onclick = (event) => {
+            searchPageLinkGenerator(event, search);
+            return stopEvent(event);
+          };
         } else {
           anchor.href = '#';
           anchor.onclick = (event) => {
             enterSlideshowMode(allMediaIndex);
-            event.stopPropagation();
-            return false;
+            return stopEvent(event);
           };
         }
 
@@ -858,7 +873,10 @@
             ele.style.display = 'block';
           }
 
-          document.querySelector('#csv_link').onclick = (event) => { downloadCsv(event); return false; };
+          document.querySelector('#csv_link').onclick = (event) => {
+            downloadCsv(event);
+            return stopEvent(event);
+          };
 
           const summaryStatsEle = document.querySelector('.summary_stats');
           removeAllChildren(summaryStatsEle);
@@ -906,12 +924,6 @@
         }
       }
 
-      function stopEvent(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        return false;
-      }
-
       updateAnimationsText();
       window.onscroll = windowScrolled;
       window.onresize = windowSizeChanged;
@@ -922,7 +934,7 @@
         if (event.key === 'ArrowLeft') {
           showPreviousImageFullscreen();
         } else if (event.key === 'ArrowRight') {
-          showNextImageFullscreen(event, true);
+          showNextImageFullscreen(true);
         } else if (event.key === 'Escape') {
           exitImageFullscreen(event);
         } else if (event.key === ' ') {
@@ -931,12 +943,12 @@
       };
 
       const fullImageEle = document.querySelector('#fullimage_container');
-      fullImageEle.addEventListener('swiped-left', (event) => {
+      fullImageEle.addEventListener('swiped-left', () => {
         if (window.visualViewport.scale === 1.0) {
-          showNextImageFullscreen(event, true);
+          showNextImageFullscreen(true);
         }
       });
-      fullImageEle.addEventListener('swiped-right', (event) => {
+      fullImageEle.addEventListener('swiped-right', () => {
         if (window.visualViewport.scale === 1.0) {
           showPreviousImageFullscreen();
         }
