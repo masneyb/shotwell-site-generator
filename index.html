@@ -988,15 +988,15 @@
         return stopEvent(event);
       };
       document.querySelector('#play').onclick = (event) => {
-        playIconClicked(event);
+        playIconClicked();
         return stopEvent(event);
       };
       document.querySelector('#fullscreen').onclick = (event) => {
-        fullscreenClicked(event);
+        fullscreenClicked();
         return stopEvent(event);
       };
       document.querySelector('#close').onclick = (event) => {
-        exitImageFullscreen(event);
+        exitImageFullscreen();
         return stopEvent(event);
       };
       document.querySelector('#match').onchange = (event) => {

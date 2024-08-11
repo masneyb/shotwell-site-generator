@@ -17,10 +17,7 @@ function fullscreenSupported() {
   return document.fullscreenEnabled && document.documentElement.requestFullscreen;
 }
 
-function fullscreenClicked(event) {
-  event.preventDefault();
-  event.stopPropagation();
-
+function fullscreenClicked() {
   if (!fullscreenSupported()) {
     return;
   }
@@ -282,7 +279,8 @@ function updateMediaDescriptionText(descrEle) {
   containerEle.appendChild(qrCodeEle);
 
   const textEle = createMediaStatsHtml(entity, eventNames, tags, true, false, (event) => {
-    exitImageFullscreen(event);
+    exitImageFullscreen();
+    return stopEvent(event);
   });
   containerEle.appendChild(textEle);
 
@@ -506,26 +504,20 @@ function checkForPhotoFrameMode() {
   }
 }
 
-function playIconClicked(event) {
+function playIconClicked() {
   if (!isImageFullscreen()) {
     return;
   }
-
-  event.preventDefault();
-  event.stopPropagation();
 
   window.alwaysAnimateMotionPhotos = !window.alwaysAnimateMotionPhotos;
   document.querySelector('#play_pause_icon').src = window.alwaysAnimateMotionPhotos ? 'icons/pause-web-icon.png' : 'icons/play-web-icon.png';
   doShowFullscreenImage(true);
 }
 
-function exitImageFullscreen(event) {
+function exitImageFullscreen() {
   if (!isImageFullscreen()) {
     return;
   }
-
-  event.preventDefault();
-  event.stopPropagation();
 
   if (fullscreenPhotoUpdateTimer != null) {
     clearInterval(fullscreenPhotoUpdateTimer);
