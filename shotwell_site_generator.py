@@ -111,16 +111,8 @@ def process_photos(options):
                     os.path.join(options.dest_directory, "search-400px-width.css"))
     shutil.copyfile(__get_assets_path(options, "search.html"),
                     os.path.join(options.dest_directory, "search.html"))
-    shutil.copyfile(__get_assets_path(options, "search-controls.js"),
-                    os.path.join(options.dest_directory, "search-controls.js"))
-    shutil.copyfile(__get_assets_path(options, "search-csv.js"),
-                    os.path.join(options.dest_directory, "search-csv.js"))
-    shutil.copyfile(__get_assets_path(options, "search-engine.js"),
-                    os.path.join(options.dest_directory, "search-engine.js"))
-    shutil.copyfile(__get_assets_path(options, "search-main.js"),
-                    os.path.join(options.dest_directory, "search-main.js"))
-    shutil.copyfile(__get_assets_path(options, "search-slideshow.js"),
-                    os.path.join(options.dest_directory, "search-slideshow.js"))
+    shutil.copyfile(__get_assets_path(options, "search.js"),
+                    os.path.join(options.dest_directory, "search.js"))
     shutil.copyfile(__get_assets_path(options, "swiped-events.js"),
                     os.path.join(options.dest_directory, "swiped-events.js"))
     shutil.copyfile(__get_assets_path(options, "images/close-web-icon.png"),
