@@ -100,6 +100,7 @@ function shuffleArray(arr, seed) {
    */
   let rand = seed;
   for (let i = arr.length - 1; i > 0; i -= 1) {
+    // eslint-disable-next-line no-bitwise
     rand = (rand * 1103515245 + 12345) & 0x7fffffff;
     const j = rand % (i + 1);
     [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -242,14 +243,14 @@ const textSearch = {
     {
       descr: 'is set',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0], (input, value) => input != null && input !== '');
+        return performGenericOp(field, media, values[0], (input, _value) => input != null && input !== '');
       },
       numValues: 0,
     },
     {
       descr: 'is not set',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0], (input, value) => input == null || input === '');
+        return performGenericOp(field, media, values[0], (input, _value) => input == null || input === '');
       },
       numValues: 0,
     },
@@ -270,7 +271,7 @@ const dateSearch = {
     {
       descr: 'was taken on month/day',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, null, (input, value) => {
+        return performGenericOp(field, media, null, (input, _value) => {
           if (input == null) {
             return false;
           }
@@ -286,7 +287,7 @@ const dateSearch = {
     {
       descr: 'was taken on month',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, null, (input, value) => {
+        return performGenericOp(field, media, null, (input, _value) => {
           if (input == null) {
             return false;
           }
@@ -302,7 +303,7 @@ const dateSearch = {
     {
       descr: 'was taken on this day',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, null, (input, value) => {
+        return performGenericOp(field, media, null, (input, _value) => {
           if (input == null) {
             return false;
           }
@@ -316,7 +317,7 @@ const dateSearch = {
     {
       descr: 'was taken on this week',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, null, (input, value) => {
+        return performGenericOp(field, media, null, (input, _value) => {
           if (input == null) {
             return false;
           }
@@ -337,7 +338,7 @@ const dateSearch = {
     {
       descr: 'was taken on this month',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, null, (input, value) => {
+        return performGenericOp(field, media, null, (input, _value) => {
           if (input == null) {
             return false;
           }
@@ -380,14 +381,14 @@ const dateSearch = {
     {
       descr: 'is set',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, null, (input, value) => input != null && input !== '');
+        return performGenericOp(field, media, null, (input, _value) => input != null && input !== '');
       },
       numValues: 0,
     },
     {
       descr: 'is not set',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, null, (input, value) => input == null || input === '');
+        return performGenericOp(field, media, null, (input, _value) => input == null || input === '');
       },
       numValues: 0,
     },
@@ -497,7 +498,7 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet, inputMin, inpu
     ops.push({
       descr: 'is set',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, null, (input, value) => input != null && input !== '');
+        return performGenericOp(field, media, null, (input, _value) => input != null && input !== '');
       },
       numValues: 0,
     });
@@ -505,7 +506,7 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet, inputMin, inpu
     ops.push({
       descr: 'is not set',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, null, (input, value) => input == null || input === '');
+        return performGenericOp(field, media, null, (input, _value) => input == null || input === '');
       },
       numValues: 0,
     });
@@ -577,14 +578,14 @@ const gpsSearch = {
     {
       descr: 'is set',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, null, (input, value) => input != null && input !== '');
+        return performGenericOp(field, media, null, (input, _value) => input != null && input !== '');
       },
       numValues: 0,
     },
     {
       descr: 'is not set',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, null, (input, value) => input == null || input === '');
+        return performGenericOp(field, media, null, (input, _value) => input == null || input === '');
       },
       numValues: 0,
     },
@@ -784,7 +785,7 @@ function getSearchCriteria() {
   if (allCriteria.length === 0) {
     // Create an operator that always returns true so that all media, events and tags are shown.
     const noopField = { title: null, search: textSearch, searchFields: ['noop'] };
-    const trueOp = { descr: 'equals', matches(field, op, values, media) { return true; }, numValues: 0 };
+    const trueOp = { descr: 'equals', matches(_field, _op, _values, _media) { return true; }, numValues: 0 };
     allCriteria.push({ field: noopField, op: trueOp, searchValues: [] });
   }
 
@@ -1092,7 +1093,7 @@ function groupAllMedia(allItems) {
   } else if (groupBy === 'gps100km') {
     processGpsGroups(allItems, 100);
   } else {
-    setZeroGroupIndexAndName(allItems, (media) => { return null; });
+    setZeroGroupIndexAndName(allItems, (_media) => { return null; });
   }
 }
 

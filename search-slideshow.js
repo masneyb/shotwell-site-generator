@@ -53,7 +53,6 @@ function createMediaStatsHtml(entity, eventNames, tags, onSlideshowPage, showBri
   const extStats = [];
 
   if (onSlideshowPage && 'title' in entity && entity.title) {
-    const title = entity.title_prefix ? entity.title_prefix + entity.title : entity.title;
     const val = entity.title_prefix + entity.title;
     stats.push(createTextMediaStat(val));
     extStats.push(createTextMediaStat(val));
