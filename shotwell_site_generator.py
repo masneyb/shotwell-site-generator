@@ -107,6 +107,8 @@ def process_photos(options):
                     __get_assets_path(options, "search.js")], check=True)
     shutil.copyfile(__get_assets_path(options, "index.html"),
                     os.path.join(options.dest_directory, "index.html"))
+    shutil.copyfile(__get_assets_path(options, "qrcode.js"),
+                    os.path.join(options.dest_directory, "qrcode.js"))
     shutil.copyfile(__get_assets_path(options, "search.css"),
                     os.path.join(options.dest_directory, "search.css"))
     shutil.copyfile(__get_assets_path(options, "search-375px-width.css"),
@@ -115,6 +117,10 @@ def process_photos(options):
                     os.path.join(options.dest_directory, "search-400px-width.css"))
     shutil.copyfile(__get_assets_path(options, "search.html"),
                     os.path.join(options.dest_directory, "search.html"))
+    shutil.copyfile(__get_assets_path(options, "search.js"),
+                    os.path.join(options.dest_directory, "search.js"))
+    shutil.copyfile(__get_assets_path(options, "swiped-events.js"),
+                    os.path.join(options.dest_directory, "swiped-events.js"))
     shutil.copyfile(__get_assets_path(options, "images/close-web-icon.png"),
                     os.path.join(options.dest_directory, "icons/close-web-icon.png"))
     shutil.copyfile(__get_assets_path(options, "images/fullscreen-web-icon.png"),
