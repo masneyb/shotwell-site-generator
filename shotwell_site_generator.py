@@ -10,6 +10,7 @@ import logging
 import os
 import shutil
 import sqlite3
+import subprocess
 import sys
 import media_fetcher
 import media_thumbnailer
@@ -99,10 +100,13 @@ def process_photos(options):
     write_redirect(os.path.join(os.path.join(options.dest_directory, "static-site"),
                                 "index.html"),
                    "media/index.html")
+    subprocess.run(["uglifyjs", "--source-map", "-o",
+                    os.path.join(options.dest_directory, "search.min.js"),
+                    __get_assets_path(options, "qrcode.js"),
+                    __get_assets_path(options, "swiped-events.js"),
+                    __get_assets_path(options, "search.js")], check=True)
     shutil.copyfile(__get_assets_path(options, "index.html"),
                     os.path.join(options.dest_directory, "index.html"))
-    shutil.copyfile(__get_assets_path(options, "qrcode.min.js"),
-                    os.path.join(options.dest_directory, "qrcode.min.js"))
     shutil.copyfile(__get_assets_path(options, "search.css"),
                     os.path.join(options.dest_directory, "search.css"))
     shutil.copyfile(__get_assets_path(options, "search-375px-width.css"),
@@ -111,10 +115,6 @@ def process_photos(options):
                     os.path.join(options.dest_directory, "search-400px-width.css"))
     shutil.copyfile(__get_assets_path(options, "search.html"),
                     os.path.join(options.dest_directory, "search.html"))
-    shutil.copyfile(__get_assets_path(options, "search.js"),
-                    os.path.join(options.dest_directory, "search.js"))
-    shutil.copyfile(__get_assets_path(options, "swiped-events.js"),
-                    os.path.join(options.dest_directory, "swiped-events.js"))
     shutil.copyfile(__get_assets_path(options, "images/close-web-icon.png"),
                     os.path.join(options.dest_directory, "icons/close-web-icon.png"))
     shutil.copyfile(__get_assets_path(options, "images/fullscreen-web-icon.png"),
