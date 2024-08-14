@@ -100,8 +100,9 @@ def process_photos(options):
     write_redirect(os.path.join(os.path.join(options.dest_directory, "static-site"),
                                 "index.html"),
                    "media/index.html")
-    subprocess.run(["uglifyjs", "--source-map", "-o",
-                    os.path.join(options.dest_directory, "search.min.js"),
+    subprocess.run(["uglifyjs", "--compress", "--mangle",
+                    "--source-map", "url='search.min.js.map'",
+                    "-o", os.path.join(options.dest_directory, "search.min.js"),
                     __get_assets_path(options, "qrcode.js"),
                     __get_assets_path(options, "swiped-events.js"),
                     __get_assets_path(options, "search.js")], check=True)
