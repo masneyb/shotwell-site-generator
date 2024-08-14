@@ -45,6 +45,14 @@ from your home server as described on the [photo frame page](photoframe/README.m
 ![Photo Frame Front](screenshots/photo-frame-front.jpg?raw=1)
 
 
+## Keeping directory structure in sync with the library
+
+There is a utility script [utils/rename_media.py](rename_media.py) that you can run to rename
+all of your media files so that the directory structure on disk matches the way that you have
+your media organized within Shotwell. It will store the media on disk using the format
+`year(s)/event name/original base filename`.
+
+
 ## How to create printed photo books
 
 The search page supports exporting the current view as a CSV file. For my photo books, I
