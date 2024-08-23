@@ -1358,8 +1358,7 @@ function addStatusMessage(parentEle, text) {
   const msgEle = document.createElement('div');
   msgEle.className = 'status';
   msgEle.appendChild(document.createTextNode(text));
-  removeAllChildren(parentEle);
-  parentEle.appendChild(msgEle);
+  parentEle.replaceChildren(msgEle);
 }
 
 function updateOverallStatusMessage(text) {
@@ -2010,8 +2009,7 @@ function updateMediaDescriptionText(descrEle) {
   });
   containerEle.appendChild(textEle);
 
-  removeAllChildren(descrEle);
-  descrEle.appendChild(containerEle);
+  descrEle.replaceChildren(containerEle);
 }
 
 function getFullscreenVideoUrl(entity) {
@@ -2832,9 +2830,7 @@ function showMedia() {
       return stopEvent(event);
     };
 
-    const summaryStatsEle = document.querySelector('.summary_stats');
-    removeAllChildren(summaryStatsEle);
-    summaryStatsEle.appendChild(createAllStatsHtml());
+    document.querySelector('.summary_stats').replaceChildren(createAllStatsHtml());
   }, 0);
 }
 
@@ -2860,8 +2856,7 @@ function populateMedia(newAllMedia, extraHeader, newDateRange, preferredView) {
 
     anchor.appendChild(innerSpan);
     outerSpan.appendChild(anchor);
-    removeAllChildren(extraHeaderEle);
-    extraHeaderEle.appendChild(outerSpan);
+    extraHeaderEle.replaceChildren(outerSpan);
   }
 
   setPageTitleAndIconSize(preferredView);
