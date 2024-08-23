@@ -2582,12 +2582,6 @@ function populateMediaAnchorTag(anchor, media, allMediaIndex) {
   return media;
 }
 
-function windowScrolled() {
-  if (window.innerHeight + window.scrollY >= (document.body.offsetHeight * 0.85)) {
-    doShowMedia(currentPageNumber + 1);
-  }
-}
-
 function showLargerMedia(media) {
   return media.rating === 5 || (['photo', 'motion_photo', 'video'].indexOf(media.type) === -1);
 }
@@ -2734,6 +2728,10 @@ function createMediaElement(index, media, iconSize) {
   return mediaEle;
 }
 
+function loadMoreMedia() {
+  return window.innerHeight + window.scrollY >= document.body.offsetHeight * 0.85;
+}
+
 function doShowMedia(pageNumber) {
   let pageSize;
   if (preferredPageIconSize.includes('small')) {
@@ -2790,7 +2788,9 @@ function doShowMedia(pageNumber) {
   }
 
   // Ensure that the viewport is filled with media for higher screen resolutions.
-  windowScrolled();
+  if (loadMoreMedia()) {
+    doShowMedia(currentPageNumber + 1);
+  }
 }
 
 function clearPreviousMedia(allMediaEle) {
@@ -2891,7 +2891,12 @@ function jsonLoadSuccess() {
 }
 
 updateAnimationsText();
-window.onscroll = windowScrolled;
+window.onscroll = () => {
+  if (loadMoreMedia()) {
+    doShowMedia(currentPageNumber + 1);
+  }
+};
+
 window.onresize = windowSizeChanged;
 
 document.querySelector('#fullimage').onclick = toggleFullscreenDescription;
