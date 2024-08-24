@@ -57,10 +57,10 @@ function writeCsvRow(cols) {
 function getCsvUriData() {
   let ret = 'data:text/csv;charset=utf-8,';
 
-  /* eslint indent: 0 */
-  ret += writeCsvRow(['ID', 'Type', 'Path', 'Original Size', 'Original Size w/ Artifacts',
-                      'Rating', 'Width', 'Height', 'Exposure Time', 'Event ID', 'Latitude',
-                      'Longitude', 'Title', 'Camera', 'Camera Settings']);
+  ret += writeCsvRow([
+    'ID', 'Type', 'Path', 'Original Size', 'Original Size w/ Artifacts', 'Rating',
+    'Width', 'Height', 'Exposure Time', 'Event ID', 'Latitude', 'Longitude', 'Title',
+    'Camera', 'Camera Settings']);
 
   for (const media of allMedia) {
     const cols = [];
@@ -115,7 +115,6 @@ function getPrettyFileSize(size) {
 }
 
 function getNumberString(number, singular, plural) {
-  /* eslint eqeqeq: 0 */
   return number == 1 ? `${number.toLocaleString()} ${singular}` : `${number.toLocaleString()} ${plural}`;
 }
 
@@ -165,7 +164,6 @@ function shuffleArray(arr, seed) {
    */
   let rand = seed;
   for (let i = arr.length - 1; i > 0; i -= 1) {
-    // eslint-disable-next-line no-bitwise
     rand = (rand * 1103515245 + 12345) & 0x7fffffff;
     const j = rand % (i + 1);
     [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -532,7 +530,6 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet, inputMin, inpu
   ops.push({
     descr: 'equals',
     matches(field, op, values, media) {
-      /* eslint eqeqeq: 0 */
       return performGenericOp(field, media, values[0], (input, value) => input != null && input == value);
     },
     placeholder: [placeholderText],
@@ -547,7 +544,6 @@ function createNumberSearch(placeholderText, showGtLt, showIsSet, inputMin, inpu
   ops.push({
     descr: 'not equals',
     matches(field, op, values, media) {
-      /* eslint eqeqeq: 0 */
       return performGenericOp(field, media, values[0], (input, value) => input == null || input != value);
     },
     placeholder: [placeholderText],
@@ -994,35 +990,35 @@ function getPreferredView(allCriteria, mainTitle) {
     }
   }
 
-  /* eslint indent: 0 */
-  const views = [{
-                   title: eventTitle,
-                   cssSelector: 'events_link',
-                   defaultSort: eventDefaultSort,
-                   currentYearView: null,
-                   searchTag: null,
-                 },
-                 {
-                   title: yearTitle,
-                   cssSelector: 'years_link',
-                   defaultSort: yearDefaultSort,
-                   currentYearView: yearView,
-                   searchTag: null,
-                 },
-                 {
-                   title: tagTitle,
-                   cssSelector: 'tags_link',
-                   defaultSort: 'takenZA',
-                   currentYearView: null,
-                   searchTag: tagView,
-                 },
-                 {
-                   title: `${mainTitle}: Search`,
-                   cssSelector: null,
-                   defaultSort: 'takenZA',
-                   currentYearView: null,
-                   searchTag: null,
-                 }];
+  const views = [
+    {
+      title: eventTitle,
+      cssSelector: 'events_link',
+      defaultSort: eventDefaultSort,
+      currentYearView: null,
+      searchTag: null,
+    },
+    {
+      title: yearTitle,
+      cssSelector: 'years_link',
+      defaultSort: yearDefaultSort,
+      currentYearView: yearView,
+      searchTag: null,
+    },
+    {
+      title: tagTitle,
+      cssSelector: 'tags_link',
+      defaultSort: 'takenZA',
+      currentYearView: null,
+      searchTag: tagView,
+    },
+    {
+      title: `${mainTitle}: Search`,
+      cssSelector: null,
+      defaultSort: 'takenZA',
+      currentYearView: null,
+      searchTag: null,
+    }];
 
   return views.find((ent) => ent.title !== null);
 }
@@ -1338,8 +1334,7 @@ function processJson() {
 
   const allCriteria = getSearchCriteria();
   const preferredView = getPreferredView(allCriteria, processedMetadata.mainTitle);
-  const searchResults = performSearch(processedMetadata.processedMedia, allCriteria,
-                                      preferredView.defaultSort);
+  const searchResults = performSearch(processedMetadata.processedMedia, allCriteria, preferredView.defaultSort);
   // eslint-disable-next-line no-use-before-define
   populateMedia(searchResults[0], processedMetadata.extraHeader, searchResults[1], preferredView);
 }
@@ -2352,10 +2347,10 @@ function showParentTags(searchTag) {
 }
 
 function getPageIconSize() {
-  /* eslint indent: 0 */
-  const validIconSizes = ['small', 'medium', 'small_medium', 'small_medium_large',
-                          'medium_large', 'large', 'large_full_meta', 'large_no_meta',
-                          'regular', 'regular_full_meta', 'regular_no_meta'];
+  const validIconSizes = [
+    'small', 'medium', 'small_medium', 'small_medium_large', 'medium_large', 'large',
+    'large_full_meta', 'large_no_meta', 'regular', 'regular_full_meta',
+    'regular_no_meta'];
   const iconSize = getQueryParameter('icons', 'default');
   if (validIconSizes.includes(iconSize)) {
     return iconSize;
@@ -2928,8 +2923,10 @@ window.onpopstate = function () {
 };
 
 document.querySelector('#today_link').onclick = (event) => {
-  searchPageLinkGenerator(event, [['Date', 'was taken on month/day', getCurrentMonthDay()],
-                                  ['Type', 'is a', 'media']], 'all', 'large_regular');
+  const criteria = [
+    ['Date', 'was taken on month/day', getCurrentMonthDay()],
+    ['Type', 'is a', 'media']];
+  searchPageLinkGenerator(event, criteria, 'all', 'large_regular');
   return stopEvent(event);
 };
 document.querySelector('#nearby_link').onclick = (event) => {
