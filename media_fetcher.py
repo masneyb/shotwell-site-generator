@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0
-# Copyright (C) 2020-2022 Brian Masney <masneyb@onstation.org>
+# Copyright (C) 2020-2024 Brian Masney <masneyb@onstation.org>
 #
 # Reads photos, videos, events, and tags from a Shotwell sqlite database.
 

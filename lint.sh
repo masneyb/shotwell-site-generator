@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: GPL-3.0
-# Copyright (C) 2020-2021 Brian Masney <masneyb@onstation.org>
+# Copyright (C) 2020-2024 Brian Masney <masneyb@onstation.org>
 
 pylint-3 --disable=consider-using-f-string,missing-module-docstring,missing-function-docstring,missing-class-docstring *.py
 
