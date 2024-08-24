@@ -278,28 +278,32 @@ const textSearch = {
     {
       descr: 'equals',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0], (input, value) => input != null && input.toLowerCase() === value.toLowerCase());
+        const match = (input, value) => input != null && input.toLowerCase() === value.toLowerCase();
+        return performGenericOp(field, media, values[0], match);
       },
       numValues: 1,
     },
     {
       descr: 'does not equal',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0], (input, value) => input == null || input.toLowerCase() !== value.toLowerCase());
+        const match = (input, value) => input == null || input.toLowerCase() !== value.toLowerCase();
+        return performGenericOp(field, media, values[0], match);
       },
       numValues: 1,
     },
     {
       descr: 'starts with',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0], (input, value) => input != null && input.toLowerCase().startsWith(value.toLowerCase()));
+        const match = (input, value) => input != null && input.toLowerCase().startsWith(value.toLowerCase());
+        return performGenericOp(field, media, values[0], match);
       },
       numValues: 1,
     },
     {
       descr: 'ends with',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0], (input, value) => input != null && input.toLowerCase().endsWith(value.toLowerCase()));
+        const match = (input, value) => input != null && input.toLowerCase().endsWith(value.toLowerCase());
+        return performGenericOp(field, media, values[0], match);
       },
       numValues: 1,
     },
@@ -387,10 +391,14 @@ const dateSearch = {
 
           const firstDate = new Date();
           firstDate.setDate(firstDate.getDate() - 6);
-          const firstMonthDay = `${String(firstDate.getMonth() + 1).padStart(2, '0')}-${String(firstDate.getDate()).padStart(2, '0')}`;
+          const firstMonth = String(firstDate.getMonth() + 1).padStart(2, '0');
+          const firstDay = String(firstDate.getDate()).padStart(2, '0');
+          const firstMonthDay = `${firstMonth}-${firstDay}`;
 
           const lastDate = new Date();
-          const lastMonthDay = `${String(lastDate.getMonth() + 1).padStart(2, '0')}-${String(lastDate.getDate()).padStart(2, '0')}`;
+          const lastMonth = String(lastDate.getMonth() + 1).padStart(2, '0');
+          const lastDay = String(lastDate.getDate()).padStart(2, '0');
+          const lastMonthDay = `${lastMonth}-${lastDay}`;
 
           const compareTo = input.split('T')[0].split('-').slice(1, 3).join('-');
           return firstMonthDay <= compareTo && compareTo <= lastMonthDay;
@@ -435,7 +443,8 @@ const dateSearch = {
     {
       descr: 'is between',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values, (input, value) => input != null && input >= value[0] && input <= value[1]);
+        const match = (input, value) => input != null && input >= value[0] && input <= value[1];
+        return performGenericOp(field, media, values, match);
       },
       placeholder: ['yyyy-MM-dd', 'yyyy-MM-dd'],
       inputPattern: ['[0-9]{4}-[0-9]{2}-[0-9]{2}', '[0-9]{4}-[0-9]{2}-[0-9]{2}'],
@@ -658,14 +667,16 @@ const fileExtSearch = {
     {
       descr: 'is',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0], (input, value) => input != null && input.toLowerCase().endsWith(`.${value.toLowerCase()}`));
+        const match = (input, value) => input != null && input.toLowerCase().endsWith(`.${value.toLowerCase()}`);
+        return performGenericOp(field, media, values[0], match);
       },
       numValues: 1,
     },
     {
       descr: 'is not',
       matches(field, op, values, media) {
-        return performGenericOp(field, media, values[0], (input, value) => input == null || !input.toLowerCase().endsWith(`.${value.toLowerCase()}`));
+        const match = (input, value) => input == null || !input.toLowerCase().endsWith(`.${value.toLowerCase()}`);
+        return performGenericOp(field, media, values[0], match);
       },
       numValues: 1,
     },
@@ -964,7 +975,8 @@ function getPreferredView(allCriteria, mainTitle) {
   let yearView = null;
 
   for (const criteria of allCriteria) {
-    if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'years') {
+    if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' &&
+        criteria.searchValues[0] === 'years') {
       yearTitle = `${mainTitle}: All Years`;
       yearDefaultSort = 'takenZA';
     } else if (criteria.field.title === 'Year' && criteria.op.descr === 'equals') {
@@ -972,7 +984,8 @@ function getPreferredView(allCriteria, mainTitle) {
       // Used for generating search links when searching for events.
       yearView = criteria.searchValues[0];
       yearDefaultSort = 'takenAZ';
-    } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'events') {
+    } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' &&
+               criteria.searchValues[0] === 'events') {
       eventTitle = `${mainTitle}: All Events`;
       eventDefaultSort = 'takenZA';
     } else if (criteria.field.title === 'Event ID' && criteria.op.descr === 'equals') {
@@ -982,7 +995,8 @@ function getPreferredView(allCriteria, mainTitle) {
       }
       eventTitle = `${mainTitle}: ${eventName}`;
       eventDefaultSort = 'takenAZ';
-    } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' && criteria.searchValues[0] === 'tags') {
+    } else if (criteria.field.title === 'Type' && criteria.op.descr === 'is a' &&
+               criteria.searchValues[0] === 'tags') {
       tagTitle = `${mainTitle}: All Tags`;
     } else if (criteria.field.title === 'Tag ID' && criteria.op.descr === 'equals') {
       tagView = tags[criteria.searchValues[0]];
@@ -1221,7 +1235,8 @@ function performSearch(allItems, allCriteria, defaultSort) {
     }
   }
 
-  let sortBy = getQueryParameter('sort', 'default'); // default,takenZA,takenAZ,createdZA,createdAZ,random
+  // default,takenZA,takenAZ,createdZA,createdAZ,random
+  let sortBy = getQueryParameter('sort', 'default');
   if (sortBy === 'default') {
     sortBy = defaultSort;
   }
@@ -1419,7 +1434,9 @@ function updateSearchCriteria() {
     const sortBy = document.querySelector('#sort').value;
     const iconSize = document.querySelector('#icons').value;
     const groupBy = document.querySelector('#group').value;
-    window.history.pushState({}, '', `index.html?${searchArgs.join('&')}&match=${matchPolicy}&sort=${sortBy}&icons=${iconSize}&group=${groupBy}#`);
+    const url = `index.html?${searchArgs.join('&')}&match=${matchPolicy}&sort=${sortBy}` +
+      `&icons=${iconSize}&group=${groupBy}#`;
+    window.history.pushState({}, '', url);
     processJson();
   }, 0);
 }
@@ -1484,7 +1501,8 @@ function searchOpChanged(idx) {
 
       input.onchange = () => { window.blur(); updateCritieraIfValuesPopulated(idx); return false; };
 
-      if (i < existingValues.length && existingValues[i][0] === input.type && existingValues[i][1] === input.placeholder) {
+      if (i < existingValues.length && existingValues[i][0] === input.type &&
+          existingValues[i][1] === input.placeholder) {
         input.value = existingValues[i][2];
       }
 
@@ -1675,7 +1693,8 @@ function searchPageLinkGenerator(event, criterias, matchPolicy = 'all', override
     parts.push(criteria.join(','));
   }
 
-  const iconSize = overrideIconSize !== null ? overrideIconSize : getQueryParameter('icons', 'default');
+  const iconSize = overrideIconSize !== null ?
+    overrideIconSize : getQueryParameter('icons', 'default');
   const groupBy = getQueryParameter('group', 'none');
   const sortBy = getQueryParameter('sort', 'default');
   const search = generateSearchUrl(parts, matchPolicy, iconSize, groupBy, sortBy);
@@ -1779,7 +1798,8 @@ function createMediaStatsHtml(entity, onSlideshowPage, showBriefMetadata, extraO
   }
 
   if (entity.event_id && entity.type !== 'events') {
-    extStats.push(createSearchLink(`Event: ${eventNames[entity.event_id]}`, 'Event ID', 'equals', entity.event_id, extraOnClick));
+    extStats.push(
+      createSearchLink(`Event: ${eventNames[entity.event_id]}`, 'Event ID', 'equals', entity.event_id, extraOnClick));
   }
 
   if (entity.tags && entity.type !== 'tags') {
@@ -1811,11 +1831,18 @@ function createMediaStatsHtml(entity, onSlideshowPage, showBriefMetadata, extraO
   }
 
   if ('lat' in entity) {
-    extStats.push(createSearchLink(`GPS ${entity.lat},${entity.lon}`, 'GPS Coordinate', 'is within', `${entity.lat},${entity.lon},0.1`, extraOnClick));
+    extStats.push(
+      createSearchLink(
+        `GPS ${entity.lat},${entity.lon}`,
+        'GPS Coordinate',
+        'is within',
+        `${entity.lat},${entity.lon},0.1`,
+        extraOnClick));
 
     let mapAnchor = document.createElement('a');
     mapAnchor.target = '_new';
-    mapAnchor.href = `https://www.openstreetmap.org/?mlat=${entity.lat}&mlon=${entity.lon}#map=16/${entity.lat}/${entity.lon}`;
+    mapAnchor.href =
+      `https://www.openstreetmap.org/?mlat=${entity.lat}&mlon=${entity.lon}#map=16/${entity.lat}/${entity.lon}`;
     mapAnchor.innerText = 'OpenStreetMap';
     extStats.push(createMediaStat(mapAnchor));
 
@@ -1865,11 +1892,13 @@ function enableFullscreenPhotoUpdateTimer() {
     clearInterval(fullscreenPhotoUpdateTimer);
   }
   // eslint-disable-next-line no-use-before-define
-  fullscreenPhotoUpdateTimer = setInterval(() => { showNextImageFullscreen(false); }, fullScreenPhotoUpdateSecs * 1000);
+  fullscreenPhotoUpdateTimer =
+    setInterval(() => { showNextImageFullscreen(false); }, fullScreenPhotoUpdateSecs * 1000);
 }
 
 function getNextImageIndex() {
-  return allMediaFullscreenIndex >= allMedia.length - 1 ? allMediaFullscreenIndex : allMediaFullscreenIndex + 1;
+  return allMediaFullscreenIndex >= allMedia.length - 1 ?
+    allMediaFullscreenIndex : allMediaFullscreenIndex + 1;
 }
 
 function getPreviousImageIndex() {
@@ -2012,7 +2041,8 @@ function updateMediaDescriptionText(descrEle) {
 }
 
 function getFullscreenVideoUrl(entity) {
-  if (window.alwaysAnimateMotionPhotos && 'motion_photo' in entity && 'mp4' in entity.motion_photo) {
+  if (window.alwaysAnimateMotionPhotos && 'motion_photo' in entity &&
+      'mp4' in entity.motion_photo) {
     return entity.motion_photo.mp4;
   }
   if (entity.type === 'video') {
@@ -2173,7 +2203,8 @@ function playIconClicked() {
   }
 
   window.alwaysAnimateMotionPhotos = !window.alwaysAnimateMotionPhotos;
-  document.querySelector('#play_pause_icon').src = window.alwaysAnimateMotionPhotos ? 'icons/pause-web-icon.png' : 'icons/play-web-icon.png';
+  document.querySelector('#play_pause_icon').src =
+    window.alwaysAnimateMotionPhotos ? 'icons/pause-web-icon.png' : 'icons/play-web-icon.png';
   doShowFullscreenImage(true);
 }
 
@@ -2200,7 +2231,8 @@ function enterSlideshowMode(allMediaIndex) {
 }
 
 function updateAnimationsText() {
-  document.querySelector('#animations_link').innerText = window.alwaysShowAnimations ? 'Stop Animations' : 'Show Animations';
+  document.querySelector('#animations_link').innerText =
+    window.alwaysShowAnimations ? 'Stop Animations' : 'Show Animations';
 }
 
 function createAllStatsSpan(stats) {
@@ -2288,7 +2320,8 @@ function getExpandableString(name, value) {
   const shortEle = document.createElement('span');
   shortEle.style.display = 'block';
 
-  shortEle.appendChild(document.createTextNode(`${trimmedValue.substring(0, 140).trim().replaceAll('\r', ' ').replaceAll('\n', ' ')}... `));
+  const truncated = trimmedValue.substring(0, 140).trim().replaceAll('\r', ' ').replaceAll('\n', ' ');
+  shortEle.appendChild(document.createTextNode(`${truncated}... `));
   shortEle.appendChild(createMoreLessAnchor('More', shortEle, longEle));
   parentEle.appendChild(shortEle);
 
@@ -2304,7 +2337,8 @@ function getExpandableString(name, value) {
 function nearbyClicked() {
   if ('geolocation' in navigator) {
     navigator.geolocation.getCurrentPosition((position) => {
-      searchPageLinkGenerator(null, [['GPS Coordinate', 'is within', position.coords.latitude, position.coords.longitude, 1]]);
+      const criteria = [['GPS Coordinate', 'is within', position.coords.latitude, position.coords.longitude, 1]];
+      searchPageLinkGenerator(null, criteria);
     });
   }
 }
@@ -2403,7 +2437,7 @@ class DoubleIconSizeWriter {
     this.smallIconSize = smallIconSize;
     this.largeIconSize = largeIconSize;
     this.parentEle = null;
-    this.unprocessedItems = [];
+    this.unprocessed = [];
     this.hasPreviousGroup = false;
   }
 
@@ -2412,8 +2446,8 @@ class DoubleIconSizeWriter {
       this.parentEle.appendChild(element);
       this.hasPreviousGroup = true;
     } else {
-      this.unprocessedItems.push(element);
-      if (this.unprocessedItems.length === 4) {
+      this.unprocessed.push(element);
+      if (this.unprocessed.length === 4) {
         this.flush();
       }
     }
@@ -2429,15 +2463,16 @@ class DoubleIconSizeWriter {
   }
 
   flush() {
-    if (this.unprocessedItems.length > 0) {
-      this.parentEle.appendChild(createMediaSmallContainer(this.unprocessedItems, this.hasPreviousGroup, this.smallIconSize));
-      this.unprocessedItems = [];
+    if (this.unprocessed.length > 0) {
+      this.parentEle.appendChild(
+        createMediaSmallContainer(this.unprocessed, this.hasPreviousGroup, this.smallIconSize));
+      this.unprocessed = [];
       this.hasPreviousGroup = true;
     }
   }
 
   clear() {
-    this.unprocessedItems = [];
+    this.unprocessed = [];
     this.hasPreviousGroup = false;
   }
 }
@@ -2448,15 +2483,16 @@ class TripleIconSizeWriter {
     this.mediumIconSize = mediumIconSize;
     this.largeIconSize = largeIconSize;
     this.dualWriter = new DoubleIconSizeWriter(mediumIconSize, largeIconSize);
-    this.unprocessedItems = [];
+    this.unprocessed = [];
   }
 
   add(element, mediaIconSize) {
     if (mediaIconSize === this.smallIconSize) {
-      this.unprocessedItems.push(element);
-      if (this.unprocessedItems.length === 4) {
-        this.dualWriter.add(createMediaSmallContainer(this.unprocessedItems, this.dualWriter.hasPreviousGroup, this.smallIconSize), this.mediumIconSize);
-        this.unprocessedItems = [];
+      this.unprocessed.push(element);
+      if (this.unprocessed.length === 4) {
+        const con = createMediaSmallContainer(this.unprocessed, this.dualWriter.hasPreviousGroup, this.smallIconSize);
+        this.dualWriter.add(con, this.mediumIconSize);
+        this.unprocessed = [];
       }
     } else {
       this.dualWriter.add(element, mediaIconSize);
@@ -2473,19 +2509,19 @@ class TripleIconSizeWriter {
   }
 
   flush() {
-    if (this.unprocessedItems.length === 0) {
+    if (this.unprocessed.length === 0) {
       this.dualWriter.flush();
       return;
     }
 
-    this.dualWriter.add(createMediaSmallContainer(this.unprocessedItems, this.dualWriter.hasPreviousGroup, this.smallIconSize), this.mediumIconSize);
-
-    this.unprocessedItems = [];
+    const con = createMediaSmallContainer(this.unprocessed, this.dualWriter.hasPreviousGroup, this.smallIconSize);
+    this.dualWriter.add(con, this.mediumIconSize);
+    this.unprocessed = [];
     this.dualWriter.flush();
   }
 
   clear() {
-    this.unprocessedItems = [];
+    this.unprocessed = [];
     this.dualWriter.clear();
   }
 }
@@ -2584,7 +2620,8 @@ function showLargerMedia(media) {
 }
 
 function addExtraFlush(media) {
-  return (['photo', 'motion_photo', 'video'].indexOf(media.type) === -1) && (['small_medium', 'medium_large', 'small_medium_large'].indexOf(preferredPageIconSize) !== -1);
+  return (['photo', 'motion_photo', 'video'].indexOf(media.type) === -1) &&
+          (['small_medium', 'medium_large', 'small_medium_large'].indexOf(preferredPageIconSize) !== -1);
 }
 
 function getMediaIconSize(media) {
@@ -2640,7 +2677,8 @@ function createMediaElement(index, media, iconSize) {
     } else if (iconSize === 'medium') {
       img.src = media.motion_photo.medium_gif;
       mediaEle.className = 'media_medium';
-    } else if (['large', 'large_full_meta', 'large_no_meta'].includes(iconSize) || !('reg_gif' in media.motion_photo)) {
+    } else if (['large', 'large_full_meta', 'large_no_meta'].includes(iconSize) ||
+               !('reg_gif' in media.motion_photo)) {
       img.src = media.motion_photo.large_gif;
       if (showLargeIconWithNoDescr(iconSize, media.type)) {
         mediaEle.className = 'media_no_descr';
@@ -2670,7 +2708,8 @@ function createMediaElement(index, media, iconSize) {
       img.ontouchend = () => { img.src = media.thumbnail.medium; };
     }
     mediaEle.className = 'media_medium';
-  } else if (['large', 'large_full_meta', 'large_no_meta'].includes(iconSize) || !('reg' in media.thumbnail)) {
+  } else if (['large', 'large_full_meta', 'large_no_meta'].includes(iconSize) ||
+             !('reg' in media.thumbnail)) {
     img.src = media.thumbnail.large;
     if (media.motion_photo) {
       img.onmouseover = () => { img.src = media.motion_photo.large_gif; };
@@ -2695,7 +2734,8 @@ function createMediaElement(index, media, iconSize) {
     mediaEle.style.width = `${media.thumbnail.reg_width}px`;
   }
 
-  if (['large', 'large_full_meta', 'regular', 'regular_full_meta'].includes(iconSize) && !showLargeIconWithNoDescr(iconSize, media.type)) {
+  if (['large', 'large_full_meta', 'regular', 'regular_full_meta'].includes(iconSize) &&
+      !showLargeIconWithNoDescr(iconSize, media.type)) {
     if (media.title) {
       const name = `title${media.type}${media.id}`;
       const title = document.createElement('span');
