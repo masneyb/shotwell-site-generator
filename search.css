@@ -235,13 +235,6 @@ a {
 	image-orientation: from-image;
 }
 
-#qrcode {
-	margin-left: auto;
-	margin-right: auto;
-	width: 300px;
-	height: 300px;
-}
-
 #slideshow_controls {
 	position: fixed;
 	top: 3px;
@@ -268,10 +261,6 @@ a {
 
 #play:hover {
 	cursor: pointer;
-}
-
-.qrcode {
-	float: right;
 }
 
 #description {

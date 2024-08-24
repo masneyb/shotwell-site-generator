@@ -103,13 +103,10 @@ def process_photos(options):
     subprocess.run(["uglifyjs", "--compress", "--mangle",
                     "--source-map", "url='search.min.js.map'",
                     "-o", os.path.join(options.dest_directory, "search.min.js"),
-                    __get_assets_path(options, "qrcode.js"),
                     __get_assets_path(options, "swiped-events.js"),
                     __get_assets_path(options, "search.js")], check=True)
     shutil.copyfile(__get_assets_path(options, "index.html"),
                     os.path.join(options.dest_directory, "index.html"))
-    shutil.copyfile(__get_assets_path(options, "qrcode.js"),
-                    os.path.join(options.dest_directory, "qrcode.js"))
     shutil.copyfile(__get_assets_path(options, "search.css"),
                     os.path.join(options.dest_directory, "search.css"))
     shutil.copyfile(__get_assets_path(options, "search-375px-width.css"),

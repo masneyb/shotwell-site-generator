@@ -164,9 +164,8 @@ function shuffleArray(arr, seed) {
    * Use the Fisher-Yates algorithm to shuffle the array in place. Math.random() is not used
    * here since the Javascript random number implementation doesn't offer a way to provide a
    * starting seed. Use a simple Linear Congruential Generator (LCG) to generate
-   * pseudo-randomized numbers. A starting seed is needed so that the QR code that's generated
-   * on the slideshow can provide that seed so that a slideshow can be easily transfered in
-   * place to a separate mobile device.
+   * pseudo-randomized numbers. A starting seed is needed so that the slideshow can be easily
+   * transfered to a separate mobile device.
    */
   let rand = seed;
   for (let i = arr.length - 1; i > 0; i -= 1) {
@@ -1917,35 +1916,6 @@ function getFullscreenImageUrl(index) {
   return allMedia[index].thumbnail.large;
 }
 
-function getQRCodeUrl() {
-  const searchParams = new URLSearchParams(window.location.search);
-  searchParams.delete('kiosk');
-
-  searchParams.delete('slideshow');
-  searchParams.append('slideshow', '1');
-
-  searchParams.delete('update_secs');
-  searchParams.append('update_secs', '0');
-
-  searchParams.delete('seed');
-  if (randomSeed != null) {
-    searchParams.append('seed', randomSeed);
-  }
-
-  searchParams.delete('idx');
-  searchParams.append('idx', allMediaFullscreenIndex);
-
-  let location = window.location.toString();
-  if (location.includes('#')) {
-    location = location.split('#')[0];
-  }
-  if (location.includes('?')) {
-    location = location.split('?')[0];
-  }
-
-  return `${location}?${searchParams.toString()}`;
-}
-
 function stopEvent(event) {
   event.preventDefault();
   event.stopPropagation();
@@ -2016,30 +1986,10 @@ function exitImageFullscreen() {
 
 function updateMediaDescriptionText(descrEle) {
   const entity = allMedia[allMediaFullscreenIndex];
-
-  const containerEle = document.createElement('div');
-
-  const qrCodeEle = document.createElement('div');
-  qrCodeEle.className = 'qrcode';
-  // eslint-disable-next-line no-undef
-  new QRCode(qrCodeEle, {
-    text: getQRCodeUrl(),
-    width: 120,
-    height: 120,
-    colorDark: 'black',
-    colorLight: 'lightgray',
-    // eslint-disable-next-line no-undef
-    correctLevel: QRCode.CorrectLevel.L,
-  });
-  containerEle.appendChild(qrCodeEle);
-
-  const textEle = createMediaStatsHtml(entity, true, false, (event) => {
+  descrEle.replaceChildren(createMediaStatsHtml(entity, true, false, (event) => {
     exitImageFullscreen();
     return stopEvent(event);
-  });
-  containerEle.appendChild(textEle);
-
-  descrEle.replaceChildren(containerEle);
+  }));
 }
 
 function getFullscreenVideoUrl(entity) {
