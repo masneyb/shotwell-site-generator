@@ -28,6 +28,12 @@ let fullscreenReinstateSlideshowSecs = 0;
 let fullscreenReinstateSlideshowTimer = null;
 let wakeLock = null;
 
+const processedMetadata = {
+  processedMedia: null,
+  mainTitle: null,
+  extraHeader: null,
+};
+
 function getQueryParameter(name, defaultValue) {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.has(name) ? urlParams.get(name) : defaultValue;
@@ -1310,12 +1316,6 @@ function performSearch(allItems, allCriteria, defaultSort) {
 
   return [ret, newDateRange];
 }
-
-const processedMetadata = {
-  processedMedia: null,
-  mainTitle: null,
-  extraHeader: null,
-};
 
 function processJson() {
   if (processedMetadata.processedMedia == null) {
