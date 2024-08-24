@@ -1338,6 +1338,7 @@ function processJson() {
   const preferredView = getPreferredView(allCriteria, processedMetadata.mainTitle);
   const searchResults = performSearch(processedMetadata.processedMedia, allCriteria,
                                       preferredView.defaultSort);
+  // eslint-disable-next-line no-use-before-define
   populateMedia(searchResults[0], processedMetadata.extraHeader, searchResults[1], preferredView);
 }
 
@@ -1866,6 +1867,7 @@ function enableFullscreenPhotoUpdateTimer() {
   if (fullscreenPhotoUpdateTimer != null) {
     clearInterval(fullscreenPhotoUpdateTimer);
   }
+  // eslint-disable-next-line no-use-before-define
   fullscreenPhotoUpdateTimer = setInterval(() => { showNextImageFullscreen(false); }, fullScreenPhotoUpdateSecs * 1000);
 }
 
