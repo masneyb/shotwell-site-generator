@@ -2021,12 +2021,14 @@ function updateMediaDescriptionText(descrEle) {
 
   const qrCodeEle = document.createElement('div');
   qrCodeEle.className = 'qrcode';
+  // eslint-disable-next-line no-undef
   new QRCode(qrCodeEle, {
     text: getQRCodeUrl(),
     width: 120,
     height: 120,
     colorDark: 'black',
     colorLight: 'lightgray',
+    // eslint-disable-next-line no-undef
     correctLevel: QRCode.CorrectLevel.L,
   });
   containerEle.appendChild(qrCodeEle);
