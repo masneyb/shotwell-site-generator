@@ -1092,7 +1092,7 @@ function processCameraGroups(allItems) {
     }
   }
 
-  groups = [];
+  let groups = [];
   for (const camera of Object.keys(cameraSet)) {
     groups.push([camera, cameraSet[camera]]);
   }
@@ -1112,7 +1112,7 @@ function processCameraGroups(allItems) {
   }
 }
 function setZeroGroupIndexAndName(allItems, groupNameFunc) {
-  for (media of allItems) {
+  for (const media of allItems) {
     media.groupIndex = 0;
     media.groupName = groupNameFunc(media);
   }
@@ -1308,6 +1308,8 @@ const processedMetadata = {
 
 function processJson() {
   if (processedMetadata.processedMedia == null) {
+    // getAllMediaViaJsFile() is defined in the media.json file.
+    // eslint-disable-next-line no-undef
     const resp = getAllMediaViaJsFile();
     eventNames = {};
     for (const evt of resp.events) {
@@ -2796,7 +2798,6 @@ function doShowMedia(pageNumber) {
 function clearPreviousMedia(allMediaEle) {
   mediaWriter.clear();
   removeAllChildren(allMediaEle);
-  lastSmallMediaItems = [];
   window.scrollTo(0, 0);
 }
 
