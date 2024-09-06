@@ -2863,6 +2863,25 @@ function windowSizeChanged() {
   }
 }
 
+function setupSwipeDetection(element, onSwipe, threshold = 50, restraint = 100, allowedTime = 300) {
+  let startX, startY, startTime;
+
+  element.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    startTime = Date.now();
+  }, { passive: true });
+
+  element.addEventListener('touchend', e => {
+    let dx = e.changedTouches[0].clientX - startX;
+    let dy = e.changedTouches[0].clientY - startY;
+    let elapsedTime = Date.now() - startTime;
+    if (elapsedTime <= allowedTime && Math.abs(dx) >= threshold && Math.abs(dy) <= restraint) {
+      onSwipe(dx < 0);
+    }
+  }, { passive: true });
+}
+
 // The next two functions are referenced in the index.html in a script element.
 // eslint-disable-next-line no-unused-vars
 function jsonLoadError() {
@@ -2899,14 +2918,12 @@ document.onkeydown = (event) => {
 };
 
 const fullImageEle = document.querySelector('#fullimage_container');
-fullImageEle.addEventListener('swiped-left', () => {
+setupSwipeDetection(fullImageEle, swipeNext => {
   if (window.visualViewport.scale === 1.0) {
-    showNextImageFullscreen(true);
-  }
-});
-fullImageEle.addEventListener('swiped-right', () => {
-  if (window.visualViewport.scale === 1.0) {
-    showPreviousImageFullscreen();
+    if (swipeNext)
+      showNextImageFullscreen(true);
+    else
+      showPreviousImageFullscreen();
   }
 });
 
