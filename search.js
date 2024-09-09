@@ -43,12 +43,6 @@ class SearchState {
   alwaysAnimateMotionPhotos = getIntQueryParameter('animateMotionPhotos', 0);
 }
 
-function stopEvent(event) {
-  event.preventDefault();
-  event.stopPropagation();
-  return false;
-}
-
 function addStatusMessage(parentEle, text) {
   const msgEle = document.createElement('div');
   msgEle.className = 'status';
@@ -1615,11 +1609,17 @@ class SearchUI {
     window.scrollTo(this.state.preFullScreenScrollX, this.state.preFullScreenScrollY);
   }
 
+  stopEvent(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    return false;
+  }
+
   updateMediaDescriptionText(descrEle) {
     const entity = this.state.allMedia[this.state.allMediaFullScreenIndex];
     descrEle.replaceChildren(this.createMediaStatsHtml(entity, true, false, (event) => {
       this.exitImageFullscreen();
-      return stopEvent(event);
+      return this.stopEvent(event);
     }));
   }
 
@@ -2165,7 +2165,7 @@ class SearchUI {
         anchor.href = '#';
         anchor.onclick = (event) => {
           this.searchPageLinkGenerator(event, [['Tag ID', 'equals', tag.id]]);
-          return stopEvent(event);
+          return this.stopEvent(event);
         };
         span.appendChild(anchor);
 
@@ -2248,27 +2248,27 @@ class SearchUI {
 
       anchor.onclick = (event) => {
         this.searchPageLinkGenerator(event, search);
-        return stopEvent(event);
+        return this.stopEvent(event);
       };
     } else if (media.type === 'years') {
       anchor.href = '#';
       const search = [['Year', 'equals', media.id]];
       anchor.onclick = (event) => {
         this.searchPageLinkGenerator(event, search);
-        return stopEvent(event);
+        return this.stopEvent(event);
       };
     } else if (media.type === 'tags') {
       anchor.href = '#';
       const search = [['Tag ID', 'equals', media.id]];
       anchor.onclick = (event) => {
         this.searchPageLinkGenerator(event, search);
-        return stopEvent(event);
+        return this.stopEvent(event);
       };
     } else {
       anchor.href = '#';
       anchor.onclick = (event) => {
         this.enterSlideshowMode(allMediaIndex);
-        return stopEvent(event);
+        return this.stopEvent(event);
       };
     }
 
@@ -2862,7 +2862,7 @@ class SearchUI {
 
       document.querySelector('#csv_link').onclick = (event) => {
         this.csvWriter.downloadCsv(event);
-        return stopEvent(event);
+        return this.stopEvent(event);
       };
 
       document.querySelector('.summary_stats').replaceChildren(this.createAllStatsHtml());
@@ -2957,71 +2957,71 @@ class SearchUI {
         ['Date', 'was taken on month/day', this.searchEngine.getCurrentMonthDay()],
         ['Type', 'is a', 'media']];
       this.searchPageLinkGenerator(event, criteria, 'all', 'large_regular');
-      return stopEvent(event);
+      return this.stopEvent(event);
     };
     document.querySelector('#nearby_link').onclick = (event) => {
       this.nearbyClicked();
-      return stopEvent(event);
+      return this.stopEvent(event);
     };
     document.querySelector('#animations_link').onclick = (event) => {
       this.toggleAnimations();
-      return stopEvent(event);
+      return this.stopEvent(event);
     };
     document.querySelector('#slideshow_link').onclick = (event) => {
       this.slideshowClicked();
-      return stopEvent(event);
+      return this.stopEvent(event);
     };
     document.querySelector('#date_link').onclick = (event) => {
       this.searchPageLinkGenerator(event, []);
-      return stopEvent(event);
+      return this.stopEvent(event);
     };
     document.querySelector('#event_link').onclick = (event) => {
       this.searchPageLinkGenerator(event, [['Type', 'is a', 'events']]);
-      return stopEvent(event);
+      return this.stopEvent(event);
     };
     document.querySelector('#year_link').onclick = (event) => {
       this.searchPageLinkGenerator(event, [['Type', 'is a', 'years']]);
-      return stopEvent(event);
+      return this.stopEvent(event);
     };
     document.querySelector('#tag_link').onclick = (event) => {
       this.searchPageLinkGenerator(event, [['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set']]);
-      return stopEvent(event);
+      return this.stopEvent(event);
     };
     document.querySelector('#add_search_row').onclick = (event) => {
       this.addSearchInputRow();
-      return stopEvent(event);
+      return this.stopEvent(event);
     };
     document.querySelector('#clear_search_criteria').onclick = (event) => {
       this.clearSearchCriteria();
-      return stopEvent(event);
+      return this.stopEvent(event);
     };
     document.querySelector('#play').onclick = (event) => {
       this.playIconClicked();
-      return stopEvent(event);
+      return this.stopEvent(event);
     };
     document.querySelector('#fullscreen').onclick = (event) => {
       this.fullscreenClicked();
-      return stopEvent(event);
+      return this.stopEvent(event);
     };
     document.querySelector('#close').onclick = (event) => {
       this.exitImageFullscreen();
-      return stopEvent(event);
+      return this.stopEvent(event);
     };
     document.querySelector('#match').onchange = (event) => {
       this.updateSearchCriteria();
-      return stopEvent(event);
+      return this.stopEvent(event);
     };
     document.querySelector('#group').onchange = (event) => {
       this.updateSearchCriteria();
-      return stopEvent(event);
+      return this.stopEvent(event);
     };
     document.querySelector('#sort').onchange = (event) => {
       this.updateSearchCriteria();
-      return stopEvent(event);
+      return this.stopEvent(event);
     };
     document.querySelector('#icons').onchange = (event) => {
       this.updateSearchCriteria();
-      return stopEvent(event);
+      return this.stopEvent(event);
     };
   }
 }
