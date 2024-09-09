@@ -18,7 +18,6 @@ class SearchState {
   currentYearView = null;
   preferredPageIconSize = null;
   currentGroupName = null;
-  randomSeed = null;
 
   // Search controls
   nextSearchInput = 0;
@@ -275,22 +274,13 @@ class SearchEngine {
     return `index.html?${qs.join('&')}#`;
   }
 
-  shuffleArray(arr, seed) {
+  shuffleArray(arr) {
     if (arr === null) {
       return;
     }
 
-    /*
-     * Use the Fisher-Yates algorithm to shuffle the array in place. Math.random() is not used
-     * here since the Javascript random number implementation doesn't offer a way to provide a
-     * starting seed. Use a simple Linear Congruential Generator (LCG) to generate
-     * pseudo-randomized numbers. A starting seed is needed so that the slideshow can be easily
-     * transfered to a separate device.
-     */
-    let rand = seed;
-    for (let i = arr.length - 1; i > 0; i -= 1) {
-      rand = (rand * 1103515245 + 12345) & 0x7fffffff;
-      const j = rand % (i + 1);
+    for (let i = arr.length - 1; i >= 0; i -= 1) {
+      const j = Math.floor(Math.random() * arr.length);
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
   }
@@ -1375,10 +1365,8 @@ class SearchEngine {
     }
 
     if (sortBy === 'random') {
-      this.state.randomSeed = getIntQueryParameter('seed', Date.now());
-      this.shuffleArray(ret, this.state.randomSeed);
+      this.shuffleArray(ret);
     } else {
-      this.state.randomSeed = null;
       let sortField;
       let sortValLt;
       let sortValGt;
