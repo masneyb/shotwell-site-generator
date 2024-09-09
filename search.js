@@ -281,29 +281,6 @@ class SearchEngine {
     return `index.html?${qs.join('&')}#`;
   }
 
-  searchPageLinkGenerator(event, criterias, matchPolicy = 'all', overrideIconSize = null) {
-    const parts = [];
-    for (const criteria of criterias) {
-      // field,op,value
-      parts.push(criteria.join(','));
-    }
-
-    const iconSize = overrideIconSize !== null ?  overrideIconSize : getQueryParameter('icons', 'default');
-    const groupBy = getQueryParameter('group', 'none');
-    const sortBy = getQueryParameter('sort', 'default');
-    const search = this.generateSearchUrl(parts, matchPolicy, iconSize, groupBy, sortBy);
-
-    // Check to see if the user control clicked the URL to request it be opened in a new tab.
-    if (event != null && (event.ctrlKey || event.which === 2 || event.which === 3)) {
-      event.preventDefault();
-      event.stopPropagation();
-      window.open(search, '_blank');
-    } else {
-      window.history.pushState({}, '', search);
-      this.processJson();
-    }
-  }
-
   shuffleArray(arr, seed) {
     if (arr === null) {
       return;
@@ -1473,7 +1450,7 @@ class SearchEngine {
     return [ret, newDateRange];
   }
 
-  processJson() {
+  processJson(readyFunc) {
     if (this.state.processedMedia == null) {
       // getAllMediaViaJsFile() is defined in the media.json file.
       // eslint-disable-next-line no-undef
@@ -1507,8 +1484,7 @@ class SearchEngine {
     const preferredView = this.getPreferredView(allCriteria, this.state.mainTitle);
     const searchResults =
       this.performSearch(this.state.processedMedia, allCriteria, preferredView.defaultSort);
-    // FIXME - circular dependency between search engine and search UI.
-    _mediaSearchUI.populateMedia(searchResults[0], this.state.extraHeader, searchResults[1], preferredView);
+    readyFunc(searchResults[0], this.state.extraHeader, searchResults[1], preferredView);
   }
 }
 
@@ -1927,7 +1903,7 @@ class MediaSearchUI {
       const url = `index.html?${searchArgs.join('&')}&match=${matchPolicy}&sort=${sortBy}` +
         `&icons=${iconSize}&group=${groupBy}#`;
       window.history.pushState({}, '', url);
-      this.searchEngine.processJson();
+      this.doPerformSearch();
     }, 0);
   }
 
@@ -2119,14 +2095,37 @@ class MediaSearchUI {
 
   clearSearchCriteria() {
     window.history.pushState({}, '', 'index.html?#');
-    this.searchEngine.processJson();
+    this.doPerformSearch();
+  }
+
+  searchPageLinkGenerator(event, criterias, matchPolicy = 'all', overrideIconSize = null) {
+    const parts = [];
+    for (const criteria of criterias) {
+      // field,op,value
+      parts.push(criteria.join(','));
+    }
+
+    const iconSize = overrideIconSize !== null ?  overrideIconSize : getQueryParameter('icons', 'default');
+    const groupBy = getQueryParameter('group', 'none');
+    const sortBy = getQueryParameter('sort', 'default');
+    const search = this.searchEngine.generateSearchUrl(parts, matchPolicy, iconSize, groupBy, sortBy);
+
+    // Check to see if the user control clicked the URL to request it be opened in a new tab.
+    if (event != null && (event.ctrlKey || event.which === 2 || event.which === 3)) {
+      event.preventDefault();
+      event.stopPropagation();
+      window.open(search, '_blank');
+    } else {
+      window.history.pushState({}, '', search);
+      this.doPerformSearch();
+    }
   }
 
   nearbyClicked() {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition((position) => {
         const criteria = [['GPS Coordinate', 'is within', position.coords.latitude, position.coords.longitude, 1]];
-        this.searchEngine.searchPageLinkGenerator(null, criteria);
+        this.searchPageLinkGenerator(null, criteria);
       });
     }
   }
@@ -2165,7 +2164,7 @@ class MediaSearchUI {
         anchor.innerText = tag.title;
         anchor.href = '#';
         anchor.onclick = (event) => {
-          this.searchEngine.searchPageLinkGenerator(event, [['Tag ID', 'equals', tag.id]]);
+          this.searchPageLinkGenerator(event, [['Tag ID', 'equals', tag.id]]);
           return stopEvent(event);
         };
         span.appendChild(anchor);
@@ -2248,21 +2247,21 @@ class MediaSearchUI {
       }
 
       anchor.onclick = (event) => {
-        this.searchEngine.searchPageLinkGenerator(event, search);
+        this.searchPageLinkGenerator(event, search);
         return stopEvent(event);
       };
     } else if (media.type === 'years') {
       anchor.href = '#';
       const search = [['Year', 'equals', media.id]];
       anchor.onclick = (event) => {
-        this.searchEngine.searchPageLinkGenerator(event, search);
+        this.searchPageLinkGenerator(event, search);
         return stopEvent(event);
       };
     } else if (media.type === 'tags') {
       anchor.href = '#';
       const search = [['Tag ID', 'equals', media.id]];
       anchor.onclick = (event) => {
-        this.searchEngine.searchPageLinkGenerator(event, search);
+        this.searchPageLinkGenerator(event, search);
         return stopEvent(event);
       };
     } else {
@@ -2401,7 +2400,7 @@ class MediaSearchUI {
       if (extraOnClick) {
         extraOnClick(event);
       }
-      this.searchEngine.searchPageLinkGenerator(event, [[field, op, val]]);
+      this.searchPageLinkGenerator(event, [[field, op, val]]);
       return false;
     };
     anchor.innerText = label;
@@ -2870,6 +2869,11 @@ class MediaSearchUI {
     }, 0);
   }
 
+  doPerformSearch() {
+    this.searchEngine.processJson((newAllMedia, extraHeader, newDateRange, preferredView) =>
+      this.populateMedia(newAllMedia, extraHeader, newDateRange, preferredView));
+  }
+
   populateMedia(newAllMedia, extraHeader, newDateRange, preferredView) {
     this.state.allMedia = newAllMedia;
     this.state.dateRange = newDateRange;
@@ -2924,11 +2928,11 @@ class MediaSearchUI {
     this.updateAnimationsText();
 
     window.onload = () => {
-      this.searchEngine.processJson();
+      this.doPerformSearch();
       this.checkForPhotoFrameMode();
     };
 
-    window.onpopstate = () => this.searchEngine.processJson();
+    window.onpopstate = () => this.doPerformSearch();
     window.onscroll = () => this.windowScrolled();
     window.onresize = () => this.windowSizeChanged();
     document.querySelector('#fullimage').onclick = () => this.toggleFullscreenDescription();
@@ -2952,7 +2956,7 @@ class MediaSearchUI {
       const criteria = [
         ['Date', 'was taken on month/day', this.searchEngine.getCurrentMonthDay()],
         ['Type', 'is a', 'media']];
-      this.searchEngine.searchPageLinkGenerator(event, criteria, 'all', 'large_regular');
+      this.searchPageLinkGenerator(event, criteria, 'all', 'large_regular');
       return stopEvent(event);
     };
     document.querySelector('#nearby_link').onclick = (event) => {
@@ -2968,19 +2972,19 @@ class MediaSearchUI {
       return stopEvent(event);
     };
     document.querySelector('#date_link').onclick = (event) => {
-      this.searchEngine.searchPageLinkGenerator(event, []);
+      this.searchPageLinkGenerator(event, []);
       return stopEvent(event);
     };
     document.querySelector('#event_link').onclick = (event) => {
-      this.searchEngine.searchPageLinkGenerator(event, [['Type', 'is a', 'events']]);
+      this.searchPageLinkGenerator(event, [['Type', 'is a', 'events']]);
       return stopEvent(event);
     };
     document.querySelector('#year_link').onclick = (event) => {
-      this.searchEngine.searchPageLinkGenerator(event, [['Type', 'is a', 'years']]);
+      this.searchPageLinkGenerator(event, [['Type', 'is a', 'years']]);
       return stopEvent(event);
     };
     document.querySelector('#tag_link').onclick = (event) => {
-      this.searchEngine.searchPageLinkGenerator(event, [['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set']]);
+      this.searchPageLinkGenerator(event, [['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set']]);
       return stopEvent(event);
     };
     document.querySelector('#add_search_row').onclick = (event) => {
