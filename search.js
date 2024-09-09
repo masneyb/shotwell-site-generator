@@ -1488,7 +1488,7 @@ class SearchEngine {
   }
 }
 
-class MediaSearchUI {
+class SearchUI {
   constructor(state, searchEngine, csvWriter) {
     this.state = state;
     this.searchEngine = searchEngine;
@@ -3026,8 +3026,12 @@ class MediaSearchUI {
   }
 }
 
-const _state = new SearchState();
-const _searchEngine = new SearchEngine(_state);
-const _csvWriter = new CsvWriter(_state);
-const _mediaSearchUI = new MediaSearchUI(_state, _searchEngine, _csvWriter);
-_mediaSearchUI.init();
+function doinit() {
+  const _state = new SearchState();
+  const _searchEngine = new SearchEngine(_state);
+  const _csvWriter = new CsvWriter(_state);
+  const _mediaSearchUI = new SearchUI(_state, _searchEngine, _csvWriter);
+  _mediaSearchUI.init();
+}
+
+doinit();
