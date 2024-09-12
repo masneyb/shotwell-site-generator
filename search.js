@@ -1630,20 +1630,30 @@ class SearchUI {
     document.querySelector('#play').style.display = display;
   }
 
+  setMetadataIconDisplay(display) {
+    document.querySelector('#metadata').style.display = display;
+  }
+
   isKioskModeEnabled() {
     return getIntQueryParameter('kiosk', 0) === 1;
   }
 
   showHidePlayIcon(entity) {
-    if ('motion_photo' in entity && 'mp4' in entity.motion_photo && !this.isKioskModeEnabled()) {
+    if (entity.type === 'video') {
+      this.setPlayIconDisplay('none');
+      this.setMetadataIconDisplay('inline-block');
+    } else if ('motion_photo' in entity && 'mp4' in entity.motion_photo && !this.isKioskModeEnabled()) {
       this.setPlayIconDisplay('inline-block');
+      this.setMetadataIconDisplay('inline-block');
     } else {
       this.setPlayIconDisplay('none');
+      this.setMetadataIconDisplay('none');
     }
   }
 
   doShowFullscreenImage(manuallyInvoked) {
     this.setPlayIconDisplay('none');
+    this.setMetadataIconDisplay('none');
     if (!this.fullscreenSupported()) {
       document.querySelector('#fullscreen').style.display = 'none';
     }
@@ -2985,6 +2995,10 @@ class SearchUI {
     };
     document.querySelector('#clear_search_criteria').onclick = (event) => {
       this.clearSearchCriteria();
+      return this.stopEvent(event);
+    };
+    document.querySelector('#metadata').onclick = (event) => {
+      this.toggleFullscreenDescription();
       return this.stopEvent(event);
     };
     document.querySelector('#play').onclick = (event) => {
