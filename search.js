@@ -18,6 +18,7 @@ class SearchState {
   currentYearView = null;
   preferredPageIconSize = null;
   currentGroupName = null;
+  randomSeed = Date.now();
 
   // Search controls
   nextSearchInput = 0;
@@ -279,9 +280,12 @@ class SearchEngine {
       return;
     }
 
-    for (let i = arr.length - 1; i >= 0; i -= 1) {
-      const j = Math.floor(Math.random() * arr.length);
+    // Don't use Math.random() since we can't provide a starting seed
+    let rand = this.state.randomSeed;
+    for (let i = arr.length - 1; i > 0; i -= 1) {
+      const j = rand % i;
       [arr[i], arr[j]] = [arr[j], arr[i]];
+      rand = (rand * 1103515245 + 12345) & 0x7fffffff;
     }
   }
 
