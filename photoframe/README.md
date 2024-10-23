@@ -30,7 +30,7 @@ The screen is automatically powered off at night and comes back on in the mornin
 I used the 2024-03-15 64-bit release of Raspberry Pi OS from
 https://downloads.raspberrypi.org/raspios_arm64/images/.
 
-    sudo apt install -y libnss3-tools python3-lgpio unattended-upgrades
+    sudo apt install -y libnss3-tools python3-lgpio unattended-upgrades unclutter
 
 If you are using the official Raspberry Pi 7" touchscreen, then
 add the following to /boot/config.txt:
