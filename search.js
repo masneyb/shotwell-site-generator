@@ -1741,7 +1741,7 @@ class SearchUI {
       clearInterval(this.state.fullScreenPhotoUpdateTimer);
       this.state.fullScreenPhotoUpdateTimer = null;
       this.state.fullScreenReinstateSlideshowTimer =
-        setInterval(this.toggleSlideshowTimers, this.state.fullScreenReinstateSlideshowSecs * 1000);
+        setInterval(() => { this.toggleSlideshowTimers(); }, this.state.fullScreenReinstateSlideshowSecs * 1000);
     }
   }
 
