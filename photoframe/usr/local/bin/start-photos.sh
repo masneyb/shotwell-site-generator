@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+get_start_filename()
+{
+	if [ -f /media/pi/PHOTOS/photos/photoframe.html ] ; then
+		echo "/media/pi/PHOTOS/photos/photoframe.html"
+	elif [ -f /media/pi/PHOTOS1/photos/photoframe.html ] ; then
+		echo "/media/pi/PHOTOS1/photos/photoframe.html"
+	else
+		echo ""
+	fi
+}
+
 set -e
 
 killall chromium-browser || true
@@ -15,17 +26,20 @@ xset dpms force on
 # pi where this was an issue.
 xrandr --output HDMI-1 --auto || true
 
-START=/media/pi/PHOTOS/photos/photoframe.html
-if [ ! -f "${START}" ] ; then
-	# Give time for the USB thumbdrive to be automounted on boot up
-	sleep 5
+START_FILENAME=$(get_start_filename)
+if [ "${START_FILENAME}" = "" ] ; then
+	# If the thumbdrive is not inserted into the device, then display a page
+	# prompting to insert the drive. Check in the background for the drive,
+	# and kill the browser once the drive is available.
+	/usr/bin/chromium-browser --kiosk file:///var/lib/photoframe/index.html &
+
+	while [ "${START_FILENAME}" = "" ] ; do
+		sleep 2
+		START_FILENAME=$(get_start_filename)
+	done
+
+	killall chromium-browser || true
+	sleep 0.5
 fi
 
-if [ -f "${START}" ] ; then
-	/usr/bin/chromium-browser --kiosk "file://${START}"
-elif [ -f /media/pi/PHOTOS1/photos/photoframe.html ] ; then
-	/usr/bin/chromium-browser --kiosk file:///media/pi/PHOTOS1/photos/photoframe.html &
-else
-	/usr/bin/chromium-browser --kiosk file:///var/lib/photoframe/index.html &
-	#/usr/bin/chromium-browser --kiosk "https://USER:PASS@HOSTNAME/photoframe.html" &
-fi
+/usr/bin/chromium-browser --kiosk "file://${START_FILENAME}"
