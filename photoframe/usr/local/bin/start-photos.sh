@@ -20,5 +20,6 @@ LOCAL_FILE=/media/pi/PHOTOS/photos/photoframe.html
 if [ -f "${LOCAL_FILE}" ] ; then
 	/usr/bin/chromium-browser --kiosk "file://${LOCAL_FILE}" &
 else
-	/usr/bin/chromium-browser --kiosk "https://USER:PASS@HOSTNAME/photoframe.html" &
+	/usr/bin/chromium-browser --kiosk "file:///var/lib/photoframe/index.html" &
+	#/usr/bin/chromium-browser --kiosk "https://USER:PASS@HOSTNAME/photoframe.html" &
 fi
