@@ -15,8 +15,14 @@ xset dpms force on
 # pi where this was an issue.
 xrandr --output HDMI-1 --auto || true
 
-if [ -f /media/pi/PHOTOS/photos/photoframe.html ] ; then
-	/usr/bin/chromium-browser --kiosk file:///media/pi/PHOTOS/photos/photoframe.html &
+START=/media/pi/PHOTOS/photos/photoframe.html
+if [ ! -f "${START}" ] ; then
+	# Give time for the USB thumbdrive to be automounted on boot up
+	sleep 5
+fi
+
+if [ -f "${START}" ] ; then
+	/usr/bin/chromium-browser --kiosk "file://${START}"
 elif [ -f /media/pi/PHOTOS1/photos/photoframe.html ] ; then
 	/usr/bin/chromium-browser --kiosk file:///media/pi/PHOTOS1/photos/photoframe.html &
 else
