@@ -2318,7 +2318,7 @@ class SearchUI {
     return true;
   }
 
-  createMoreLessAnchor(label, shortEle, longEle) {
+  createMoreLessAnchor(label, shortEle, longEle, displayType) {
     const anchor = document.createElement('a');
     anchor.className = 'more_less';
     anchor.innerText = label;
@@ -2326,10 +2326,10 @@ class SearchUI {
     anchor.onclick = (event) => {
       if (shortEle.style.display === 'none') {
         longEle.style.display = 'none';
-        shortEle.style.display = 'inline-block';
+        shortEle.style.display = displayType;
       } else {
         shortEle.style.display = 'none';
-        longEle.style.display = 'inline-block';
+        longEle.style.display = displayType;
       }
       event.preventDefault();
       event.stopPropagation();
@@ -2337,7 +2337,7 @@ class SearchUI {
     return anchor;
   }
 
-  getExpandableString(name, value) {
+  getExpandableString(name, value, displayType) {
     const trimmedValue = value.trim();
     if (trimmedValue.length < 150 && !trimmedValue.includes('\n')) {
       return document.createTextNode(trimmedValue);
@@ -2349,17 +2349,17 @@ class SearchUI {
     longEle.style.display = 'none';
 
     const shortEle = document.createElement('span');
-    shortEle.style.display = 'block';
+    shortEle.style.display = displayType;
 
     const truncated = trimmedValue.substring(0, 140).trim().replaceAll('\r', ' ').replaceAll('\n', ' ');
     shortEle.appendChild(document.createTextNode(`${truncated}... `));
-    shortEle.appendChild(this.createMoreLessAnchor('More', shortEle, longEle));
+    shortEle.appendChild(this.createMoreLessAnchor('More', shortEle, longEle, displayType));
     parentEle.appendChild(shortEle);
 
     const longText = document.createElement('span');
     longText.innerText = `${trimmedValue} `;
     longEle.appendChild(longText);
-    longEle.appendChild(this.createMoreLessAnchor('Less', shortEle, longEle));
+    longEle.appendChild(this.createMoreLessAnchor('Less', shortEle, longEle, displayType));
     parentEle.appendChild(longEle);
 
     return parentEle;
@@ -2428,10 +2428,16 @@ class SearchUI {
     const stats = [];
     const extStats = [];
 
+    const name = `title${entity.type}${entity.id}`;
     if (onSlideshowPage && 'title' in entity && entity.title) {
       const val = entity.title_prefix + entity.title;
-      stats.push(this.createTextMediaStat(val));
-      extStats.push(this.createTextMediaStat(val));
+      stats.push(this.getExpandableString(name, val, 'inline'));
+      extStats.push(this.getExpandableString(name, val, 'inline'));
+    }
+
+    if (onSlideshowPage && 'comment' in entity && entity.comment) {
+      stats.push(this.getExpandableString(name, entity.comment, 'inline'));
+      extStats.push(this.getExpandableString(name, entity.comment, 'inline'));
     }
 
     if (entity.num_photos > 0) {
@@ -2573,11 +2579,11 @@ class SearchUI {
     const extStatsEle = this.createStatsSpan(extStats);
 
     shortStatsEle.appendChild(document.createTextNode(' '));
-    shortStatsEle.appendChild(this.createMoreLessAnchor('More', shortStatsEle, extStatsEle));
+    shortStatsEle.appendChild(this.createMoreLessAnchor('More', shortStatsEle, extStatsEle, 'block'));
     ret.append(shortStatsEle);
 
     extStatsEle.appendChild(document.createTextNode(' '));
-    extStatsEle.appendChild(this.createMoreLessAnchor('Less', shortStatsEle, extStatsEle));
+    extStatsEle.appendChild(this.createMoreLessAnchor('Less', shortStatsEle, extStatsEle, 'block'));
     extStatsEle.style.display = 'none';
     ret.appendChild(extStatsEle);
 
@@ -2669,9 +2675,9 @@ class SearchUI {
         const title = document.createElement('span');
         title.className = 'media_title';
         if (media.title_prefix) {
-          title.appendChild(this.getExpandableString(name, media.title_prefix + media.title));
+          title.appendChild(this.getExpandableString(name, media.title_prefix + media.title, 'block'));
         } else {
-          title.appendChild(this.getExpandableString(name, media.title));
+          title.appendChild(this.getExpandableString(name, media.title, 'block'));
         }
         mediaEle.appendChild(title);
       }
@@ -2680,7 +2686,7 @@ class SearchUI {
         const name = `comment${media.type}${media.id}`;
         const comment = document.createElement('span');
         comment.className = 'media_comment';
-        comment.appendChild(this.getExpandableString(name, media.comment));
+        comment.appendChild(this.getExpandableString(name, media.comment, 'block'));
         mediaEle.appendChild(comment);
       }
 
