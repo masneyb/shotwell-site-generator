@@ -4,13 +4,19 @@
 #
 # Exports a JSON file with the contents a shotwell photo/video library.
 
+import csv
 import datetime
-import os
 import json
+import os
+from pyproj import CRS
+import shapefile
 import humanize
 from media_writer_common import CommonWriter
 
-class Json(CommonWriter):
+def write_column(media, colname, _event_names, _tag_names):
+    return media[colname] if colname in media else ''
+
+class JsonCsvShp(CommonWriter):
     # pylint: disable=too-few-public-methods
     def __init__(self, all_media, main_title, max_media_per_page, dest_directory,
                  years_prior_are_approximate, extra_header, version_label):
@@ -56,11 +62,16 @@ class Json(CommonWriter):
             ret['extra_header'] = {'description': self.extra_header[0],
                                    'link': self.extra_header[1]}
 
+        event_names = {event['id']: event['title'] for event in shown_events}
+        tag_names = {tag['id']: tag['title'] for tag in tags}
         self.__write_json_files(ret)
+        self.__write_csv_file(ret, event_names, tag_names)
+        self.__write_shp_file(ret, event_names, tag_names)
 
     def __create_media_element(self, media):
         item = self.__copy_fields(["title", "comment", "event_id", "rating", "filesize",
-                                   "fps", "camera", "exif", "width", "height", "id"], media)
+                                   "fps", "camera", "exif", "width", "height", "id", "media_id"],
+                                  media)
         item["artifact_filesize"] = media["all_artifacts_size"]
 
         item["type"] = self._get_media_type(media)
@@ -185,6 +196,96 @@ class Json(CommonWriter):
         shown_years.sort(key=lambda year: year["title"], reverse=True)
 
         return shown_years
+
+    csv_cols = [('media_id', write_column, 'C', 25),
+                ('title', write_column, 'C', 255),
+                ('comment', write_column, 'C', 255),
+                ('link', write_column, 'C', 128),
+                ('type', write_column, 'C', 15),
+                ('filesize', write_column, 'N', 8),
+                ('width', write_column, 'N', 6),
+                ('height', write_column, 'N', 6),
+                ('camera', write_column, 'C', 30),
+                ('megapixels', write_column, 'N', 4),
+                ('fps', write_column, 'N', 6),
+                ('clip_duration', write_column, 'C', 25),
+                ('clip_duration_secs', write_column, 'N', 4),
+                ('rating', write_column, 'N', 1),
+                ('lat', write_column, None, 0),
+                ('lon', write_column, None, 0),
+                ('exif',
+                    lambda media, _colname, _event_names, _tag_names:
+                        ' '.join(media['exif'] if 'exif' in media else ''),
+                    'C', 30),
+                ('time_created', write_column, 'S', 20),
+                ('exposure_time', write_column, 'S', 20),
+                ('exposure_time_pretty', write_column, 'S', 30),
+                ('metadata_text', write_column, 'S', 100),
+                ('reg_thumbnail',
+                    lambda media, _colname, _event_names, _tag_names: media['thumbnail']['reg'],
+                    'C', 100),
+                ('reg_motion_photo',
+                    lambda media, _colname, _event_names, _tag_names:
+                        media['motion_photo']['reg_gif'] if 'motion_photo' in media else '',
+                    'C', 100),
+                ('event_id', write_column, 'N', 4),
+                ('event_name',
+                    lambda media, _colname, event_names, _tag_names:
+                        event_names[media['event_id']],
+                    'C', 100),
+                ('tag_id',
+                    lambda media, _colname, _event_names, tag_names:
+                        ', '.join(str(tag_id) for tag_id in media['tags']),
+                    'C', 100),
+                ('tags',
+                    lambda media, _colname, _event_names, tag_names:
+                        ', '.join(tag_names[tag_id] for tag_id in media['tags']),
+                    'C', 255)]
+
+    def __write_csv_file(self, ret, event_names, tag_names):
+        with open(os.path.join(self.dest_directory, "media.csv"), "w", encoding="UTF-8") as outfile:
+            csv_writer = csv.writer(outfile)
+            row = []
+            for col in self.csv_cols:
+                row.append(col[0])
+            csv_writer.writerow(row)
+
+            for media in ret['media']:
+                row = []
+                for col in self.csv_cols:
+                    row.append(col[1](media, col[0], event_names, tag_names))
+                csv_writer.writerow(row)
+
+    def __write_shp_file(self, ret, event_names, tag_names):
+        gis_dir = os.path.join(self.dest_directory, "gis")
+        if not os.path.isdir(gis_dir):
+            os.makedirs(gis_dir)
+
+        # Set WGS84 projection
+        with open(os.path.join(gis_dir, "media.prj"), "w", encoding="UTF-8") as prj_file:
+            prj_file.write(CRS.from_epsg(4326).to_wkt())
+
+        writer = shapefile.Writer(os.path.join(gis_dir, "media.shp"), shapeType=shapefile.POINT)
+        for col in self.csv_cols:
+            if not col[2]:
+                continue
+
+            writer.field(col[0], col[2], col[3])
+
+        for media in ret['media']:
+            if 'lat' not in media:
+                continue
+
+            writer.point(media['lon'], media['lat'])
+
+            row = []
+            for col in self.csv_cols:
+                if col[2]:
+                    row.append(col[1](media, col[0], event_names, tag_names))
+
+            writer.record(*row)
+
+        writer.close()
 
     def __write_json_files(self, ret):
         # No part of the generated site reads this generated media.json file. Including here
