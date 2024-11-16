@@ -257,15 +257,13 @@ class JsonCsvShp(CommonWriter):
                 csv_writer.writerow(row)
 
     def __write_shp_file(self, ret, event_names, tag_names):
-        gis_dir = os.path.join(self.dest_directory, "gis")
-        if not os.path.isdir(gis_dir):
-            os.makedirs(gis_dir)
-
         # Set WGS84 projection
-        with open(os.path.join(gis_dir, "media.prj"), "w", encoding="UTF-8") as prj_file:
+        with open(os.path.join(self.dest_directory, "media.prj"), "w",
+                  encoding="UTF-8") as prj_file:
             prj_file.write(CRS.from_epsg(4326).to_wkt())
 
-        writer = shapefile.Writer(os.path.join(gis_dir, "media.shp"), shapeType=shapefile.POINT)
+        writer = shapefile.Writer(os.path.join(self.dest_directory, "media.shp"),
+                                  shapeType=shapefile.POINT)
         for col in self.csv_cols:
             if not col[2]:
                 continue
