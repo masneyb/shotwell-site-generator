@@ -9,7 +9,6 @@ import datetime
 import json
 import os
 from pyproj import CRS
-import shapefile
 import geojson
 import humanize
 from media_writer_common import CommonWriter
@@ -67,7 +66,6 @@ class JsonCsvShp(CommonWriter):
         tag_names = {tag['id']: tag['title'] for tag in tags}
         self.__write_json_files(ret)
         self.__write_csv_file(ret, event_names, tag_names)
-        self.__write_shp_file(ret, event_names, tag_names)
         self.__write_geojson_file(ret, event_names, tag_names)
 
     def __create_media_element(self, media):
@@ -257,35 +255,6 @@ class JsonCsvShp(CommonWriter):
                 for col in self.csv_cols:
                     row.append(col[1](media, col[0], event_names, tag_names))
                 csv_writer.writerow(row)
-
-    def __write_shp_file(self, ret, event_names, tag_names):
-        # Set WGS84 projection
-        with open(os.path.join(self.dest_directory, "media.prj"), "w",
-                  encoding="UTF-8") as prj_file:
-            prj_file.write(CRS.from_epsg(4326).to_wkt())
-
-        writer = shapefile.Writer(os.path.join(self.dest_directory, "media.shp"),
-                                  shapeType=shapefile.POINT)
-        for col in self.csv_cols:
-            if not col[2]:
-                continue
-
-            writer.field(col[0], col[2], col[3])
-
-        for media in ret['media']:
-            if 'lat' not in media:
-                continue
-
-            writer.point(media['lon'], media['lat'])
-
-            row = []
-            for col in self.csv_cols:
-                if col[2]:
-                    row.append(col[1](media, col[0], event_names, tag_names))
-
-            writer.record(*row)
-
-        writer.close()
 
     def __write_geojson_file(self, ret, event_names, tag_names):
         features = []
