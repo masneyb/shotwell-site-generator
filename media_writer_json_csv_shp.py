@@ -10,6 +10,7 @@ import json
 import os
 from pyproj import CRS
 import shapefile
+import geojson
 import humanize
 from media_writer_common import CommonWriter
 
@@ -67,6 +68,7 @@ class JsonCsvShp(CommonWriter):
         self.__write_json_files(ret)
         self.__write_csv_file(ret, event_names, tag_names)
         self.__write_shp_file(ret, event_names, tag_names)
+        self.__write_geojson_file(ret, event_names, tag_names)
 
     def __create_media_element(self, media):
         item = self.__copy_fields(["title", "comment", "event_id", "rating", "filesize",
@@ -284,6 +286,30 @@ class JsonCsvShp(CommonWriter):
             writer.record(*row)
 
         writer.close()
+
+    def __write_geojson_file(self, ret, event_names, tag_names):
+        features = []
+
+        for media in ret['media']:
+            if 'lat' not in media:
+                continue
+
+            row = {}
+            for col in self.csv_cols:
+                if not col[2]:
+                    continue
+
+                value = col[1](media, col[0], event_names, tag_names)
+                if value != "":
+                    row[col[0]] = value
+
+            point = geojson.Point((media['lon'], media['lat']))
+            features.append(geojson.Feature(geometry=point, properties=row))
+
+        feature_collection = geojson.FeatureCollection(features)
+        with open(os.path.join(self.dest_directory, "media.geojson"), "w",
+                  encoding="UTF-8") as f:
+            geojson.dump(feature_collection, f)
 
     def __write_json_files(self, ret):
         # No part of the generated site reads this generated media.json file. Including here
