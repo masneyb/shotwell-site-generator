@@ -196,50 +196,44 @@ class Structured(CommonWriter):
 
         return shown_years
 
-    csv_cols = [('media_id', write_column, 'C', 25),
-                ('title', write_column, 'C', 255),
-                ('comment', write_column, 'C', 255),
-                ('link', write_column, 'C', 128),
-                ('type', write_column, 'C', 15),
-                ('filesize', write_column, 'N', 8),
-                ('width', write_column, 'N', 6),
-                ('height', write_column, 'N', 6),
-                ('camera', write_column, 'C', 30),
-                ('megapixels', write_column, 'N', 4),
-                ('fps', write_column, 'N', 6),
-                ('clip_duration', write_column, 'C', 25),
-                ('clip_duration_secs', write_column, 'N', 4),
-                ('rating', write_column, 'N', 1),
-                ('lat', write_column, None, 0),
-                ('lon', write_column, None, 0),
+    csv_cols = [('media_id', write_column),
+                ('title', write_column),
+                ('comment', write_column),
+                ('link', write_column),
+                ('type', write_column),
+                ('filesize', write_column),
+                ('width', write_column),
+                ('height', write_column),
+                ('camera', write_column),
+                ('megapixels', write_column),
+                ('fps', write_column),
+                ('clip_duration', write_column),
+                ('clip_duration_secs', write_column),
+                ('rating', write_column),
+                ('lat', write_column),
+                ('lon', write_column),
                 ('exif',
                     lambda media, _colname, _event_names, _tag_names:
-                        ' '.join(media['exif'] if 'exif' in media else ''),
-                    'C', 30),
-                ('time_created', write_column, 'S', 20),
-                ('exposure_time', write_column, 'S', 20),
-                ('exposure_time_pretty', write_column, 'S', 30),
-                ('metadata_text', write_column, 'S', 100),
+                        ' '.join(media['exif'] if 'exif' in media else '')),
+                ('time_created', write_column),
+                ('exposure_time', write_column),
+                ('exposure_time_pretty', write_column),
+                ('metadata_text', write_column),
                 ('reg_thumbnail',
-                    lambda media, _colname, _event_names, _tag_names: media['thumbnail']['reg'],
-                    'C', 100),
+                    lambda media, _colname, _event_names, _tag_names: media['thumbnail']['reg']),
                 ('reg_motion_photo',
                     lambda media, _colname, _event_names, _tag_names:
-                        media['motion_photo']['reg_gif'] if 'motion_photo' in media else '',
-                    'C', 100),
-                ('event_id', write_column, 'N', 4),
+                        media['motion_photo']['reg_gif'] if 'motion_photo' in media else ''),
+                ('event_id', write_column),
                 ('event_name',
                     lambda media, _colname, event_names, _tag_names:
-                        event_names[media['event_id']],
-                    'C', 100),
+                        event_names[media['event_id']]),
                 ('tag_id',
                     lambda media, _colname, _event_names, tag_names:
-                        ', '.join(str(tag_id) for tag_id in media['tags']),
-                    'C', 100),
+                        ', '.join(str(tag_id) for tag_id in media['tags'])),
                 ('tags',
                     lambda media, _colname, _event_names, tag_names:
-                        ', '.join(tag_names[tag_id] for tag_id in media['tags']),
-                    'C', 255)]
+                        ', '.join(tag_names[tag_id] for tag_id in media['tags']))]
 
     def __write_csv_file(self, ret, event_names, tag_names):
         with open(os.path.join(self.dest_directory, "media.csv"), "w", encoding="UTF-8") as outfile:
@@ -264,7 +258,7 @@ class Structured(CommonWriter):
 
             row = {}
             for col in self.csv_cols:
-                if not col[2]:
+                if col[0] in ('lat', 'lon'):
                     continue
 
                 value = col[1](media, col[0], event_names, tag_names)
