@@ -8,7 +8,6 @@ import csv
 import datetime
 import json
 import os
-from pyproj import CRS
 import geojson
 import humanize
 from media_writer_common import CommonWriter
@@ -16,7 +15,7 @@ from media_writer_common import CommonWriter
 def write_column(media, colname, _event_names, _tag_names):
     return media[colname] if colname in media else ''
 
-class JsonCsvShp(CommonWriter):
+class Structured(CommonWriter):
     # pylint: disable=too-few-public-methods
     def __init__(self, all_media, main_title, max_media_per_page, dest_directory,
                  years_prior_are_approximate, extra_header, version_label):

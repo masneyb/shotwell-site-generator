@@ -15,7 +15,7 @@ import sys
 import media_fetcher
 import media_thumbnailer
 import media_writer_html
-import media_writer_json_csv_shp
+import media_writer_structured
 
 def _app_icon_by_size(size):
     return {"src": f"icons/app-icon-{size}.png", "sizes": size, "type": "image/png"}
@@ -89,12 +89,12 @@ def process_photos(options):
     else:
         extra_header = None
 
-    logging.info("Generating JSON / CSV / SHP files")
-    writer = media_writer_json_csv_shp.JsonCsvShp(all_media, options.title,
-                                                  options.max_media_per_page,
-                                                  options.dest_directory,
-                                                  options.years_prior_are_approximate,
-                                                  extra_header, options.version_label)
+    logging.info("Generating JSON / CSV / GeoJSON files")
+    writer = media_writer_structured.Structured(all_media, options.title,
+                                                options.max_media_per_page,
+                                                options.dest_directory,
+                                                options.years_prior_are_approximate,
+                                                extra_header, options.version_label)
     writer.write()
 
     logging.info("Copying other support files")
