@@ -20,13 +20,10 @@ class ThumbnailType(enum.Enum):
     REGULAR = 4
 
 class Thumbnailer:
-    # pylint: disable=too-many-instance-attributes
-
     def __init__(self, thumbnail_size, small_thumbnail_size, medium_thumbnail_size, dest_directory,
                  remove_stale_artifacts, imagemagick_command, ffmpeg_command, ffprobe_command,
                  video_convert_command, exiv2_command, skip_metadata_text_if_exists, play_icon,
                  play_icon_small, play_icon_medium):
-        # pylint: disable=too-many-arguments
         self.thumbnail_size = thumbnail_size
         self.small_thumbnail_size = small_thumbnail_size
         self.medium_thumbnail_size = medium_thumbnail_size
@@ -234,7 +231,6 @@ class Thumbnailer:
 
     def create_thumbnail(self, source_image, is_video, rotate, resized_image, overlay_icon,
                          thumbnail_type, orig_width, orig_height):
-        # pylint: disable=too-many-arguments,too-many-branches
         if not os.path.isfile(source_image):
             logging.warning("Cannot find filename %s", source_image)
             return
@@ -343,8 +339,6 @@ class Thumbnailer:
     def _get_ffmpeg_animated_gif_cmd(self, src_filename, is_video, thumbnail_type,
                                      rotate, transformations, orig_img_width, orig_img_height,
                                      gif_dest_filename):
-        # pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
-
         max_frames = 100
         if is_video:
             num_frames = self._get_num_video_frames(src_filename)
@@ -484,7 +478,6 @@ class Thumbnailer:
 
     def create_animated_gif(self, src_filename, media_id, rotate, photo_metadata, transformations,
                             orig_img_width, orig_img_height, thumbnail_type):
-        # pylint: disable=too-many-arguments
         if thumbnail_type == ThumbnailType.SMALL_SQ:
             path_part = "small"
         elif thumbnail_type == ThumbnailType.MEDIUM_SQ:

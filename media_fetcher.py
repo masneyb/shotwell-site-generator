@@ -15,7 +15,6 @@ from common import add_date_to_stats, cleanup_event_title, get_dir_hash
 from media_thumbnailer import ThumbnailType
 
 class Icons:
-    # pylint: disable=too-many-instance-attributes,too-many-arguments,too-few-public-methods
     def __init__(self, panorama, panorama_small, panorama_medium,
                  play, play_small, play_medium,
                  motion_photo, motion_photo_small, motion_photo_medium):
@@ -30,11 +29,9 @@ class Icons:
         self.motion_photo_medium = motion_photo_medium
 
 class Database:
-    # pylint: disable=too-few-public-methods,too-many-instance-attributes
     def __init__(self, conn, input_media_path, dest_directory,
                  thumbnailer, tags_to_skip, video_convert_ext, add_paths_to_overall_diskspace,
                  icons):
-        # pylint: disable=too-many-arguments
         self.conn = conn
         self.input_media_path = input_media_path
         self.dest_directory = dest_directory
@@ -231,8 +228,6 @@ class Database:
         return 0
 
     def __process_photo_row(self, all_media, row):
-        # pylint: disable=too-many-locals,too-many-statements
-
         transformations = self.__parse_transformations(row["transformations"])
         rotate = self.__parse_orientation(row["orientation"])
         (transformed_image, width, height) = self.__transform_img(row["filename"], transformations,
@@ -401,7 +396,6 @@ class Database:
                 "medium_thumbnail_path": medium_thumbnail_path, "stats": stats}
 
     def __fetch_tags(self, all_media):
-        # pylint: disable=too-many-locals
         tags_by_name = {}
 
         qry = "SELECT id, name, photo_id_list FROM TagTable WHERE photo_id_list != '' " + \
@@ -492,7 +486,6 @@ class Database:
         return "transformed/" + self.__strip_path_prefix(path, self.transformed_origs_directory)
 
     def __transform_img(self, source_image, transformations, width, height, rotate):
-        # pylint: disable=too-many-arguments
         transformed_path = os.path.join(self.transformed_origs_directory,
                                         self.__strip_path_prefix(source_image,
                                                                  self.input_media_path))
@@ -525,7 +518,6 @@ class Database:
 
     def __create_thumbnail(self, media, thumbnail_source, rotate, overlay_icon, thumbnail_type,
                            path_part, orig_width, orig_height):
-        # pylint: disable=too-many-arguments
         fspath = self.__get_thumbnail_fs_path(path_part)
         self.thumbnailer.create_thumbnail(thumbnail_source, media["media_id"].startswith("video"),
                                           rotate, fspath, overlay_icon, thumbnail_type,
@@ -536,7 +528,6 @@ class Database:
                     large_overlay_icon, small_overlay_icon, medium_overlay_icon, reg_motion_photo,
                     large_motion_photo, small_motion_photo, medium_motion_photo, metadata_text,
                     orig_width, orig_height):
-        # pylint: disable=too-many-arguments,too-many-locals,too-many-statements
         media = {}
         media["id"] = row["id"]
         media["event_id"] = row["event_id"]
@@ -742,7 +733,6 @@ class Database:
         return ret
 
     def __parse_photo_exiv2_metadata(self, exiv2_metadata):
-        # pylint: disable=too-many-branches
         ret = {}
         ret["exif"] = []
 

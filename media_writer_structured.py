@@ -16,10 +16,8 @@ def write_column(media, colname, _event_names, _tag_names):
     return media[colname] if colname in media else ''
 
 class Structured(CommonWriter):
-    # pylint: disable=too-few-public-methods
     def __init__(self, all_media, main_title, max_media_per_page, dest_directory,
                  years_prior_are_approximate, extra_header, version_label):
-        # pylint: disable=too-many-arguments
         CommonWriter.__init__(self, all_media, main_title, max_media_per_page,
                               years_prior_are_approximate, extra_header, version_label)
         self.dest_directory = dest_directory

@@ -12,11 +12,9 @@ import common
 from media_writer_common import CommonWriter
 
 class Html(CommonWriter):
-    # pylint: disable=too-many-instance-attributes
     def __init__(self, all_media, dest_directory, main_title, years_prior_are_approximate,
                  max_media_per_page, expand_all_elements, extra_header, version_label,
                  remove_stale_artifacts):
-        # pylint: disable=too-many-arguments
         CommonWriter.__init__(self, all_media, main_title, max_media_per_page,
                               years_prior_are_approximate, extra_header, version_label)
         self.html_basedir = dest_directory
@@ -211,8 +209,6 @@ class Html(CommonWriter):
         output.write("</span>")
 
     def __write_media_block(self, output, media, thumbnail_path, stats, link, show_daterange):
-        # pylint: disable=too-many-arguments
-
         output.write("<span class='media'>")
 
         if "media_id" in media:
@@ -257,7 +253,6 @@ class Html(CommonWriter):
         output.write("</span>")
 
     def __write_media_metadata(self, output, media):
-        # pylint: disable=too-many-branches
         items = []
 
         if "exposure_time" in media and media["exposure_time"] != 0:
@@ -340,8 +335,6 @@ class Html(CommonWriter):
 
     def __get_expandable_element(self, name, short_value, long_value, span_class, more_label,
                                  full_onclick=False):
-        # pylint: disable=too-many-arguments,too-many-locals
-
         if not long_value or short_value == long_value:
             return "<span class='%s'>%s</span>" % (span_class, short_value)
 
@@ -602,8 +595,6 @@ class Html(CommonWriter):
 
     def __write_media_html_files(self, current_page_link, title, comment, stats, extra_header,
                                  all_media, breadcrumb_config):
-        # pylint: disable=too-many-arguments,too-many-locals
-
         # Split the media list up into multiple HTML files if needed. The first file will
         # be named like index.html, and additional pages will be index_2.html, index_3.html, etc.
 
@@ -655,8 +646,6 @@ class Html(CommonWriter):
             self.__write_html_footer(output)
 
     def __write_page_link(self, output, current_page_link, condition, label, page_number):
-        # pylint: disable=too-many-arguments
-
         if condition:
             output.write("<a href='%s.html'><span class='breadcrumb'>%s</span></a>" % \
                          (self.__get_page_url_parts(current_page_link, page_number)[-1], label))
@@ -710,7 +699,6 @@ class Html(CommonWriter):
         return "../%s/%s.html" % (current_page_link[0], current_page_link[1])
 
     def __write_html_header(self, path_subparts, title, stats, page_date_range):
-        # pylint: disable=too-many-arguments,consider-using-with
         path = os.path.join(*[self.html_basedir, *path_subparts]) + ".html"
 
         parent_path = os.path.dirname(path)
@@ -756,8 +744,6 @@ class Html(CommonWriter):
         output.close()
 
     def __get_stats_description(self, stats, date_range, page_date_range):
-        # pylint: disable=too-many-branches
-
         ret = []
         if stats["num_photos"] > 0:
             if stats["num_photos"] == 1:
