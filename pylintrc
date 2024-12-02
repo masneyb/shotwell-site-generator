@@ -1,0 +1,29 @@
+[MASTER]
+ignore-patterns=
+
+# FIXME - cleanup code to not require as many of the 'too-XXX' warnings below.
+[MESSAGES CONTROL]
+disable=
+    consider-using-f-string,
+    missing-module-docstring,
+    missing-function-docstring,
+    missing-class-docstring,
+    too-few-public-methods,
+    too-many-instance-attributes,
+    too-many-positional-arguments,
+    too-many-arguments,
+    too-many-locals,
+    too-many-branches,
+    too-many-statements
+
+[REPORTS]
+output-format=text
+
+[FORMAT]
+max-line-length=100
+
+[LOGGING]
+logging-modules=logging
+
+[MISCELLANEOUS]
+notes=FIXME
