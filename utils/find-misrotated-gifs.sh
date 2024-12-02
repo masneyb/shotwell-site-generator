@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2024 Brian Masney <masneyb@onstation.org>
 
 # There's a bug on the Pixel camera app where the orientation of the photo
 # doesn't match the MP4 for the motion photo. The orientation field in the
