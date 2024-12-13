@@ -181,9 +181,8 @@ class Thumbnailer:
             cmd = [self.ffmpeg_command, "-y", "-hide_banner", "-loglevel", "warning",
                    "-i", original_video, "-vf", f"scale={width}:{height},fps=fps=30",
                    "-map_metadata", "0", "-c:v", "libx264", "-preset", "slow",
-                   "-pix_fmt", "yuv420p", "-b:v", "1M", "-maxrate", "1.5M", "-bufsize",
-                   "2M", "-c:a", "aac", "-b:a", "128k", "-movflags", "use_metadata_tags",
-                   filename]
+                   "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k",
+                   "-movflags", "use_metadata_tags", filename]
 
             self.__run_cmd(cmd, filename)
             ret.append((name, filename))
