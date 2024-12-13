@@ -218,6 +218,13 @@ class Database:
                                          medium_short_mp_path, video_json, None, None)
                 media.update(self.__parse_video_tags(video_metadata))
 
+                base_path = self.__get_variants_base_path(video)
+                media["variants"] = []
+                for variant in self.thumbnailer.create_multiple_resolutions(video, media["width"],
+                                                                            media["height"],
+                                                                            base_path):
+                    media["variants"].append((variant[0], self.__get_html_basepath(variant[1])))
+
     def __parse_orientation(self, orientation):
         if orientation == 6:
             return 90
@@ -511,6 +518,11 @@ class Database:
 
         transformed_path = os.path.join(self.transformed_origs_directory, part)
         return self.thumbnailer.transform_video(source_video, transformed_path)
+
+    def __get_variants_base_path(self, source_video):
+        part = self.__strip_path_prefix(source_video, self.input_media_path) + \
+               "." + self.video_convert_ext
+        return os.path.join(self.transformed_origs_directory, part).replace(".mp4", "")
 
     def __get_image_dimensions(self, infile):
         image = Image.open(infile)

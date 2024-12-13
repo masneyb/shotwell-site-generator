@@ -81,6 +81,11 @@ class Structured(CommonWriter):
             item["clip_duration"] = humanize.naturaldelta(int(media["clip_duration"]))
             item["clip_duration_secs"] = int(media["clip_duration"])
 
+        if "variants" in media:
+            item["variants"] = []
+            for variant in media["variants"]:
+                item["variants"].append({"resolution": variant[0], "filename": variant[1]})
+
         item["time_created"] = datetime.datetime.fromtimestamp(media["time_created"]) \
                                     .isoformat()
         item["exposure_time"] = datetime.datetime.fromtimestamp(media["exposure_time"]) \

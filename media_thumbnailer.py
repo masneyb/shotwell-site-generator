@@ -169,6 +169,27 @@ class Thumbnailer:
 
         return self.__run_cmd(cmd, transformed_video)
 
+    def create_multiple_resolutions(self, original_video, original_width, original_height,
+                                    base_filename):
+        ret = []
+        for (name, width, height) in [("480p", 640, 480), ("720p", 1280, 720), \
+                                      ("1080p", 1920, 1080)]:
+            if width > original_width or height > original_height:
+                continue
+
+            filename = f"{base_filename}_{name}.mp4"
+            cmd = [self.ffmpeg_command, "-y", "-hide_banner", "-loglevel", "warning",
+                   "-i", original_video, "-vf", f"scale={width}:{height},fps=fps=30",
+                   "-map_metadata", "0", "-c:v", "libx264", "-preset", "slow",
+                   "-pix_fmt", "yuv420p", "-b:v", "1M", "-maxrate", "1.5M", "-bufsize",
+                   "2M", "-c:a", "aac", "-b:a", "128k", "-movflags", "use_metadata_tags",
+                   filename]
+
+            self.__run_cmd(cmd, filename)
+            ret.append((name, filename))
+
+        return ret
+
     def transform_original_image(self, original_image, transformed_image, transformations):
         # Use imagemagick to perform transformations on the original image that are defined in
         # Shotwell.
