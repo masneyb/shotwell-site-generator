@@ -1643,7 +1643,13 @@ class SearchUI {
 
     let videoSize = document.querySelector('#videos').value;
     if (!['480p', '720p', '1080p', 'full'].includes(videoSize)) {
-      videoSize = window.innerWidth <= 1200 ? '480p' : '1080p';
+      if (window.innerWidth <= 800) {
+        videoSize = '480p';
+      } else if (window.innerWidth <= 1200) {
+        videoSize = '720p';
+      } else {
+        videoSize = '1080p';
+      }
     }
 
     // Not all media has the various sizes. Fall back to a lower quality if needed.
