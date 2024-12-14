@@ -255,7 +255,7 @@ class SearchEngine {
     this.state = state;
   }
 
-  generateSearchUrl(criterias, matchPolicy, iconSize, groupBy, sortBy) {
+  generateSearchUrl(criterias, matchPolicy, iconSize, videoSize, groupBy, sortBy) {
     const qs = [];
     for (const criteria of criterias) {
       qs.push(`search=${encodeURI(criteria)}`);
@@ -265,6 +265,9 @@ class SearchEngine {
     }
     if (iconSize !== 'default') {
       qs.push(`icons=${iconSize}`);
+    }
+    if (videoSize !== 'default') {
+      qs.push(`videos=${videoSize}`);
     }
     if (groupBy !== 'none') {
       qs.push(`group=${groupBy}`);
@@ -1615,15 +1618,44 @@ class SearchUI {
     }));
   }
 
+  getVideoVariant(entity, sizes) {
+    if (!('variants' in entity)) {
+      return entity.link;
+    }
+
+    for (const size of sizes) {
+      if (size in entity['variants']) {
+        return entity['variants'][size];
+      }
+    }
+
+    return entity.link;
+  }
+
   getFullscreenVideoUrl(entity) {
     if (this.state.alwaysAnimateMotionPhotos && 'motion_photo' in entity &&
         'mp4' in entity.motion_photo) {
       return entity.motion_photo.mp4;
     }
-    if (entity.type === 'video') {
+    if (entity.type !== 'video') {
+      return null;
+    }
+
+    let videoSize = document.querySelector('#videos').value;
+    if (!['480p', '720p', '1080p', 'full'].includes(videoSize)) {
+      videoSize = window.innerWidth <= 1200 ? '480p' : '1080p';
+    }
+
+    // Not all media has the various sizes. Fall back to a lower quality if needed.
+    if (videoSize === '480p') {
+      return this.getVideoVariant(entity, ['480p']);
+    } else if (videoSize === '720p') {
+      return this.getVideoVariant(entity, ['720p', '480p']);
+    } else if (videoSize === '1080p') {
+      return this.getVideoVariant(entity, ['1080p', '720p', '480p']);
+    } else {
       return entity.link;
     }
-    return null;
   }
 
   setPlayIconDisplay(display) {
@@ -1901,9 +1933,10 @@ class SearchUI {
       const matchPolicy = document.querySelector('#match').value;
       const sortBy = document.querySelector('#sort').value;
       const iconSize = document.querySelector('#icons').value;
+      const videoSize = document.querySelector('#videos').value;
       const groupBy = document.querySelector('#group').value;
       const url = `index.html?${searchArgs.join('&')}&match=${matchPolicy}&sort=${sortBy}` +
-        `&icons=${iconSize}&group=${groupBy}#`;
+        `&icons=${iconSize}&videos=${videoSize}&group=${groupBy}#`;
       window.history.pushState({}, '', url);
       this.doPerformSearch();
     }, 0);
@@ -2087,6 +2120,9 @@ class SearchUI {
     const iconSize = getQueryParameter('icons', 'default');
     document.querySelector('#icons').value = iconSize;
 
+    const videoSize = getQueryParameter('videos', 'default');
+    document.querySelector('#videos').value = videoSize;
+
     const groupBy = getQueryParameter('group', 'none');
     document.querySelector('#group').value = groupBy;
 
@@ -2108,9 +2144,10 @@ class SearchUI {
     }
 
     const iconSize = overrideIconSize !== null ?  overrideIconSize : getQueryParameter('icons', 'default');
+    const videoSize = getQueryParameter('videos', 'default');
     const groupBy = getQueryParameter('group', 'none');
     const sortBy = getQueryParameter('sort', 'default');
-    const search = this.searchEngine.generateSearchUrl(parts, matchPolicy, iconSize, groupBy, sortBy);
+    const search = this.searchEngine.generateSearchUrl(parts, matchPolicy, iconSize, videoSize, groupBy, sortBy);
 
     // Check to see if the user control clicked the URL to request it be opened in a new tab.
     if (event != null && (event.ctrlKey || event.which === 2 || event.which === 3)) {
