@@ -1871,9 +1871,10 @@ class SearchUI {
     this.state.preFullScreenScrollY = window.scrollY;
     this.state.allMediaFullScreenIndex = allMediaIndex;
 
+    document.querySelector('#slideshow_videos').value = this.getDefaultVideoSize();
+
     this.setFullImageDisplay(true);
     this.doShowFullscreenImage(false);
-    document.querySelector('#slideshow_videos').value = this.getDefaultVideoSize();
   }
 
 
