@@ -211,19 +211,24 @@ class Database:
                                                                             ThumbnailType.MEDIUM_SQ)
                 video = self.__transform_video(row["filename"])
                 (video_json, video_metadata) = self.thumbnailer.write_video_json(video, media_id)
+
+                parsed_video_info = self.__parse_video_tags(video_metadata)
+
+                base_path = self.__get_variants_base_path(video)
+                variants = []
+                for variant in \
+                    self.thumbnailer.create_multiple_resolutions(video, parsed_video_info["width"],
+                                                                 parsed_video_info["height"],
+                                                                 base_path):
+                    variants.append((variant[0], self.__get_html_basepath(variant[1])))
+
                 media = self.__add_media(all_media, row, media_id, video, 0,
                                          self.icons.play, self.icons.play, self.icons.play_small,
                                          self.icons.play_medium, reg_short_mp_path,
                                          large_short_mp_path, small_short_mp_path,
-                                         medium_short_mp_path, video_json, None, None)
-                media.update(self.__parse_video_tags(video_metadata))
+                                         medium_short_mp_path, video_json, None, None, variants)
+                media.update(parsed_video_info)
 
-                base_path = self.__get_variants_base_path(video)
-                media["variants"] = []
-                for variant in self.thumbnailer.create_multiple_resolutions(video, media["width"],
-                                                                            media["height"],
-                                                                            base_path):
-                    media["variants"].append((variant[0], self.__get_html_basepath(variant[1])))
 
     def __parse_orientation(self, orientation):
         if orientation == 6:
@@ -310,7 +315,7 @@ class Database:
                                  reg_overlay_icon, large_overlay_icon, small_overlay_icon,
                                  medium_overlay_icon, reg_short_mp_path, large_short_mp_path,
                                  small_short_mp_path, medium_short_mp_path, metadata_text,
-                                 width, height)
+                                 width, height, None)
 
         media.update(self.__parse_photo_exiv2_metadata(exiv2_metadata))
         media["width"] = width
@@ -539,7 +544,7 @@ class Database:
     def __add_media(self, all_media, row, media_id, media_filename, rotate, reg_overlay_icon,
                     large_overlay_icon, small_overlay_icon, medium_overlay_icon, reg_motion_photo,
                     large_motion_photo, small_motion_photo, medium_motion_photo, metadata_text,
-                    orig_width, orig_height):
+                    orig_width, orig_height, video_variants):
         media = {}
         media["id"] = row["id"]
         media["event_id"] = row["event_id"]
@@ -613,6 +618,12 @@ class Database:
         if media["year"] not in event["years"]:
             # Points to thumbnail for that year. Will be filled in later.
             event["years"][media["year"]] = None
+
+        if video_variants:
+            media['variants'] = video_variants
+
+            for variant in video_variants:
+                all_artifacts.add(os.path.join(self.dest_directory, variant[1]))
 
         media["all_artifacts_size"] = 0
         for artifact in all_artifacts:
