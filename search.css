@@ -243,6 +243,11 @@ a {
 	z-index: 5;
 }
 
+#slideshow_videos {
+	vertical-align: top;
+	margin-top: 3px;
+}
+
 #close {
 	padding-left: 3px;
 	padding-right: 3px;

@@ -255,7 +255,7 @@ class SearchEngine {
     this.state = state;
   }
 
-  generateSearchUrl(criterias, matchPolicy, iconSize, videoSize, groupBy, sortBy) {
+  generateSearchUrl(criterias, matchPolicy, iconSize, groupBy, sortBy) {
     const qs = [];
     for (const criteria of criterias) {
       qs.push(`search=${encodeURI(criteria)}`);
@@ -265,9 +265,6 @@ class SearchEngine {
     }
     if (iconSize !== 'default') {
       qs.push(`icons=${iconSize}`);
-    }
-    if (videoSize !== 'default') {
-      qs.push(`videos=${videoSize}`);
     }
     if (groupBy !== 'none') {
       qs.push(`group=${groupBy}`);
@@ -1618,7 +1615,7 @@ class SearchUI {
     }));
   }
 
-  getVideoVariant(entity, sizes) {
+  getVideoVariantLink(entity, sizes) {
     if (!('variants' in entity)) {
       return entity.link;
     }
@@ -1632,6 +1629,16 @@ class SearchUI {
     return entity.link;
   }
 
+  getDefaultVideoSize() {
+    if (window.innerWidth <= 800) {
+      return '480p';
+    } else if (window.innerWidth <= 1200) {
+      return '720p';
+    } else {
+      return '1080p';
+    }
+  }
+
   getFullscreenVideoUrl(entity) {
     if (this.state.alwaysAnimateMotionPhotos && 'motion_photo' in entity &&
         'mp4' in entity.motion_photo) {
@@ -1641,24 +1648,14 @@ class SearchUI {
       return null;
     }
 
-    let videoSize = document.querySelector('#videos').value;
-    if (!['480p', '720p', '1080p', 'full'].includes(videoSize)) {
-      if (window.innerWidth <= 800) {
-        videoSize = '480p';
-      } else if (window.innerWidth <= 1200) {
-        videoSize = '720p';
-      } else {
-        videoSize = '1080p';
-      }
-    }
-
     // Not all media has the various sizes. Fall back to a lower quality if needed.
+    const videoSize = document.querySelector('#slideshow_videos').value;
     if (videoSize === '480p') {
-      return this.getVideoVariant(entity, ['480p']);
+      return this.getVideoVariantLink(entity, ['480p']);
     } else if (videoSize === '720p') {
-      return this.getVideoVariant(entity, ['720p', '480p']);
+      return this.getVideoVariantLink(entity, ['720p', '480p']);
     } else if (videoSize === '1080p') {
-      return this.getVideoVariant(entity, ['1080p', '720p', '480p']);
+      return this.getVideoVariantLink(entity, ['1080p', '720p', '480p']);
     } else {
       return entity.link;
     }
@@ -1672,26 +1669,34 @@ class SearchUI {
     document.querySelector('#metadata').style.display = display;
   }
 
+  setVideoSizeState(display) {
+    document.querySelector('#slideshow_videos').style.display = display;
+  }
+
   isKioskModeEnabled() {
     return getIntQueryParameter('kiosk', 0) === 1;
   }
 
-  showHidePlayIcon(entity) {
+  updateSlideshowNavigationIcons(entity) {
     if (entity.type === 'video') {
       this.setPlayIconDisplay('none');
       this.setMetadataIconDisplay('inline-block');
+      this.setVideoSizeState('inline-block');
     } else if ('motion_photo' in entity && 'mp4' in entity.motion_photo && !this.isKioskModeEnabled()) {
       this.setPlayIconDisplay('inline-block');
       this.setMetadataIconDisplay('inline-block');
+      this.setVideoSizeState('none');
     } else {
       this.setPlayIconDisplay('none');
       this.setMetadataIconDisplay('none');
+      this.setVideoSizeState('none');
     }
   }
 
   doShowFullscreenImage(manuallyInvoked) {
     this.setPlayIconDisplay('none');
     this.setMetadataIconDisplay('none');
+    this.setVideoSizeState('none');
     if (!this.fullscreenSupported()) {
       document.querySelector('#fullscreen').style.display = 'none';
     }
@@ -1727,7 +1732,7 @@ class SearchUI {
       videoEle.src = videoUrl;
       videoEle.style.display = 'block';
 
-      this.showHidePlayIcon(entity);
+      this.updateSlideshowNavigationIcons(entity);
       this.updateMediaDescriptionText(descrEle);
     } else {
       const videoEle = document.querySelector('#fullvideo');
@@ -1737,7 +1742,7 @@ class SearchUI {
 
       const imageEle = document.querySelector('#fullimage');
       imageEle.onload = () => {
-        this.showHidePlayIcon(entity);
+        this.updateSlideshowNavigationIcons(entity);
         this.updateMediaDescriptionText(descrEle);
       };
       imageEle.style.display = 'block';
@@ -1868,6 +1873,7 @@ class SearchUI {
 
     this.setFullImageDisplay(true);
     this.doShowFullscreenImage(false);
+    document.querySelector('#slideshow_videos').value = this.getDefaultVideoSize();
   }
 
 
@@ -1939,10 +1945,9 @@ class SearchUI {
       const matchPolicy = document.querySelector('#match').value;
       const sortBy = document.querySelector('#sort').value;
       const iconSize = document.querySelector('#icons').value;
-      const videoSize = document.querySelector('#videos').value;
       const groupBy = document.querySelector('#group').value;
       const url = `index.html?${searchArgs.join('&')}&match=${matchPolicy}&sort=${sortBy}` +
-        `&icons=${iconSize}&videos=${videoSize}&group=${groupBy}#`;
+        `&icons=${iconSize}&group=${groupBy}#`;
       window.history.pushState({}, '', url);
       this.doPerformSearch();
     }, 0);
@@ -2126,9 +2131,6 @@ class SearchUI {
     const iconSize = getQueryParameter('icons', 'default');
     document.querySelector('#icons').value = iconSize;
 
-    const videoSize = getQueryParameter('videos', 'default');
-    document.querySelector('#videos').value = videoSize;
-
     const groupBy = getQueryParameter('group', 'none');
     document.querySelector('#group').value = groupBy;
 
@@ -2150,10 +2152,9 @@ class SearchUI {
     }
 
     const iconSize = overrideIconSize !== null ?  overrideIconSize : getQueryParameter('icons', 'default');
-    const videoSize = getQueryParameter('videos', 'default');
     const groupBy = getQueryParameter('group', 'none');
     const sortBy = getQueryParameter('sort', 'default');
-    const search = this.searchEngine.generateSearchUrl(parts, matchPolicy, iconSize, videoSize, groupBy, sortBy);
+    const search = this.searchEngine.generateSearchUrl(parts, matchPolicy, iconSize, groupBy, sortBy);
 
     // Check to see if the user control clicked the URL to request it be opened in a new tab.
     if (event != null && (event.ctrlKey || event.which === 2 || event.which === 3)) {
@@ -2973,6 +2974,9 @@ class SearchUI {
       this.setIconWriter();
       this.showMedia();
     }
+    if (!this.isImageFullscreen) {
+      document.querySelector('#slideshow_videos').value = this.getDefaultVideoSize();
+    }
   }
 
   init() {
@@ -3048,6 +3052,11 @@ class SearchUI {
     };
     document.querySelector('#metadata').onclick = (event) => {
       this.toggleFullscreenDescription();
+      return this.stopEvent(event);
+    };
+    document.querySelector('#slideshow_videos').onchange = (event) => {
+      this.doShowFullscreenImage(false);
+      document.querySelector('#fullvideo').focus();
       return this.stopEvent(event);
     };
     document.querySelector('#play').onclick = (event) => {
