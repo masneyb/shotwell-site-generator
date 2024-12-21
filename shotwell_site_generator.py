@@ -69,7 +69,6 @@ def process_photos(options):
                                                 options.imagemagick_command,
                                                 options.ffmpeg_command,
                                                 options.ffprobe_command,
-                                                options.video_convert_command,
                                                 options.exiv2_command,
                                                 options.skip_metadata_text_if_exists,
                                                 icons.play,
@@ -78,7 +77,6 @@ def process_photos(options):
 
     fetcher = media_fetcher.Database(conn, options.input_media_path, options.dest_directory,
                                      thumbnailer, set(options.tags_to_skip),
-                                     options.video_convert_ext,
                                      options.add_path_to_overall_diskspace, icons)
 
     logging.info("Fetching all media")
@@ -191,12 +189,6 @@ if __name__ == "__main__":
     ARGPARSER.add_argument("--imagemagick-command", default="magick")
     ARGPARSER.add_argument("--ffmpeg-command", default="ffmpeg")
     ARGPARSER.add_argument("--ffprobe-command", default="ffprobe")
-    ARGPARSER.add_argument("--video-convert-command",
-                           help="Standardize all videos to a common format. Example: ffmpeg " + \
-                                "-y -hide_banner -loglevel warning -i {infile} -map_metadata 0 " + \
-                                "-c:v libx264 -preset slow -pix_fmt yuv420p -c:a aac -b:a 128k " + \
-                                "-movflags use_metadata_tags {outfile}")
-    ARGPARSER.add_argument("--video-convert-ext", help="example: mp4")
     ARGPARSER.add_argument("--exiv2-command", default="exiv2")
     ARGPARSER.add_argument("--skip-metadata-text-if-exists", action="store_true", default=False)
     ARGPARSER.add_argument("--version-label")

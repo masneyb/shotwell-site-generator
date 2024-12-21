@@ -29,9 +29,8 @@ class Icons:
         self.motion_photo_medium = motion_photo_medium
 
 class Database:
-    def __init__(self, conn, input_media_path, dest_directory,
-                 thumbnailer, tags_to_skip, video_convert_ext, add_paths_to_overall_diskspace,
-                 icons):
+    def __init__(self, conn, input_media_path, dest_directory, thumbnailer, tags_to_skip,
+                 add_paths_to_overall_diskspace, icons):
         self.conn = conn
         self.input_media_path = input_media_path
         self.dest_directory = dest_directory
@@ -39,7 +38,7 @@ class Database:
         self.transformed_origs_directory = os.path.join(dest_directory, "transformed")
         self.tags_to_skip = tags_to_skip
         self.thumbnailer = thumbnailer
-        self.video_convert_ext = video_convert_ext
+        self.video_convert_ext = 'mp4'
         self.add_paths_to_overall_diskspace = add_paths_to_overall_diskspace
         self.icons = icons
         self.camera_transformations = self.__get_camera_transformations()
@@ -515,7 +514,7 @@ class Database:
         return (new_file, width, height)
 
     def __transform_video(self, source_video):
-        if not self.video_convert_ext or source_video.lower().endswith(self.video_convert_ext):
+        if source_video.lower().endswith(self.video_convert_ext):
             return source_video
 
         part = self.__strip_path_prefix(source_video, self.input_media_path) + \

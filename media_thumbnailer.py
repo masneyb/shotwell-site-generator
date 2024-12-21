@@ -22,7 +22,7 @@ class ThumbnailType(enum.Enum):
 class Thumbnailer:
     def __init__(self, thumbnail_size, small_thumbnail_size, medium_thumbnail_size, dest_directory,
                  remove_stale_artifacts, imagemagick_command, ffmpeg_command, ffprobe_command,
-                 video_convert_command, exiv2_command, skip_metadata_text_if_exists, play_icon,
+                 exiv2_command, skip_metadata_text_if_exists, play_icon,
                  play_icon_small, play_icon_medium):
         self.thumbnail_size = thumbnail_size
         self.small_thumbnail_size = small_thumbnail_size
@@ -35,7 +35,6 @@ class Thumbnailer:
         self.imagemagick_command = imagemagick_command
         self.ffmpeg_command = ffmpeg_command
         self.ffprobe_command = ffprobe_command
-        self.video_convert_command = video_convert_command
         self.exiv2_command = exiv2_command
         self.skip_metadata_text_if_exists = skip_metadata_text_if_exists
         self.play_icon = play_icon
@@ -159,14 +158,10 @@ class Thumbnailer:
         return num_photos, tile_size, geometry
 
     def transform_video(self, original_video, transformed_video):
-        if not self.video_convert_command:
-            return original_video
-
-        cmd = []
-        for part in self.video_convert_command.split(' '):
-            part = part.replace('{infile}', original_video).replace('{outfile}', transformed_video)
-            cmd.append(part)
-
+        cmd = [self.ffmpeg_command, "-y", "-hide_banner", "-loglevel", "warning",
+               "-i", original_video, "-map_metadata", "0", "-c:v", "libx264", "-preset", "slow",
+               "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k",
+               "-movflags", "use_metadata_tags", transformed_video]
         return self.__run_cmd(cmd, transformed_video)
 
     def create_multiple_resolutions(self, original_video, original_width, original_height,
