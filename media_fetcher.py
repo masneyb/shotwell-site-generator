@@ -38,7 +38,6 @@ class Database:
         self.transformed_origs_directory = os.path.join(dest_directory, "transformed")
         self.tags_to_skip = tags_to_skip
         self.thumbnailer = thumbnailer
-        self.video_convert_ext = 'mp4'
         self.add_paths_to_overall_diskspace = add_paths_to_overall_diskspace
         self.icons = icons
         self.camera_transformations = self.__get_camera_transformations()
@@ -514,18 +513,16 @@ class Database:
         return (new_file, width, height)
 
     def __transform_video(self, source_video):
-        if source_video.lower().endswith(self.video_convert_ext):
+        if source_video.lower().endswith('mp4'):
             return source_video
 
-        part = self.__strip_path_prefix(source_video, self.input_media_path) + \
-               "." + self.video_convert_ext
+        part = self.__strip_path_prefix(source_video, self.input_media_path) + ".mp4"
 
         transformed_path = os.path.join(self.transformed_origs_directory, part)
         return self.thumbnailer.transform_video(source_video, transformed_path)
 
     def __get_variants_base_path(self, source_video):
-        part = self.__strip_path_prefix(source_video, self.input_media_path) + \
-               "." + self.video_convert_ext
+        part = self.__strip_path_prefix(source_video, self.input_media_path) + ".mp4"
         return os.path.join(self.transformed_origs_directory, part).replace(".mp4", "")
 
     def __get_image_dimensions(self, infile):
