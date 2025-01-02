@@ -62,7 +62,7 @@ class Structured(CommonWriter):
         event_names = {event['id']: event['title'] for event in shown_events}
         tag_names = {tag['id']: tag['title'] for tag in tags}
         self.__write_json_files(ret)
-        self.__write_csv_file(ret, event_names, tag_names)
+        self.__write_csv_files(ret, event_names, tag_names)
         self.__write_geojson_file(ret, event_names, tag_names)
 
     def __create_media_element(self, media):
@@ -238,19 +238,43 @@ class Structured(CommonWriter):
                     lambda media, _colname, _event_names, tag_names:
                         ', '.join(tag_names[tag_id] for tag_id in media['tags']))]
 
-    def __write_csv_file(self, ret, event_names, tag_names):
+    def __write_csv_files(self, ret, event_names, tag_names):
+        header_row = []
+        for col in self.csv_cols:
+            header_row.append(col[0])
+
+        event_csv_files = {}
+
+        # Write out the toplevel CSV file
         with open(os.path.join(self.dest_directory, "media.csv"), "w", encoding="UTF-8") as outfile:
             csv_writer = csv.writer(outfile)
-            row = []
-            for col in self.csv_cols:
-                row.append(col[0])
-            csv_writer.writerow(row)
+            csv_writer.writerow(header_row)
 
             for media in ret['media']:
                 row = []
                 for col in self.csv_cols:
                     row.append(col[1](media, col[0], event_names, tag_names))
+
                 csv_writer.writerow(row)
+
+                base_dir = os.path.dirname(media["link"])
+                if base_dir.startswith("transformed/"):
+                    base_dir = base_dir.replace("transformed/", "original/")
+
+                if base_dir not in event_csv_files:
+                    event_csv_files[base_dir] = []
+
+                event_csv_files[base_dir].append(row)
+
+        # Now write out all of the per event CSV files
+        for base_dir, rows in event_csv_files.items():
+            with open(os.path.join(self.dest_directory, base_dir, "media.csv"), "w",
+                      encoding="UTF-8") as outfile:
+                csv_writer = csv.writer(outfile)
+                csv_writer.writerow(header_row)
+
+                for row in rows:
+                    csv_writer.writerow(row)
 
     def __write_geojson_file(self, ret, event_names, tag_names):
         features = []

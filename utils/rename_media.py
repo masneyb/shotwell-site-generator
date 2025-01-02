@@ -5,7 +5,6 @@
 # Rearranges media on the filesystem to match the way it's organized in Shotwell.
 
 import argparse
-import csv
 import logging
 import os
 import pathlib
@@ -96,57 +95,8 @@ def process_media_table(options, conn, table_name, events):
             os.makedirs(basedir)
         subprocess.run(['mv', row['filename'], new_path], check=True)
 
-
-def get_all_tags(conn):
-    tags = {}
-    qry = "select name, photo_id_list from TagTable where photo_id_list != '' ORDER BY name"
-    for row in conn.cursor().execute(qry):
-        for media_id in row["photo_id_list"].split(","):
-            if media_id in tags:
-                tags[media_id].append(row['name'])
-            else:
-                tags[media_id] = [row['name']]
-
-    return tags
-
-def cleanup_tags(tags):
-    tags.sort()
-
-    new_tags = []
-    for tag in tags:
-        found_prefix = False
-        for check_tag in tags:
-            if check_tag != tag and check_tag.startswith(tag):
-                found_prefix = True
-                break
-
-        if not found_prefix:
-            new_tags.append(tag)
-
-    return new_tags
-
-def write_event_media_csv(conn, table_name, id_prefix, event_id, tags, csvwriter):
-    qry = "select id, filename, title, comment " + \
-          f"from {table_name} " + \
-          "where event_id=? order by exposure_time"
-    for row in conn.cursor().execute(qry, (event_id,)):
-        media_id = '%s%016x' % (id_prefix, row['id'])
-        csvwriter.writerow([media_id,
-                            os.path.basename(row['filename']),
-                            row['title'],
-                            row['comment'],
-                            ", ".join(cleanup_tags(tags[media_id])) if media_id in tags else ''])
-
-def write_event_metadata(options, conn, events):
-    tags = get_all_tags(conn)
-    for (event_id, row) in events.items():
-        with open(os.path.join(options.input_media_path, row['path'], 'media.csv'),
-                  'w', encoding='UTF-8') as output:
-            csvwriter = csv.writer(output)
-            csvwriter.writerow(['media_id', 'filename', 'title', 'comment', 'tags'])
-            write_event_media_csv(conn, 'PhotoTable', 'thumb', event_id, tags, csvwriter)
-            write_event_media_csv(conn, 'VideoTable', 'video-', event_id, tags, csvwriter)
-
+def write_event_metadata(options, events):
+    for row in events.values():
         if not row['comment']:
             continue
 
@@ -160,7 +110,7 @@ def do_fetch_media(options):
     process_media_table(options, conn, "BackingPhotoTable", events)
     process_media_table(options, conn, "PhotoTable", events)
     process_media_table(options, conn, "VideoTable", events)
-    write_event_metadata(options, conn, events)
+    write_event_metadata(options, events)
 
 if __name__ == "__main__":
     ARGPARSER = argparse.ArgumentParser()
