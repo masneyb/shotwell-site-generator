@@ -273,6 +273,7 @@ class Structured(CommonWriter):
                 csv_writer = csv.writer(outfile)
                 csv_writer.writerow(header_row)
 
+                rows.reverse()
                 for row in rows:
                     csv_writer.writerow(row)
 
