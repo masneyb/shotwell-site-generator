@@ -2635,6 +2635,12 @@ class SearchUI {
     return ret;
   }
 
+  getMediaRegularWidth(media) {
+    // FIXME - the maxWidth isn't updated when the window is resized.
+    const maxWidth = document.documentElement.clientWidth - 10;
+    return maxWidth < media.thumbnail.reg_width ? maxWidth : media.thumbnail.reg_width;
+  }
+
   createMediaElement(index, media, iconSize) {
     const mediaEle = document.createElement('span');
 
@@ -2666,8 +2672,9 @@ class SearchUI {
         }
       } else {
         img.src = media.motion_photo.reg_gif;
+        img.style.width = '100%';
         mediaEle.className = 'media_dyn';
-        mediaEle.style.width = `${media.thumbnail.reg_width}px`;
+        mediaEle.style.width = `${this.getMediaRegularWidth(media)}px`;
       }
     } else if (iconSize === 'small') {
       img.src = media.thumbnail.small;
@@ -2703,6 +2710,7 @@ class SearchUI {
       }
     } else {
       img.src = media.thumbnail.reg;
+      img.style.width = '100%';
       if (media.motion_photo) {
         img.onmouseover = () => { img.src = media.motion_photo.reg_gif; };
         img.onmouseleave = () => { img.src = media.thumbnail.reg; };
@@ -2710,7 +2718,7 @@ class SearchUI {
         img.ontouchend = () => { img.src = media.thumbnail.reg; };
       }
       mediaEle.className = 'media_dyn';
-      mediaEle.style.width = `${media.thumbnail.reg_width}px`;
+      mediaEle.style.width = `${this.getMediaRegularWidth(media)}px`;
     }
 
     if (['large', 'large_full_meta', 'regular', 'regular_full_meta'].includes(iconSize) &&
