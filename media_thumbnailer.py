@@ -166,10 +166,15 @@ class Thumbnailer:
 
     def create_multiple_resolutions(self, original_video, original_width, original_height,
                                     base_filename):
+        (_, _, rotate) = self._get_video_resolution(original_video)
+
         ret = []
         for (name, width, height) in [("480p", 640, 480), ("720p", 1280, 720), \
                                       ("1080p", 1920, 1080)]:
-            if width > original_width or height > original_height:
+            if rotate in (90, -90):
+                (width, height) = (height, width)
+
+            if width >= original_width or height >= original_height:
                 continue
 
             filename = f"{base_filename}_{name}.mp4"
@@ -333,7 +338,7 @@ class Thumbnailer:
         if rotate in (90, -90):
             (width, height) = (height, width)
 
-        return (width, height)
+        return (width, height, rotate)
 
     def _get_num_video_frames(self, filename):
         cmd = [self.ffprobe_command, "-v", "error", "-select_streams", "v:0", "-count_packets",
@@ -423,7 +428,7 @@ class Thumbnailer:
             # For the motion photos, the video resolution is different than the image
             # resolution. The crop pixel counts are relative to the image resolution,
             # so scale the numbers accordingly for the video.
-            (video_width, video_height) = self._get_video_resolution(src_filename)
+            (video_width, video_height, _) = self._get_video_resolution(src_filename)
             logging.debug("%s video resolution is %dx%d", src_filename, video_width, video_height)
             crop_l = self._scale_number(int(transformations["crop.left"]), orig_img_width,
                                         video_width)
