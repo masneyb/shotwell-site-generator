@@ -164,8 +164,7 @@ class Thumbnailer:
                "-movflags", "use_metadata_tags", transformed_video]
         return self.__run_cmd(cmd, transformed_video)
 
-    def create_multiple_resolutions(self, original_video, original_width, original_height,
-                                    base_filename):
+    def create_multiple_resolutions(self, original_video, base_filename):
         (orig_width, orig_height, rotate) = self._get_video_resolution(original_video)
 
         ret = []
@@ -174,7 +173,7 @@ class Thumbnailer:
             if rotate in (90, -90):
                 (width, height) = (height, width)
 
-            if width >= original_width or height >= original_height:
+            if width >= orig_width or height >= orig_height:
                 continue
 
             width = self._scale_number(orig_width, orig_height, int(height))

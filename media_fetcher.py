@@ -214,11 +214,8 @@ class Database:
 
                 base_path = self.__get_variants_base_path(video)
                 variants = []
-                for variant in \
-                    self.thumbnailer.create_multiple_resolutions(row["filename"],
-                                                                 parsed_video_info["width"],
-                                                                 parsed_video_info["height"],
-                                                                 base_path):
+                for variant in self.thumbnailer.create_multiple_resolutions(row["filename"],
+                                                                            base_path):
                     variants.append((variant[0], self.__get_html_basepath(variant[1])))
 
                 media = self.__add_media(all_media, row, media_id, video, 0,
