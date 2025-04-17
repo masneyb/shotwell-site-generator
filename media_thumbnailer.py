@@ -166,7 +166,7 @@ class Thumbnailer:
 
     def create_multiple_resolutions(self, original_video, original_width, original_height,
                                     base_filename):
-        (_, _, rotate) = self._get_video_resolution(original_video)
+        (orig_width, orig_height, rotate) = self._get_video_resolution(original_video)
 
         ret = []
         for (name, width, height) in [("480p", 640, 480), ("720p", 1280, 720), \
@@ -177,6 +177,7 @@ class Thumbnailer:
             if width >= original_width or height >= original_height:
                 continue
 
+            width = self._scale_number(orig_width, orig_height, int(height))
             filename = f"{base_filename}_{name}.mp4"
             cmd = [self.ffmpeg_command, "-y", "-hide_banner", "-loglevel", "warning",
                    "-i", original_video, "-vf", f"scale={width}:{height},fps=fps=30",
