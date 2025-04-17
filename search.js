@@ -1615,15 +1615,13 @@ class SearchUI {
     }));
   }
 
-  getVideoVariantLink(entity, sizes) {
+  getVideoVariantLink(entity, size) {
     if (!('variants' in entity)) {
       return entity.link;
     }
 
-    for (const size of sizes) {
-      if (size in entity['variants']) {
-        return entity['variants'][size];
-      }
+    if (size in entity['variants']) {
+      return entity['variants'][size];
     }
 
     return entity.link;
@@ -1648,17 +1646,8 @@ class SearchUI {
       return null;
     }
 
-    // Not all media has the various sizes. Fall back to a lower quality if needed.
     const videoSize = document.querySelector('#slideshow_videos').value;
-    if (videoSize === '480p') {
-      return this.getVideoVariantLink(entity, ['480p']);
-    } else if (videoSize === '720p') {
-      return this.getVideoVariantLink(entity, ['720p', '480p']);
-    } else if (videoSize === '1080p') {
-      return this.getVideoVariantLink(entity, ['1080p', '720p', '480p']);
-    } else {
-      return entity.link;
-    }
+    return this.getVideoVariantLink(entity, videoSize);
   }
 
   setPlayIconDisplay(display) {
