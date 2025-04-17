@@ -322,8 +322,9 @@ class Thumbnailer:
         return None
 
     def _get_video_resolution(self, filename):
+        # Look up the video resolution
         cmd = [self.ffprobe_command, "-v", "error", "-select_streams", "v:0", "-show_entries",
-               "stream=width,height:side_data=rotation", "-of", "csv=s=x:p=0", filename]
+               "stream=width,height", "-of", "csv=s=x:p=0", filename]
         result = self._do_run_command(cmd, True)
         if result.returncode != 0:
             logging.error("Error running %s: %s", cmd, result.returncode)
@@ -334,7 +335,23 @@ class Thumbnailer:
 
         parts = result.stdout.decode("UTF-8").strip().split("\n")[-1].split("x")
         (width, height) = (int(parts[0]), int(parts[1]))
-        rotate = int(parts[2]) if len(parts) > 2 and parts[2] else 0
+
+        # Look up the rotation. At the moment, ffmpeg's CSV output cannot combine the output
+        # from stream= and stream_side_data=, so these need to be executed as different
+        # commands.
+        cmd = [self.ffprobe_command, "-v", "error", "-select_streams", "v:0", "-show_entries",
+               "stream_side_data=rotation", "-of", "csv=s=x:p=0", filename]
+        result = self._do_run_command(cmd, True)
+        if result.returncode != 0:
+            logging.error("Error running %s: %s", cmd, result.returncode)
+            return None
+
+        if not result.stdout:
+            return None
+
+        output = result.stdout.decode("UTF-8").strip().split("\n")[-1]
+        rotate = int(output) if output else 0
+
         if rotate in (90, -90):
             (width, height) = (height, width)
 
