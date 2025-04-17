@@ -178,6 +178,9 @@ class Thumbnailer:
                 continue
 
             width = self._scale_number(orig_width, orig_height, int(height))
+            if width % 2 != 0:
+                width = width + 1
+
             filename = f"{base_filename}_{name}.mp4"
             cmd = [self.ffmpeg_command, "-y", "-hide_banner", "-loglevel", "warning",
                    "-i", original_video, "-vf", f"scale={width}:{height},fps=fps=30",
