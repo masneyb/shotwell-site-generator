@@ -353,6 +353,8 @@ class Thumbnailer:
             return None
 
         output = result.stdout.decode("UTF-8").strip().split("\n")[-1]
+        # Some cameras/phones put it as x-90 instead of -90
+        output = output.split('x')[-1]
         rotate = int(output) if output else 0
 
         if rotate in (90, -90):
