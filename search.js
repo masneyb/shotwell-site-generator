@@ -1627,8 +1627,23 @@ class SearchUI {
     return entity.link;
   }
 
+  getCookie(name) {
+    let nameSearch = `${name}=`;
+    let cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      let cookie = cookies[i].trim();
+      if (cookie.indexOf(nameSearch) == 0) {
+        return decodeURIComponent(cookie.substring(nameSearch.length));
+      }
+    }
+    return null;
+  }
+
   getDefaultVideoSize() {
-    if (window.innerWidth <= 800) {
+    const videoSize = this.getCookie('video_size');
+    if (videoSize !== null && ['480p', '720p', '1080p'].includes(videoSize)) {
+      return videoSize;
+    } else if (window.innerWidth <= 800) {
       return '480p';
     } else if (window.innerWidth <= 1200) {
       return '720p';
@@ -3053,6 +3068,9 @@ class SearchUI {
       return this.stopEvent(event);
     };
     document.querySelector('#slideshow_videos').onchange = (event) => {
+      const videoSize = document.querySelector('#slideshow_videos').value;
+      document.cookie = `video_size=${videoSize}`;
+
       this.doShowFullscreenImage(false);
       document.querySelector('#fullvideo').focus();
       return this.stopEvent(event);
