@@ -1641,7 +1641,7 @@ class SearchUI {
 
   getDefaultVideoSize() {
     const videoSize = this.getCookie('video_size');
-    if (videoSize !== null && ['480p', '720p', '1080p'].includes(videoSize)) {
+    if (videoSize !== null && ['480p', '720p', '1080p', 'full'].includes(videoSize)) {
       return videoSize;
     } else if (window.innerWidth <= 800) {
       return '480p';
