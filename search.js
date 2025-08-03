@@ -201,17 +201,30 @@ class CsvWriter {
     this.state = state;
   }
 
+  csvEscape(col) {
+    if (typeof col === 'string' || col instanceof String) {
+      if (col.includes('"') || col.includes(',') || col.includes('\n') || col.includes('\r')) {
+        col = col.replace(/"/g, '""');
+        return `"${col}"`;
+      }
+
+      return col;
+    }
+
+    return new String(col);
+  }
+
   writeCsvRow(cols) {
-    return cols.map(col => `"${encodeURIComponent(col)}"`).join(',') + '%0A';
+    return cols.map(col => this.csvEscape(col)).join(',') + '%0A';
   }
 
   getCsvUriData() {
     let ret = 'data:text/csv;charset=utf-8,';
 
     ret += this.writeCsvRow([
-      'ID', 'Type', 'Path', 'Original Size', 'Original Size w/ Artifacts', 'Rating',
-      'Width', 'Height', 'Exposure Time', 'Event ID', 'Latitude', 'Longitude', 'Title',
-      'Camera', 'Camera Settings']);
+      'ID', 'Type', 'Path', 'Original Size', 'Original Size w/ Artifacts', 'Rating', 'Width',
+      'Height', 'Exposure Time', 'Event ID', 'Event Name', 'Latitude', 'Longitude', 'Camera',
+      'Camera Settings', 'Title', 'Comment', 'Tags']);
 
     for (const media of this.state.allMedia) {
       const cols = [];
@@ -225,11 +238,14 @@ class CsvWriter {
       cols.push('height' in media ? media.height.toString() : '');
       cols.push('exposure_time' in media ? media.exposure_time : '');
       cols.push('event_id' in media ? media.event_id.toString() : '');
+      cols.push('event_name' in media ? media.event_name : '');
       cols.push('lat' in media ? media.lat.toString() : '');
       cols.push('lon' in media ? media.lon.toString() : '');
-      cols.push('title' in media ? media.title : '');
       cols.push('camera' in media ? media.camera : '');
       cols.push('exif' in media ? media.exif.join(' ') : '');
+      cols.push('title' in media ? media.title : '');
+      cols.push('comment' in media ? media.comment : '');
+      cols.push('tag_name' in media ? media.tag_name.join(', ') : '');
       ret += this.writeCsvRow(cols);
     }
 
