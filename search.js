@@ -222,29 +222,39 @@ class CsvWriter {
     let ret = 'data:text/csv;charset=utf-8,';
 
     ret += this.writeCsvRow([
-      'ID', 'Type', 'Path', 'Original Size', 'Original Size w/ Artifacts', 'Rating', 'Width',
-      'Height', 'Exposure Time', 'Event ID', 'Event Name', 'Latitude', 'Longitude', 'Camera',
-      'Camera Settings', 'Title', 'Comment', 'Tags']);
+      'media_id', 'title', 'comment', 'link', 'type', 'filesize', 'width', 'height', 'camera',
+      'megapixels', 'fps', 'clip_duration', 'clip_duration_secs', 'rating', 'lat', 'lon', 'exif',
+      'time_created', 'exposure_time', 'exposure_time_pretty', 'metadata_text', 'reg_thumbnail',
+      'reg_motion_photo', 'event_id', 'event_name', 'tag_id', 'tags']);
 
     for (const media of this.state.allMedia) {
       const cols = [];
       cols.push(media.id);
-      cols.push(media.type);
-      cols.push(media.link);
-      cols.push('filesize' in media ? media.filesize.toString() : '');
-      cols.push('artifact_filesize' in media ? media.artifact_filesize.toString() : '');
-      cols.push('rating' in media ? media.rating.toString() : '');
-      cols.push('width' in media ? media.width.toString() : '');
-      cols.push('height' in media ? media.height.toString() : '');
-      cols.push('exposure_time' in media ? media.exposure_time : '');
-      cols.push('event_id' in media ? media.event_id.toString() : '');
-      cols.push('event_name' in media ? media.event_name : '');
-      cols.push('lat' in media ? media.lat.toString() : '');
-      cols.push('lon' in media ? media.lon.toString() : '');
-      cols.push('camera' in media ? media.camera : '');
-      cols.push('exif' in media ? media.exif.join(' ') : '');
       cols.push('title' in media ? media.title : '');
       cols.push('comment' in media ? media.comment : '');
+      cols.push(media.link);
+      cols.push(media.type);
+      cols.push('filesize' in media ? media.filesize.toString() : '');
+      cols.push('width' in media ? media.width.toString() : '');
+      cols.push('height' in media ? media.height.toString() : '');
+      cols.push('camera' in media ? media.camera : '');
+      cols.push('megapixels' in media ? media.megapixels : '');
+      cols.push('fps' in media ? media.fps : '');
+      cols.push('clip_duration' in media ? media.clip_duration : '');
+      cols.push('clip_duration_secs' in media ? media.clip_duration_secs : '');
+      cols.push('rating' in media ? media.rating.toString() : '');
+      cols.push('lat' in media ? media.lat.toString() : '');
+      cols.push('lon' in media ? media.lon.toString() : '');
+      cols.push('exif' in media ? media.exif.join(' ') : '');
+      cols.push('time_created' in media ? media.time_created : '');
+      cols.push('exposure_time' in media ? media.exposure_time : '');
+      cols.push('exposure_time_pretty' in media ? media.exposure_time_pretty : '');
+      cols.push('metadata_text' in media ? media.metadata_text : '');
+      cols.push(media.thumbnail.reg);
+      cols.push('motion_photo' in media ? media.motion_photo.reg_gif : '');
+      cols.push('event_id' in media ? media.event_id.toString() : '');
+      cols.push('event_name' in media ? media.event_name : '');
+      cols.push('tags' in media ? media.tags.join(', ') : '');
       cols.push('tag_name' in media ? media.tag_name.join(', ') : '');
       ret += this.writeCsvRow(cols);
     }
