@@ -4,12 +4,13 @@
 
 get_start_filename()
 {
-	if [ -f /media/pi/PHOTOS/photos/photoframe.html ] ; then
-		echo "/media/pi/PHOTOS/photos/photoframe.html"
-	elif [ -f /media/pi/PHOTOS1/photos/photoframe.html ] ; then
-		echo "/media/pi/PHOTOS1/photos/photoframe.html"
-	elif [ -f /media/pi/PHOTOS2/photos/photoframe.html ] ; then
-		echo "/media/pi/PHOTOS2/photos/photoframe.html"
+	FILE="photoframe.html"
+	if [ -f "/media/pi/PHOTOS/photos/${FILE}" ] ; then
+		echo "/media/pi/PHOTOS/photos/${FILE}"
+	elif [ -f "/media/pi/PHOTOS1/photos/${FILE}" ] ; then
+		echo "/media/pi/PHOTOS1/photos/${FILE}"
+	elif [ -f "/media/pi/PHOTOS2/photos/${FILE}" ] ; then
+		echo "/media/pi/PHOTOS2/photos/${FILE}"
 	else
 		echo ""
 	fi
