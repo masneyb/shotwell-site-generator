@@ -1546,7 +1546,7 @@ class SearchUI {
 
   getNextImageIndex() {
     return this.state.allMediaFullScreenIndex >= this.state.allMedia.length - 1 ?
-      this.state.allMediaFullScreenIndex : this.state.allMediaFullScreenIndex + 1;
+      0 : this.state.allMediaFullScreenIndex + 1;
   }
 
   getPreviousImageIndex() {
