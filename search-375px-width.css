@@ -19,18 +19,12 @@
 	height: 180px;
 }
 
-.media_medium_container {
-	width: 368px;
-}
-
+.media_medium_container,
 .media_medium_container_2h {
 	width: 368px;
 }
 
-.media_small_container {
-	width: 184px;
-}
-
+.media_small_container,
 .media_small_container_2h {
 	width: 184px;
 }
@@ -42,5 +36,5 @@
 
 .media_thumb img {
 	max-width: 100%;
-	max-height: 100%
+	max-height: 100%;
 }

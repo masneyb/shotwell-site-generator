@@ -20,18 +20,12 @@
 	height: 192px;
 }
 
-.media_medium_container {
-	width: 392px;
-}
-
+.media_medium_container,
 .media_medium_container_2h {
 	width: 392px;
 }
 
-.media_small_container {
-	width: 196px;
-}
-
+.media_small_container,
 .media_small_container_2h {
 	width: 196px;
 }
