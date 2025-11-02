@@ -10,4 +10,4 @@ if [ ! -d node_modules ] ; then
 	npm install eslint eslint-config-airbnb-base eslint-plugin-html eslint-plugin-import --save-dev
 fi
 
-npx eslint search.js
+npx eslint static/search.js
