@@ -712,7 +712,6 @@ class Html(CommonWriter):
         output.write("<html lang='en'>")
         output.write("<head>")
         output.write("<link rel='stylesheet' type='text/css' href='../../search.css'/>")
-        output.write("<link rel='stylesheet' type='text/css' href='../../search-400px-width.css'/>")
         output.write("<meta name='viewport' content='width=device-width'/>")
         output.write("<meta charset='UTF-8'/>")
 

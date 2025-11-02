@@ -18,7 +18,10 @@ import media_writer_html
 import media_writer_structured
 
 def _app_icon_by_size(size):
-    return {"src": f"icons/app-icon-{size}.png", "sizes": size, "type": "image/png", "purpose": "any"}
+    return {"src": f"icons/app-icon-{size}.png",
+            "sizes": size,
+            "type": "image/png",
+            "purpose": "any"}
 
 def write_manifest_json(options):
     vals = {}
@@ -106,10 +109,6 @@ def process_photos(options):
                     os.path.join(options.dest_directory, "index.html"))
     shutil.copyfile(__get_assets_path(options, "static/search.css"),
                     os.path.join(options.dest_directory, "search.css"))
-    shutil.copyfile(__get_assets_path(options, "static/search-375px-width.css"),
-                    os.path.join(options.dest_directory, "search-375px-width.css"))
-    shutil.copyfile(__get_assets_path(options, "static/search-400px-width.css"),
-                    os.path.join(options.dest_directory, "search-400px-width.css"))
     shutil.copyfile(__get_assets_path(options, "static/search.js"),
                     os.path.join(options.dest_directory, "search.js"))
     shutil.copyfile(__get_assets_path(options, "images/close-web-icon.png"),

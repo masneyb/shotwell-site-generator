@@ -15,50 +15,26 @@
       <meta http-equiv="refresh" content="0;url=static-site/index.html"/>
     </noscript>
     <title>Search</title>
-    <link rel="apple-touch-icon" sizes="512x512" href="icons/app-icon-512x512.png"/>
-    <link rel="apple-touch-icon" sizes="310x310" href="icons/app-icon-310x310.png"/>
-    <link rel="apple-touch-icon" sizes="270x270" href="icons/app-icon-270x270.png"/>
-    <link rel="apple-touch-icon" sizes="228x228" href="icons/app-icon-228x228.png"/>
-    <link rel="apple-touch-icon" sizes="196x196" href="icons/app-icon-196x196.png"/>
-    <link rel="apple-touch-icon" sizes="180x180" href="icons/app-icon-180x180.png"/>
-    <link rel="apple-touch-icon" sizes="167x167" href="icons/app-icon-167x167.png"/>
-    <link rel="apple-touch-icon" sizes="152x152" href="icons/app-icon-152x152.png"/>
-    <link rel="apple-touch-icon" sizes="128x128" href="icons/app-icon-128x128.png"/>
-    <link rel="apple-touch-icon" sizes="96x96" href="icons/app-icon-96x96.png"/>
-    <link rel="apple-touch-icon" sizes="70x70" href="icons/app-icon-70x70.png"/>
-    <link rel="apple-touch-icon" sizes="32x32" href="icons/app-icon-32x32.png"/>
-    <link rel="apple-touch-icon" sizes="16x16" href="icons/app-icon-16x16.png"/>
-    <link rel="icon" sizes="512x512" href="icons/app-icon-512x512.png"/>
-    <link rel="icon" sizes="310x310" href="icons/app-icon-310x310.png"/>
-    <link rel="icon" sizes="270x270" href="icons/app-icon-270x270.png"/>
-    <link rel="icon" sizes="228x228" href="icons/app-icon-228x228.png"/>
-    <link rel="icon" sizes="196x196" href="icons/app-icon-196x196.png"/>
-    <link rel="icon" sizes="180x180" href="icons/app-icon-180x180.png"/>
-    <link rel="icon" sizes="167x167" href="icons/app-icon-167x167.png"/>
-    <link rel="icon" sizes="152x152" href="icons/app-icon-152x152.png"/>
-    <link rel="icon" sizes="128x128" href="icons/app-icon-128x128.png"/>
-    <link rel="icon" sizes="96x96" href="icons/app-icon-96x96.png"/>
-    <link rel="icon" sizes="70x70" href="icons/app-icon-70x70.png"/>
-    <link rel="icon" sizes="32x32" href="icons/app-icon-32x32.png"/>
-    <link rel="icon" sizes="16x16" href="icons/app-icon-16x16.png"/>
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/app-icon-512x512.png"/>
+    <link rel="icon" type="image/png" sizes="180x180" href="icons/app-icon-180x180.png"/>
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/app-icon-32x32.png"/>
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/app-icon-16x16.png"/>
     <link rel="manifest" href="manifest.json" crossorigin="use-credentials"/>
     <link rel="stylesheet" type="text/css" href="search.css"/>
-    <link rel="stylesheet" type="text/css" media="all and (max-width: 399px), (min-width: 750px) and (max-width: 799px)" href="search-375px-width.css"/>
-    <link rel="stylesheet" type="text/css" media="all and (min-width: 400px) and (max-width: 749px), (min-width: 800px)" href="search-400px-width.css"/>
   </head>
 
   <body>
     <header>
       <h1 id="title" class="page_title">Search</h1>
       <div class="summary_stats"></div>
-      <div class="header_links" style="display: none">
+      <div class="header_links hidden">
         <a class="header_link" href="#" id="today_link">Today</a>
         <a class="header_link" href="#" id="nearby_link">Nearby</a>
         <a class="header_link" href="#" id="animations_link"></a>
         <a class="header_link" href="#" id="slideshow_link">Slideshow</a>
         <a class="header_link" href="#" id="csv_link">CSV</a>
       </div>
-      <div id="tag_parents" style="display: none;"></div>
+      <div id="tag_parents" class="hidden"></div>
 
       <nav class="main_views" aria-label="Main navigation">
         <span>
@@ -77,9 +53,9 @@
       </nav>
     </header>
 
-    <span id="search_criterias" style="display: none"></span>
+    <span id="search_criterias" class="hidden"></span>
 
-    <span id="search_controls" style="display: none">
+    <span id="search_controls" class="hidden">
       <input type="button" id="add_search_row" value="+" aria-label="Add search row">
       <select id="match">
         <option value="any">Match Any</option>
@@ -133,8 +109,8 @@
       <span id="app_version"></span>.
     </footer>
 
-    <div id="fullimage_background" style="display: none;"></div>
-    <div id="fullimage_container" style="display: none;" role="dialog" aria-modal="true" aria-label="Full screen media viewer">
+    <div id="fullimage_background" class="hidden"></div>
+    <div id="fullimage_container" class="hidden" role="dialog" aria-modal="true" aria-label="Full screen media viewer">
       <span id="slideshow_controls">
         <a href="#" id="metadata">
           <img id="metadata_icon" alt="Metadata" src="icons/list-web-icon.png"/>
