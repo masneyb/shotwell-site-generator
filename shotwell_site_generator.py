@@ -18,7 +18,7 @@ import media_writer_html
 import media_writer_structured
 
 def _app_icon_by_size(size):
-    return {"src": f"icons/app-icon-{size}.png", "sizes": size, "type": "image/png"}
+    return {"src": f"icons/app-icon-{size}.png", "sizes": size, "type": "image/png", "purpose": "any"}
 
 def write_manifest_json(options):
     vals = {}
@@ -26,25 +26,24 @@ def write_manifest_json(options):
     vals["short_name"] = options.title
     vals["description"] = options.title
     vals["start_url"] = "index.html?fullscreen=1"
+    vals["scope"] = "./"
     vals["display"] = "fullscreen"
-    vals["background_color"] = "#fff"
+    vals["orientation"] = "any"
+    vals["background_color"] = "#ffffff"
+    vals["background_color_dark"] = "#202124"
+    vals["theme_color"] = "#ffffff"
+    vals["theme_color_dark"] = "#202124"
+    vals["categories"] = ["photo", "gallery"]
     vals["icons"] = [_app_icon_by_size("512x512"),
-                     _app_icon_by_size("310x310"),
-                     _app_icon_by_size("270x270"),
-                     _app_icon_by_size("228x228"),
                      _app_icon_by_size("196x196"),
                      _app_icon_by_size("180x180"),
-                     _app_icon_by_size("167x167"),
-                     _app_icon_by_size("152x152"),
-                     _app_icon_by_size("128x128"),
                      _app_icon_by_size("96x96"),
-                     _app_icon_by_size("70x70"),
                      _app_icon_by_size("32x32"),
                      _app_icon_by_size("16x16")]
 
     with open(os.path.join(options.dest_directory, "manifest.json"), "w",
               encoding="UTF-8") as outfile:
-        outfile.write(json.dumps(vals, indent="\t"))
+        outfile.write(json.dumps(vals, indent=2))
 
 
 def process_photos(options):
