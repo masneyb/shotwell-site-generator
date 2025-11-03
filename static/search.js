@@ -1487,6 +1487,30 @@ class SearchEngine {
 }
 
 class SearchUI {
+  static SCREEN_BREAKPOINT_SMALL = 800;
+  static SCREEN_BREAKPOINT_MEDIUM = 1200;
+
+  static ICON_SIZES = {
+    SMALL: 'small',
+    MEDIUM: 'medium',
+    LARGE: 'large',
+    SMALL_MEDIUM: 'small_medium',
+    MEDIUM_LARGE: 'medium_large',
+    SMALL_MEDIUM_LARGE: 'small_medium_large',
+    LARGE_FULL_META: 'large_full_meta',
+    LARGE_NO_META: 'large_no_meta',
+    REGULAR: 'regular',
+    REGULAR_FULL_META: 'regular_full_meta',
+    REGULAR_NO_META: 'regular_no_meta',
+    LARGE_REGULAR: 'large_regular',
+  };
+
+  static FILE_SIZE_UNITS = {
+    GB: 1024 * 1024 * 1024,
+    MB: 1024 * 1024,
+    KB: 1024,
+  };
+
   constructor(state, searchEngine, csvWriter) {
     this.state = state;
     this.searchEngine = searchEngine;
@@ -1641,9 +1665,9 @@ class SearchUI {
     const videoSize = this.getCookie('video_size');
     if (videoSize !== null && ['480p', '720p', '1080p', 'full'].includes(videoSize)) {
       return videoSize;
-    } else if (window.innerWidth <= 800) {
+    } else if (window.innerWidth <= SearchUI.SCREEN_BREAKPOINT_SMALL) {
       return '480p';
-    } else if (window.innerWidth <= 1200) {
+    } else if (window.innerWidth <= SearchUI.SCREEN_BREAKPOINT_MEDIUM) {
       return '720p';
     } else {
       return '1080p';
@@ -1847,7 +1871,7 @@ class SearchUI {
       return;
     }
 
-    if (document.fullscreenElement == null) {
+    if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen();
     } else {
       document.exitFullscreen();
@@ -2056,31 +2080,25 @@ class SearchUI {
     const row = template.content.cloneNode(true);
     row.querySelector('.search_criteria').id = `search_criteria${this.state.nextSearchInput}`;
 
-    const fieldOnChange = (idx) => {
-      return () => {
-        this.searchFieldChanged(idx);
-        this.updateCritieraIfValuesPopulated(idx);
-        return false;
-      };
+    const fieldOnChange = (idx) => () => {
+      this.searchFieldChanged(idx);
+      this.updateCritieraIfValuesPopulated(idx);
+      return false;
     };
     row.querySelector('.search_field').onchange = fieldOnChange(this.state.nextSearchInput);
 
-    const opOnChange = (idx) => {
-      return () => {
-        this.searchOpChanged(idx);
-        this.updateCritieraIfValuesPopulated(idx);
-        return false;
-      };
+    const opOnChange = (idx) => () => {
+      this.searchOpChanged(idx);
+      this.updateCritieraIfValuesPopulated(idx);
+      return false;
     };
     row.querySelector('.search_op').onchange = opOnChange(this.state.nextSearchInput);
 
-    const delRow = (idx) => {
-      return () => {
-        const ele = document.querySelector(`#search_criteria${idx}`);
-        ele.remove();
-        this.updateSearchCriteria();
-        return false;
-      };
+    const delRow = (idx) => () => {
+      const ele = document.querySelector(`#search_criteria${idx}`);
+      ele.remove();
+      this.updateSearchCriteria();
+      return false;
     };
     row.querySelector('.search_delete_row').onclick = delRow(this.state.nextSearchInput);
 
@@ -2223,22 +2241,20 @@ class SearchUI {
   }
 
   getPageIconSize() {
-    const validIconSizes = [
-      'small', 'medium', 'small_medium', 'small_medium_large', 'medium_large', 'large',
-      'large_full_meta', 'large_no_meta', 'regular', 'regular_full_meta',
-      'regular_no_meta'];
+    const validIconSizes = Object.values(SearchUI.ICON_SIZES);
     const iconSize = getQueryParameter('icons', 'default');
     if (validIconSizes.includes(iconSize)) {
       return iconSize;
     }
 
-    if (iconSize === 'large_regular') {
-      return window.innerWidth <= 1200 ? 'large' : 'regular';
+    if (iconSize === SearchUI.ICON_SIZES.LARGE_REGULAR) {
+      return window.innerWidth <= SearchUI.SCREEN_BREAKPOINT_MEDIUM ?
+        SearchUI.ICON_SIZES.LARGE : SearchUI.ICON_SIZES.REGULAR;
     }
-    if (window.innerWidth <= 1200) {
-      return 'small_medium_large';
+    if (window.innerWidth <= SearchUI.SCREEN_BREAKPOINT_MEDIUM) {
+      return SearchUI.ICON_SIZES.SMALL_MEDIUM_LARGE;
     }
-    return 'regular';
+    return SearchUI.ICON_SIZES.REGULAR;
   }
 
   setPageTitleAndIconSize(preferredView) {
@@ -2451,12 +2467,12 @@ class SearchUI {
   }
 
   getPrettyFileSize(size) {
-    if (size > 1024 * 1024 * 1024) {
-      return `${(size / (1024 * 1024 * 1024)).toFixed(1)}GiB`;
-    } if (size > 1024 * 1024) {
-      return `${(size / (1024 * 1024)).toFixed(1)}MiB`;
-    } if (size > 1024) {
-      return `${(size / (1024)).toFixed(1)}KiB`;
+    if (size > SearchUI.FILE_SIZE_UNITS.GB) {
+      return `${(size / SearchUI.FILE_SIZE_UNITS.GB).toFixed(1)}GiB`;
+    } else if (size > SearchUI.FILE_SIZE_UNITS.MB) {
+      return `${(size / SearchUI.FILE_SIZE_UNITS.MB).toFixed(1)}MiB`;
+    } else if (size > SearchUI.FILE_SIZE_UNITS.KB) {
+      return `${(size / SearchUI.FILE_SIZE_UNITS.KB).toFixed(1)}KiB`;
     }
     return `${size} bytes`;
   }
@@ -2470,13 +2486,13 @@ class SearchUI {
     const extStats = [];
 
     const name = `title${entity.type}${entity.id}`;
-    if (onSlideshowPage && 'title' in entity && entity.title) {
+    if (onSlideshowPage && entity.title) {
       const val = entity.title_prefix + entity.title;
       stats.push(this.getExpandableString(name, val, 'inline'));
       extStats.push(this.getExpandableString(name, val, 'inline'));
     }
 
-    if (onSlideshowPage && 'comment' in entity && entity.comment) {
+    if (onSlideshowPage && entity.comment) {
       stats.push(this.getExpandableString(name, entity.comment, 'inline'));
       extStats.push(this.getExpandableString(name, entity.comment, 'inline'));
     }
@@ -2493,13 +2509,13 @@ class SearchUI {
       extStats.push(this.createTextMediaStat(val));
     }
 
-    if ('num_events' in entity && entity.num_events > 1) {
+    if (entity.num_events > 1) {
       const val = `${entity.num_events.toLocaleString()} events`;
       stats.push(this.createTextMediaStat(val));
       extStats.push(this.createTextMediaStat(val));
     }
 
-    if ('exposure_time_pretty' in entity) {
+    if (entity.exposure_time_pretty) {
       stats.push(this.createTextMediaStat(entity.exposure_time_pretty));
       extStats.push(this.createTextMediaStat(entity.exposure_time_pretty));
     }
@@ -2534,11 +2550,11 @@ class SearchUI {
       extStats.push(this.createTextMediaStat(`${entity.width}x${entity.height}`));
     }
 
-    if ('camera' in entity) {
+    if (entity.camera) {
       extStats.push(this.createSearchLink(entity.camera, 'Camera', 'equals', entity.camera, extraOnClick));
     }
 
-    if ('exif' in entity) {
+    if (entity.exif) {
       for (const exif of entity.exif) {
         extStats.push(this.createTextMediaStat(exif));
       }
@@ -2566,20 +2582,20 @@ class SearchUI {
       }
     }
 
-    if ('metadata_text' in entity) {
+    if (entity.metadata_text) {
       extStats.push(this.createOpenInNewTabLink('Metadata', entity.metadata_text));
     }
 
-    if ('rating' in entity) {
+    if (entity.rating) {
       const stars = '★'.repeat(entity.rating) + '☆'.repeat(5 - entity.rating);
       extStats.push(this.createSearchLink(stars, 'Rating', 'is at least', entity.rating, extraOnClick));
     }
 
-    if ('motion_photo' in entity && 'mp4' in entity.motion_photo) {
+    if (entity.motion_photo?.mp4) {
       extStats.push(this.createOpenInNewTabLink('Motion Photo', entity.motion_photo.mp4));
     }
 
-    if ('lat' in entity) {
+    if (entity.lat) {
       extStats.push(
         this.createSearchLink(
           `GPS ${entity.lat},${entity.lon}`,
@@ -2979,6 +2995,20 @@ class SearchUI {
     }
   }
 
+  setupClickHandler(selector, handler) {
+    document.querySelector(selector).onclick = (event) => {
+      handler(event);
+      return this.stopEvent(event);
+    };
+  }
+
+  setupChangeHandler(selector, handler) {
+    document.querySelector(selector).onchange = (event) => {
+      handler(event);
+      return this.stopEvent(event);
+    };
+  }
+
   init() {
     this.updateAnimationsText();
 
@@ -2992,16 +3022,15 @@ class SearchUI {
     window.onresize = () => this.windowSizeChanged();
     document.querySelector('#fullimage').onclick = () => this.toggleFullscreenDescription();
 
+    const keyHandlers = {
+      'ArrowLeft': () => this.showPreviousImageFullscreen(),
+      'ArrowRight': () => this.showNextImageFullscreen(true),
+      'Escape': (event) => this.exitImageFullscreen(event),
+      ' ': () => this.toggleFullscreenDescription(),
+    };
+
     document.onkeydown = (event) => {
-      if (event.key === 'ArrowLeft') {
-        this.showPreviousImageFullscreen();
-      } else if (event.key === 'ArrowRight') {
-        this.showNextImageFullscreen(true);
-      } else if (event.key === 'Escape') {
-        this.exitImageFullscreen(event);
-      } else if (event.key === ' ') {
-        this.toggleFullscreenDescription();
-      }
+      keyHandlers[event.key]?.(event);
     };
 
     const fullImageEle = document.querySelector('#fullimage_container');
@@ -3014,82 +3043,32 @@ class SearchUI {
       this.searchPageLinkGenerator(event, criteria, 'all', 'large_regular');
       return this.stopEvent(event);
     };
-    document.querySelector('#nearby_link').onclick = (event) => {
-      this.nearbyClicked();
-      return this.stopEvent(event);
-    };
-    document.querySelector('#animations_link').onclick = (event) => {
-      this.toggleAnimations();
-      return this.stopEvent(event);
-    };
-    document.querySelector('#slideshow_link').onclick = (event) => {
-      this.slideshowClicked();
-      return this.stopEvent(event);
-    };
-    document.querySelector('#date_link').onclick = (event) => {
-      this.searchPageLinkGenerator(event, []);
-      return this.stopEvent(event);
-    };
-    document.querySelector('#event_link').onclick = (event) => {
-      this.searchPageLinkGenerator(event, [['Type', 'is a', 'events']]);
-      return this.stopEvent(event);
-    };
-    document.querySelector('#year_link').onclick = (event) => {
-      this.searchPageLinkGenerator(event, [['Type', 'is a', 'years']]);
-      return this.stopEvent(event);
-    };
-    document.querySelector('#tag_link').onclick = (event) => {
-      this.searchPageLinkGenerator(event, [['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set']]);
-      return this.stopEvent(event);
-    };
-    document.querySelector('#add_search_row').onclick = (event) => {
-      this.addSearchInputRow();
-      return this.stopEvent(event);
-    };
-    document.querySelector('#clear_search_criteria').onclick = (event) => {
-      this.clearSearchCriteria();
-      return this.stopEvent(event);
-    };
-    document.querySelector('#metadata').onclick = (event) => {
-      this.toggleFullscreenDescription();
-      return this.stopEvent(event);
-    };
+    this.setupClickHandler('#nearby_link', () => this.nearbyClicked());
+    this.setupClickHandler('#animations_link', () => this.toggleAnimations());
+    this.setupClickHandler('#slideshow_link', () => this.slideshowClicked());
+    this.setupClickHandler('#date_link', (event) => this.searchPageLinkGenerator(event, []));
+    this.setupClickHandler('#event_link', (event) => this.searchPageLinkGenerator(event, [['Type', 'is a', 'events']]));
+    this.setupClickHandler('#year_link', (event) => this.searchPageLinkGenerator(event, [['Type', 'is a', 'years']]));
+    this.setupClickHandler('#tag_link', (event) =>
+      this.searchPageLinkGenerator(event, [['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set']]));
+    this.setupClickHandler('#add_search_row', () => this.addSearchInputRow());
+    this.setupClickHandler('#clear_search_criteria', () => this.clearSearchCriteria());
+    this.setupClickHandler('#metadata', () => this.toggleFullscreenDescription());
     document.querySelector('#slideshow_videos').onchange = (event) => {
-      const videoSize = document.querySelector('#slideshow_videos').value;
+      const videoSize = event.target.value;
       document.cookie = `video_size=${videoSize}`;
 
       this.doShowFullscreenImage(false);
       document.querySelector('#fullvideo').focus();
       return this.stopEvent(event);
     };
-    document.querySelector('#play').onclick = (event) => {
-      this.playIconClicked();
-      return this.stopEvent(event);
-    };
-    document.querySelector('#fullscreen').onclick = (event) => {
-      this.fullscreenClicked();
-      return this.stopEvent(event);
-    };
-    document.querySelector('#close').onclick = (event) => {
-      this.exitImageFullscreen();
-      return this.stopEvent(event);
-    };
-    document.querySelector('#match').onchange = (event) => {
-      this.updateSearchCriteria();
-      return this.stopEvent(event);
-    };
-    document.querySelector('#group').onchange = (event) => {
-      this.updateSearchCriteria();
-      return this.stopEvent(event);
-    };
-    document.querySelector('#sort').onchange = (event) => {
-      this.updateSearchCriteria();
-      return this.stopEvent(event);
-    };
-    document.querySelector('#icons').onchange = (event) => {
-      this.updateSearchCriteria();
-      return this.stopEvent(event);
-    };
+    this.setupClickHandler('#play', () => this.playIconClicked());
+    this.setupClickHandler('#fullscreen', () => this.fullscreenClicked());
+    this.setupClickHandler('#close', () => this.exitImageFullscreen());
+    this.setupChangeHandler('#match', () => this.updateSearchCriteria());
+    this.setupChangeHandler('#group', () => this.updateSearchCriteria());
+    this.setupChangeHandler('#sort', () => this.updateSearchCriteria());
+    this.setupChangeHandler('#icons', () => this.updateSearchCriteria());
   }
 }
 
