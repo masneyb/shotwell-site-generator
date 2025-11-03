@@ -2256,19 +2256,21 @@ class SearchUI {
   }
 
   getPageIconSize() {
-    const validIconSizes = Object.values(SearchUI.ICON_SIZES);
     const iconSize = getQueryParameter('icons', 'default');
-    if (validIconSizes.includes(iconSize)) {
-      return iconSize;
-    }
-
     if (iconSize === SearchUI.ICON_SIZES.LARGE_REGULAR) {
       return window.innerWidth <= SearchUI.SCREEN_BREAKPOINT_MEDIUM ?
         SearchUI.ICON_SIZES.LARGE : SearchUI.ICON_SIZES.REGULAR;
     }
+
+    const validIconSizes = Object.values(SearchUI.ICON_SIZES);
+    if (validIconSizes.includes(iconSize)) {
+      return iconSize;
+    }
+
     if (window.innerWidth <= SearchUI.SCREEN_BREAKPOINT_MEDIUM) {
       return SearchUI.ICON_SIZES.SMALL_MEDIUM_LARGE;
     }
+
     return SearchUI.ICON_SIZES.REGULAR;
   }
 
