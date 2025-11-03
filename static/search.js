@@ -1027,11 +1027,11 @@ class SearchEngine {
     const types = [['media', ''], ['events', 'Event: '], ['tags', 'Tag: '], ['years', 'Year: ']];
     for (const mediaType of types) {
       for (const media of allItems[mediaType[0]]) {
-        if (!('type' in media)) {
+        if (!media.type) {
           media.type = mediaType[0];
         }
 
-        if ('tags' in media) {
+        if (media.tags) {
           // Write out the tag name into the media element to simplify code for the text search.
           media.tag_id = [];
           media.tag_name = [];
@@ -1041,7 +1041,7 @@ class SearchEngine {
           }
         }
 
-        if ('event_id' in media) {
+        if (media.event_id) {
           // Write out the event name into the media element to simplify code for the text search.
           media.event_name = this.state.eventNames[media.event_id];
         }
@@ -1055,7 +1055,7 @@ class SearchEngine {
           media.year = [media.id];
         } else if (mediaType[0] === 'events') {
           media.year = [];
-          if ('years' in media) {
+          if (media.years) {
             for (const yearBlock of media.years) {
               media.year.push(yearBlock.year);
             }
@@ -1078,11 +1078,11 @@ class SearchEngine {
           }
         }
 
-        if ('width' in media) {
+        if (media.width) {
           media.photo_ratio = media.width / media.height;
         }
 
-        if ('link' in media) {
+        if (media.link) {
           const idx = media.link.lastIndexOf('.');
           if (idx !== -1) {
             fileExtensions.add(media.link.substring(idx + 1).toLowerCase());
@@ -1272,7 +1272,7 @@ class SearchEngine {
 
     if (groupBy === 'year') {
       this.setZeroGroupIndexAndName(allItems, (media) => {
-        if (!('exposure_time_pretty' in media)) {
+        if (!media.exposure_time_pretty) {
           return null;
         }
         const parts = media.exposure_time_pretty.split(' ');
@@ -1280,7 +1280,7 @@ class SearchEngine {
       });
     } else if (groupBy === 'month') {
       this.setZeroGroupIndexAndName(allItems, (media) => {
-        if (!('exposure_time_pretty' in media)) {
+        if (!media.exposure_time_pretty) {
           return null;
         }
         const parts = media.exposure_time_pretty.split(' ');
@@ -1288,7 +1288,7 @@ class SearchEngine {
       });
     } else if (groupBy === 'day') {
       this.setZeroGroupIndexAndName(allItems, (media) => {
-        if (!('exposure_time_pretty' in media)) {
+        if (!media.exposure_time_pretty) {
           return null;
         }
         const parts = media.exposure_time_pretty.split(' ');
@@ -1339,7 +1339,7 @@ class SearchEngine {
       if (matches) {
         ret.push(media);
 
-        if ('exposure_time' in media && 'exposure_time_pretty' in media) {
+        if (media.exposure_time && media.exposure_time_pretty) {
           if (minDate === undefined || media.exposure_time < minDate) {
             minDate = media.exposure_time;
             minDatePretty = media.exposure_time_pretty;
@@ -1511,6 +1511,20 @@ class SearchUI {
     KB: 1024,
   };
 
+  static MEDIA_TYPE_STRINGS = {
+    EVENTS: 'events',
+    YEARS: 'years',
+    TAGS: 'tags',
+    MEDIA: 'media',
+  };
+
+  static VIDEO_SIZES = {
+    P480: '480p',
+    P720: '720p',
+    P1080: '1080p',
+    FULL: 'full',
+  };
+
   constructor(state, searchEngine, csvWriter) {
     this.state = state;
     this.searchEngine = searchEngine;
@@ -1663,14 +1677,15 @@ class SearchUI {
 
   getDefaultVideoSize() {
     const videoSize = this.getCookie('video_size');
-    if (videoSize !== null && ['480p', '720p', '1080p', 'full'].includes(videoSize)) {
+    const validSizes = Object.values(SearchUI.VIDEO_SIZES);
+    if (videoSize !== null && validSizes.includes(videoSize)) {
       return videoSize;
     } else if (window.innerWidth <= SearchUI.SCREEN_BREAKPOINT_SMALL) {
-      return '480p';
+      return SearchUI.VIDEO_SIZES.P480;
     } else if (window.innerWidth <= SearchUI.SCREEN_BREAKPOINT_MEDIUM) {
-      return '720p';
+      return SearchUI.VIDEO_SIZES.P720;
     } else {
-      return '1080p';
+      return SearchUI.VIDEO_SIZES.P1080;
     }
   }
 
@@ -2291,11 +2306,11 @@ class SearchUI {
        */
       if (this.state.currentYearView !== null) {
         search.push(['Year', 'equals', this.state.currentYearView]);
-        if ('years' in media) {
+        if (media.years) {
           for (const yearBlock of media.years) {
             if (yearBlock.year === this.state.currentYearView) {
               yearBlock.title = media.title;
-              if ('comment' in media) {
+              if (media.comment) {
                 yearBlock.comment = media.comment;
               }
 
@@ -2864,9 +2879,9 @@ class SearchUI {
         totalsByTypes[type] += 1;
       }
 
-      if ('artifact_filesize' in media) {
+      if (media.artifact_filesize) {
         artifactSize += media.artifact_filesize;
-      } else if ('filesize' in media && type !== 'tags') {
+      } else if (media.filesize && type !== 'tags') {
         groupSize += media.filesize;
       }
     }
@@ -3036,21 +3051,23 @@ class SearchUI {
     const fullImageEle = document.querySelector('#fullimage_container');
     this.setupSwipeDetection(fullImageEle);
 
-    document.querySelector('#today_link').onclick = (event) => {
+    this.setupClickHandler('#today_link', (event) => {
       const criteria = [
         ['Date', 'was taken on month/day', this.searchEngine.getCurrentMonthDay()],
-        ['Type', 'is a', 'media']];
+        ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]];
       this.searchPageLinkGenerator(event, criteria, 'all', 'large_regular');
-      return this.stopEvent(event);
-    };
+    });
     this.setupClickHandler('#nearby_link', () => this.nearbyClicked());
     this.setupClickHandler('#animations_link', () => this.toggleAnimations());
     this.setupClickHandler('#slideshow_link', () => this.slideshowClicked());
     this.setupClickHandler('#date_link', (event) => this.searchPageLinkGenerator(event, []));
-    this.setupClickHandler('#event_link', (event) => this.searchPageLinkGenerator(event, [['Type', 'is a', 'events']]));
-    this.setupClickHandler('#year_link', (event) => this.searchPageLinkGenerator(event, [['Type', 'is a', 'years']]));
+    this.setupClickHandler('#event_link', (event) =>
+      this.searchPageLinkGenerator(event, [['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.EVENTS]]));
+    this.setupClickHandler('#year_link', (event) =>
+      this.searchPageLinkGenerator(event, [['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.YEARS]]));
     this.setupClickHandler('#tag_link', (event) =>
-      this.searchPageLinkGenerator(event, [['Type', 'is a', 'tags'], ['Tag Parent ID', 'is not set']]));
+      this.searchPageLinkGenerator(event,
+        [['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.TAGS], ['Tag Parent ID', 'is not set']]));
     this.setupClickHandler('#add_search_row', () => this.addSearchInputRow());
     this.setupClickHandler('#clear_search_criteria', () => this.clearSearchCriteria());
     this.setupClickHandler('#metadata', () => this.toggleFullscreenDescription());
