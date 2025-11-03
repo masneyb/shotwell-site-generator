@@ -56,12 +56,12 @@ function updateOverallStatusMessage(text) {
 
 function getQueryParameter(name, defaultValue) {
   const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.has(name) ? urlParams.get(name) : defaultValue;
+  return urlParams.get(name) ?? defaultValue;
 }
 
 function getIntQueryParameter(name, defaultValue) {
   const val = getQueryParameter(name, null);
-  return val != null ? parseInt(val, 10) : defaultValue;
+  return val ? parseInt(val, 10) : defaultValue;
 }
 
 class SingleIconSizeWriter {
@@ -91,8 +91,8 @@ class CommonMultiIconWriter {
       ele.className = `media_${iconSize}_container`;
     }
 
-    for (let i = 0; i < items.length; i += 1) {
-      ele.appendChild(items[i]);
+    for (const item of items) {
+      ele.appendChild(item);
     }
 
     return ele;
@@ -211,7 +211,7 @@ class CsvWriter {
       return col;
     }
 
-    return new String(col);
+    return String(col);
   }
 
   writeCsvRow(cols) {
@@ -228,34 +228,35 @@ class CsvWriter {
       'reg_motion_photo', 'event_id', 'event_name', 'tag_id', 'tags']);
 
     for (const media of this.state.allMedia) {
-      const cols = [];
-      cols.push(media.id);
-      cols.push('title' in media ? media.title : '');
-      cols.push('comment' in media ? media.comment : '');
-      cols.push(media.link);
-      cols.push(media.type);
-      cols.push('filesize' in media ? media.filesize.toString() : '');
-      cols.push('width' in media ? media.width.toString() : '');
-      cols.push('height' in media ? media.height.toString() : '');
-      cols.push('camera' in media ? media.camera : '');
-      cols.push('megapixels' in media ? media.megapixels : '');
-      cols.push('fps' in media ? media.fps : '');
-      cols.push('clip_duration' in media ? media.clip_duration : '');
-      cols.push('clip_duration_secs' in media ? media.clip_duration_secs : '');
-      cols.push('rating' in media ? media.rating.toString() : '');
-      cols.push('lat' in media ? media.lat.toString() : '');
-      cols.push('lon' in media ? media.lon.toString() : '');
-      cols.push('exif' in media ? media.exif.join(' ') : '');
-      cols.push('time_created' in media ? media.time_created : '');
-      cols.push('exposure_time' in media ? media.exposure_time : '');
-      cols.push('exposure_time_pretty' in media ? media.exposure_time_pretty : '');
-      cols.push('metadata_text' in media ? media.metadata_text : '');
-      cols.push(media.thumbnail.reg);
-      cols.push('motion_photo' in media ? media.motion_photo.reg_gif : '');
-      cols.push('event_id' in media ? media.event_id.toString() : '');
-      cols.push('event_name' in media ? media.event_name : '');
-      cols.push('tags' in media ? media.tags.join(', ') : '');
-      cols.push('tag_name' in media ? media.tag_name.join(', ') : '');
+      const cols = [
+        media.id,
+        media.title ?? '',
+        media.comment ?? '',
+        media.link,
+        media.type,
+        media.filesize?.toString() ?? '',
+        media.width?.toString() ?? '',
+        media.height?.toString() ?? '',
+        media.camera ?? '',
+        media.megapixels ?? '',
+        media.fps ?? '',
+        media.clip_duration ?? '',
+        media.clip_duration_secs ?? '',
+        media.rating?.toString() ?? '',
+        media.lat?.toString() ?? '',
+        media.lon?.toString() ?? '',
+        media.exif?.join(' ') ?? '',
+        media.time_created ?? '',
+        media.exposure_time ?? '',
+        media.exposure_time_pretty ?? '',
+        media.metadata_text ?? '',
+        media.thumbnail.reg,
+        media.motion_photo?.reg_gif ?? '',
+        media.event_id?.toString() ?? '',
+        media.event_name ?? '',
+        media.tags?.join(', ') ?? '',
+        media.tag_name?.join(', ') ?? '',
+      ];
       ret += this.writeCsvRow(cols);
     }
 
@@ -277,6 +278,9 @@ class CsvWriter {
 }
 
 class SearchEngine {
+  static MEDIA_TYPES = ['photo', 'motion_photo', 'video'];
+  static PHOTO_TYPES = ['photo', 'motion_photo'];
+
   constructor(state) {
     this.state = state;
   }
@@ -324,22 +328,22 @@ class SearchEngine {
 
       for (const fieldname of fieldInfo.searchFields) {
         const input = fieldname in media ? media[fieldname] : null;
-        if (input == null) {
-          // NOOP
-        } else if (Array.isArray(input)) {
-          for (const inputpart of input) {
-            if (searchOp(inputpart, part)) {
-              partFound = true;
+        if (input != null) {
+          if (Array.isArray(input)) {
+            for (const inputpart of input) {
+              if (searchOp(inputpart, part)) {
+                partFound = true;
+                break;
+              }
+            }
+
+            if (partFound) {
               break;
             }
-          }
-
-          if (partFound) {
+          } else if (searchOp(input, part)) {
+            partFound = true;
             break;
           }
-        } else if (searchOp(input, part)) {
-          partFound = true;
-          break;
         }
       }
 
@@ -620,11 +624,11 @@ class SearchEngine {
 
     // If the user searches for a photo, then include the other subtypes in that search.
     if (value === 'media') {
-      return ['photo', 'motion_photo', 'video'].indexOf(input) > -1;
+      return SearchEngine.MEDIA_TYPES.includes(input);
     }
 
     if (value === 'photo') {
-      return ['photo', 'motion_photo'].indexOf(input) > -1;
+      return SearchEngine.PHOTO_TYPES.includes(input);
     }
 
     return input === value;
@@ -686,7 +690,7 @@ class SearchEngine {
     ops.push({
       descr: 'equals',
       matches: (field, op, values, media) => {
-        return this.performGenericOp(field, media, values[0], (input, value) => input != null && input == value);
+        return this.performGenericOp(field, media, values[0], (input, value) => input != null && input === value);
       },
       placeholder: [placeholderText],
       numValues: 1,
@@ -700,7 +704,7 @@ class SearchEngine {
     ops.push({
       descr: 'not equals',
       matches: (field, op, values, media) => {
-        return this.performGenericOp(field, media, values[0], (input, value) => input == null || input != value);
+        return this.performGenericOp(field, media, values[0], (input, value) => input == null || input !== value);
       },
       placeholder: [placeholderText],
       numValues: 1,
@@ -1092,14 +1096,9 @@ class SearchEngine {
 
     for (const field of this.searchFields) {
       if (field.title === 'File Extension') {
-        field.validValues = [];
-
-        const sortedExtensions = Array.from(fileExtensions);
-        sortedExtensions.sort();
-
-        for (const ext of sortedExtensions) {
-          field.validValues.push([ext, ext]);
-        }
+        field.validValues = Array.from(fileExtensions)
+          .sort()
+          .map(ext => [ext, ext]);
         break;
       }
     }
@@ -1219,12 +1218,7 @@ class SearchEngine {
       }
     }
 
-    groups.sort((a, b) => {
-      if (a.mediaIndexes.length === b.mediaIndexes.length) {
-        return 0;
-      }
-      return a.mediaIndexes.length > b.mediaIndexes.length ? -1 : 1;
-    });
+    groups.sort((a, b) => b.mediaIndexes.length - a.mediaIndexes.length);
 
     for (const [groupIndex, group] of groups.entries()) {
       const avgLat = group.totalLat / group.mediaIndexes.length;
@@ -1254,24 +1248,16 @@ class SearchEngine {
       }
     }
 
-    let groups = [];
-    for (const camera of Object.keys(cameraSet)) {
-      groups.push([camera, cameraSet[camera]]);
-    }
+    const groups = Object.entries(cameraSet);
 
-    groups.sort((a, b) => {
-      if (a[1].length === b[1].length) {
-        return 0;
-      }
-      return a[1].length > b[1].length ? -1 : 1;
-    });
+    groups.sort((a, b) => b[1].length - a[1].length);
 
-    for (let index = 0; index < groups.length; index += 1) {
-      for (const mediaId of groups[index][1]) {
+    groups.forEach(([cameraName, mediaIds], index) => {
+      for (const mediaId of mediaIds) {
         allItems[mediaId].groupIndex = index;
-        allItems[mediaId].groupName = groups[index][0];
+        allItems[mediaId].groupName = cameraName;
       }
-    }
+    });
   }
 
   setZeroGroupIndexAndName(allItems, groupNameFunc) {
@@ -1511,10 +1497,8 @@ class SearchUI {
     document.querySelector('#description').style.display = 'none';
 
     const displayState = shown ? 'block' : 'none';
-    for (const eleName of ['#fullimage_background', '#fullimage_container']) {
-      const ele = document.querySelector(eleName);
-      ele.style.display = displayState;
-    }
+    document.querySelector('#fullimage_background').style.display = displayState;
+    document.querySelector('#fullimage_container').style.display = displayState;
 
     if (shown) {
       document.body.style.overflow = 'hidden';
@@ -1525,7 +1509,7 @@ class SearchUI {
       const videoEle = document.querySelector('#fullvideo');
       videoEle.pause();
       videoEle.removeAttribute('src');
-      if (document.fullscreenElement != null && document.exitFullscreen) {
+      if (document.fullscreenElement && document.exitFullscreen) {
         document.exitFullscreen();
       }
     }
@@ -1550,20 +1534,16 @@ class SearchUI {
   }
 
   getPreviousImageIndex() {
-    return this.state.allMediaFullScreenIndex === 0 ?
-      this.state.allMediaFullScreenIndex : this.state.allMediaFullScreenIndex - 1;
+    return Math.max(0, this.state.allMediaFullScreenIndex - 1);
   }
 
   getFullscreenImageUrl(index) {
-    if (['photo', 'motion_photo', 'video'].indexOf(this.state.allMedia[index].type) > -1) {
-      return this.state.allMedia[index].link;
+    const media = this.state.allMedia[index];
+    if (SearchEngine.MEDIA_TYPES.includes(media.type)) {
+      return media.link;
     }
 
-    if ('reg' in this.state.allMedia[index].thumbnail) {
-      return this.state.allMedia[index].thumbnail.reg;
-    }
-
-    return this.state.allMedia[index].thumbnail.large;
+    return media.thumbnail.reg ?? media.thumbnail.large;
   }
 
   handleVisibilityChange = () => {
@@ -1642,24 +1622,16 @@ class SearchUI {
   }
 
   getVideoVariantLink(entity, size) {
-    if (!('variants' in entity)) {
-      return entity.link;
-    }
-
-    if (size in entity['variants']) {
-      return entity['variants'][size];
-    }
-
-    return entity.link;
+    return entity.variants?.[size] ?? entity.link;
   }
 
   getCookie(name) {
-    let nameSearch = `${name}=`;
-    let cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      let cookie = cookies[i].trim();
-      if (cookie.indexOf(nameSearch) == 0) {
-        return decodeURIComponent(cookie.substring(nameSearch.length));
+    const nameSearch = `${name}=`;
+    const cookies = document.cookie.split(';');
+    for (const cookie of cookies) {
+      const trimmedCookie = cookie.trim();
+      if (trimmedCookie.startsWith(nameSearch)) {
+        return decodeURIComponent(trimmedCookie.substring(nameSearch.length));
       }
     }
     return null;
@@ -1679,8 +1651,7 @@ class SearchUI {
   }
 
   getFullscreenVideoUrl(entity) {
-    if (this.state.alwaysAnimateMotionPhotos && 'motion_photo' in entity &&
-        'mp4' in entity.motion_photo) {
+    if (this.state.alwaysAnimateMotionPhotos && entity.motion_photo?.mp4) {
       return entity.motion_photo.mp4;
     }
     if (entity.type !== 'video') {
@@ -1712,7 +1683,7 @@ class SearchUI {
       this.setPlayIconDisplay('none');
       this.setMetadataIconDisplay('inline-block');
       this.setVideoSizeState('inline-block');
-    } else if ('motion_photo' in entity && 'mp4' in entity.motion_photo && !this.isKioskModeEnabled()) {
+    } else if (entity.motion_photo?.mp4 && !this.isKioskModeEnabled()) {
       this.setPlayIconDisplay('inline-block');
       this.setMetadataIconDisplay('inline-block');
       this.setVideoSizeState('none');
@@ -1918,15 +1889,16 @@ class SearchUI {
     }, { passive: true });
 
     element.addEventListener('touchend', e => {
-      let dx = e.changedTouches[0].clientX - startX;
-      let dy = e.changedTouches[0].clientY - startY;
-      let elapsedTime = Date.now() - startTime;
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      const elapsedTime = Date.now() - startTime;
       if (elapsedTime <= allowedTime && Math.abs(dx) >= threshold && Math.abs(dy) <= restraint) {
         if (window.visualViewport.scale === 1.0) {
-          if (dx < 0)
+          if (dx < 0) {
             this.showNextImageFullscreen(true);
-          else
+          } else {
             this.showPreviousImageFullscreen();
+          }
         }
       }
     }, { passive: true });
@@ -1939,14 +1911,8 @@ class SearchUI {
     return option;
   }
 
-  removeAllChildren(node) {
-    while (node.firstChild) {
-      node.removeChild(node.firstChild);
-    }
-  }
-
   hideResultsInfo() {
-    this.removeAllChildren(document.querySelector('.summary_stats'));
+    document.querySelector('.summary_stats').replaceChildren();
     for (const search of ['.header_links']) {
       for (const ele of document.querySelectorAll(search)) {
         ele.style.display = 'none';
@@ -2008,7 +1974,7 @@ class SearchUI {
       }
     }
 
-    this.removeAllChildren(values);
+    values.replaceChildren();
 
     for (let i = 0; i < op.numValues; i += 1) {
       if ('validValues' in field) {
@@ -2059,7 +2025,7 @@ class SearchUI {
     const field = this.searchEngine.searchFields[searchEles.querySelector('.search_field').selectedIndex];
 
     const select = searchEles.querySelector('.search_op');
-    this.removeAllChildren(select);
+    select.replaceChildren();
 
     for (const op of field.search.ops) {
       const option = document.createElement('option');
@@ -2073,7 +2039,7 @@ class SearchUI {
   populateSearchFields(idx) {
     const searchEles = document.querySelector(`#search_criteria${idx}`);
     const select = searchEles.querySelector('.search_field');
-    this.removeAllChildren(select);
+    select.replaceChildren();
 
     for (const field of this.searchEngine.searchFields) {
       const option = document.createElement('option');
@@ -2124,7 +2090,7 @@ class SearchUI {
   }
 
   populateSearchValuesFromUrl() {
-    this.removeAllChildren(document.querySelector('#search_criterias'));
+    document.querySelector('#search_criterias').replaceChildren();
     this.state.nextSearchInput = 0;
 
     for (const searchCriteria of this.searchEngine.getSearchQueryParams()) {
@@ -2221,7 +2187,7 @@ class SearchUI {
 
   showParentTags(searchTag) {
     const tagParentsEle = document.querySelector('#tag_parents');
-    this.removeAllChildren(tagParentsEle);
+    tagParentsEle.replaceChildren();
 
     if (searchTag != null) {
       let parentTag = searchTag.parent_tag_id;
@@ -2353,12 +2319,12 @@ class SearchUI {
   }
 
   showLargerMedia(media) {
-    return media.rating === 5 || (['photo', 'motion_photo', 'video'].indexOf(media.type) === -1);
+    return media.rating === 5 || !SearchEngine.MEDIA_TYPES.includes(media.type);
   }
 
   addExtraFlush(media) {
-    return (['photo', 'motion_photo', 'video'].indexOf(media.type) === -1) &&
-            (['small_medium', 'medium_large', 'small_medium_large'].indexOf(this.state.preferredPageIconSize) !== -1);
+    return !SearchEngine.MEDIA_TYPES.includes(media.type) &&
+            ['small_medium', 'medium_large', 'small_medium_large'].includes(this.state.preferredPageIconSize);
   }
 
   getMediaIconSize(media) {
@@ -2442,12 +2408,12 @@ class SearchUI {
 
   createStatsSpan(stats) {
     const ret = document.createElement('span');
-    for (let i = 0; i < stats.length; i += 1) {
+    stats.forEach((stat, i) => {
       if (i > 0) {
         ret.appendChild(document.createTextNode(' '));
       }
-      ret.appendChild(stats[i]);
-    }
+      ret.appendChild(stat);
+    });
     return ret;
   }
 
@@ -2622,21 +2588,21 @@ class SearchUI {
           `${entity.lat},${entity.lon},0.1`,
           extraOnClick));
 
-      let mapAnchor = document.createElement('a');
-      mapAnchor.target = '_new';
-      mapAnchor.href =
+      const osmAnchor = document.createElement('a');
+      osmAnchor.target = '_new';
+      osmAnchor.href =
         `https://www.openstreetmap.org/?mlat=${entity.lat}&mlon=${entity.lon}#map=16/${entity.lat}/${entity.lon}`;
-      mapAnchor.innerText = 'OpenStreetMap';
-      extStats.push(this.createMediaStat(mapAnchor));
+      osmAnchor.innerText = 'OpenStreetMap';
+      extStats.push(this.createMediaStat(osmAnchor));
 
-      mapAnchor = document.createElement('a');
-      mapAnchor.target = '_new';
-      mapAnchor.href = `https://www.google.com/maps?q=${entity.lat}%2C${entity.lon}`;
-      mapAnchor.innerText = 'Google Maps';
-      extStats.push(this.createMediaStat(mapAnchor));
+      const googleMapsAnchor = document.createElement('a');
+      googleMapsAnchor.target = '_new';
+      googleMapsAnchor.href = `https://www.google.com/maps?q=${entity.lat}%2C${entity.lon}`;
+      googleMapsAnchor.innerText = 'Google Maps';
+      extStats.push(this.createMediaStat(googleMapsAnchor));
     }
 
-    if (['photo', 'motion_photo', 'video'].indexOf(entity.type) > -1) {
+    if (SearchEngine.MEDIA_TYPES.includes(entity.type)) {
       extStats.push(this.createOpenInNewTabLink('Download', entity.link));
     }
 
@@ -2669,6 +2635,13 @@ class SearchUI {
     // FIXME - the maxWidth isn't updated when the window is resized.
     const maxWidth = document.documentElement.clientWidth - 10;
     return maxWidth < media.thumbnail.reg_width ? maxWidth : media.thumbnail.reg_width;
+  }
+
+  setupMotionPhotoHover(img, thumbnailSrc, motionPhotoSrc) {
+    img.onmouseover = () => { img.src = motionPhotoSrc; };
+    img.onmouseleave = () => { img.src = thumbnailSrc; };
+    img.ontouchstart = () => { img.src = motionPhotoSrc; };
+    img.ontouchend = () => { img.src = thumbnailSrc; };
   }
 
   createMediaElement(index, media, iconSize) {
@@ -2709,29 +2682,20 @@ class SearchUI {
     } else if (iconSize === 'small') {
       img.src = media.thumbnail.small;
       if (media.motion_photo) {
-        img.onmouseover = () => { img.src = media.motion_photo.small_gif; };
-        img.onmouseleave = () => { img.src = media.thumbnail.small; };
-        img.ontouchstart = () => { img.src = media.motion_photo.small_gif; };
-        img.ontouchend = () => { img.src = media.thumbnail.small; };
+        this.setupMotionPhotoHover(img, media.thumbnail.small, media.motion_photo.small_gif);
       }
       mediaEle.className = 'media_small';
     } else if (iconSize === 'medium') {
       img.src = media.thumbnail.medium;
       if (media.motion_photo) {
-        img.onmouseover = () => { img.src = media.motion_photo.medium_gif; };
-        img.onmouseleave = () => { img.src = media.thumbnail.medium; };
-        img.ontouchstart = () => { img.src = media.motion_photo.medium_gif; };
-        img.ontouchend = () => { img.src = media.thumbnail.medium; };
+        this.setupMotionPhotoHover(img, media.thumbnail.medium, media.motion_photo.medium_gif);
       }
       mediaEle.className = 'media_medium';
     } else if (['large', 'large_full_meta', 'large_no_meta'].includes(iconSize) ||
-               !('reg' in media.thumbnail)) {
+               !media.thumbnail.reg) {
       img.src = media.thumbnail.large;
       if (media.motion_photo) {
-        img.onmouseover = () => { img.src = media.motion_photo.large_gif; };
-        img.onmouseleave = () => { img.src = media.thumbnail.large; };
-        img.ontouchstart = () => { img.src = media.motion_photo.large_gif; };
-        img.ontouchend = () => { img.src = media.thumbnail.large; };
+        this.setupMotionPhotoHover(img, media.thumbnail.large, media.motion_photo.large_gif);
       }
       if (this.showLargeIconWithNoDescr(iconSize, media.type)) {
         mediaEle.className = 'media_no_descr';
@@ -2742,10 +2706,7 @@ class SearchUI {
       img.src = media.thumbnail.reg;
       img.style.width = '100%';
       if (media.motion_photo) {
-        img.onmouseover = () => { img.src = media.motion_photo.reg_gif; };
-        img.onmouseleave = () => { img.src = media.thumbnail.reg; };
-        img.ontouchstart = () => { img.src = media.motion_photo.reg_gif; };
-        img.ontouchend = () => { img.src = media.thumbnail.reg; };
+        this.setupMotionPhotoHover(img, media.thumbnail.reg, media.motion_photo.reg_gif);
       }
       mediaEle.className = 'media_dyn';
       mediaEle.style.width = `${this.getMediaRegularWidth(media)}px`;
@@ -2849,22 +2810,22 @@ class SearchUI {
 
   clearPreviousMedia(allMediaEle) {
     this.state.mediaWriter.clear();
-    this.removeAllChildren(allMediaEle);
+    allMediaEle.replaceChildren();
     window.scrollTo(0, 0);
   }
 
   createAllStatsSpan(stats) {
     const ret = document.createElement('span');
-    for (let i = 0; i < stats.length; i += 1) {
+    stats.forEach((statText, i) => {
       if (i > 0) {
         ret.appendChild(document.createTextNode(' '));
       }
 
       const span = document.createElement('span');
       span.className = 'stat';
-      span.innerText = stats[i];
+      span.innerText = statText;
       ret.appendChild(span);
-    }
+    });
     return ret;
   }
 
