@@ -690,7 +690,7 @@ class SearchEngine {
     ops.push({
       descr: 'equals',
       matches: (field, op, values, media) => {
-        return this.performGenericOp(field, media, values[0], (input, value) => input != null && input === value);
+        return this.performGenericOp(field, media, values[0], (input, value) => input != null && input == value);
       },
       placeholder: [placeholderText],
       numValues: 1,
@@ -704,7 +704,7 @@ class SearchEngine {
     ops.push({
       descr: 'not equals',
       matches: (field, op, values, media) => {
-        return this.performGenericOp(field, media, values[0], (input, value) => input == null || input !== value);
+        return this.performGenericOp(field, media, values[0], (input, value) => input == null || input != value);
       },
       placeholder: [placeholderText],
       numValues: 1,
