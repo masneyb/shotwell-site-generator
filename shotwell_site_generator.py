@@ -17,11 +17,11 @@ import media_thumbnailer
 import media_writer_html
 import media_writer_structured
 
-def _app_icon_by_size(size):
-    return {"src": f"icons/app-icon-{size}.png",
+def _app_icon_by_size(size, purpose):
+    return {"src": f"icons/app-icon-{size}-{purpose}.png",
             "sizes": size,
             "type": "image/png",
-            "purpose": "any"}
+            "purpose": purpose}
 
 def write_manifest_json(options):
     vals = {}
@@ -37,12 +37,10 @@ def write_manifest_json(options):
     vals["theme_color"] = "#ffffff"
     vals["theme_color_dark"] = "#202124"
     vals["categories"] = ["photo", "gallery"]
-    vals["icons"] = [_app_icon_by_size("512x512"),
-                     _app_icon_by_size("196x196"),
-                     _app_icon_by_size("180x180"),
-                     _app_icon_by_size("96x96"),
-                     _app_icon_by_size("32x32"),
-                     _app_icon_by_size("16x16")]
+    vals["icons"] = [_app_icon_by_size("512x512", "any"),
+                     _app_icon_by_size("512x512", "maskable"),
+                     _app_icon_by_size("192x192", "any"),
+                     _app_icon_by_size("192x192", "maskable")]
 
     with open(os.path.join(options.dest_directory, "manifest.json"), "w",
               encoding="UTF-8") as outfile:
