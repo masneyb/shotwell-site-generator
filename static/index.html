@@ -22,6 +22,12 @@
     <link rel="icon" type="image/png" sizes="16x16" href="icons/app-icon-16x16.png"/>
     <link rel="manifest" href="manifest.json" crossorigin="use-credentials"/>
     <link rel="stylesheet" type="text/css" href="search.css"/>
+    <script>
+      window.onerror = function (message, source, lineno, colno, error) {
+        alert(`JS error: ${message} at ${source}:${lineno}:${colno}`);
+        return false;
+      };
+</script>
   </head>
 
   <body>
