@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Photos Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin="anonymous"/>
+
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+        integrity="sha256-YU3qCpj/P06tdPBJGPax0bm6Q1wltfwjsho5TR4+TYc="
+        crossorigin="anonymous"/>
+
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+        integrity="sha256-YSWCMtmNZNwqex4CEw1nQhvFub2lmU7vcCKP+XVwwXA="
+        crossorigin="anonymous"/>
+
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+
+    .popup-image {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .popup-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .popup-metadata {
+      font-size: 0.9em;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    #loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      z-index: 1000;
+      font-family: sans-serif;
+    }
+
+    #error {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fee;
+      padding: 20px;
+      border-radius: 8px;
+      border: 2px solid #c00;
+      z-index: 1000;
+      font-family: sans-serif;
+      max-width: 400px;
+      display: none;
+    }
+
+    #error h3 {
+      margin-top: 0;
+      color: #c00;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">Loading map data...</div>
+  <div id="error">
+    <h3>Error Loading Map</h3>
+    <p id="error-message"></p>
+  </div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin="anonymous">
+  </script>
+
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"
+          integrity="sha256-Hk4dIpcqOSb0hZjgyvFOP+cEmDXUKKNE/tT542ZbNQg="
+          crossorigin="anonymous">
+  </script>
+
+  <script>
+    const POPUP_WIDTH = 350;
+    const POPUP_MAX_IMAGE_SIZE = 400;
+    const MAP_PADDING = [20, 20];
+    const AUTOPAN_PADDING = [30, 30];
+
+    const map = L.map('map').setView([0, 0], 2);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    const markers = L.markerClusterGroup();
+
+    fetch('media.geojson')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to load media.geojson: ' + response.statusText);
+        }
+        return response.json();
+      })
+      .then((geojson) => {
+        const geoJsonLayer = L.geoJSON(geojson, {
+          pointToLayer: function (feature, latlng) {
+            return L.marker(latlng);
+          },
+          onEachFeature: function (feature, layer) {
+            const props = feature.properties || {};
+
+            let popupContent = '';
+            if (props.type === "video") {
+              popupContent = `<video src="${props.smallest_video}" class="popup-image" autoplay loop controls></video>`;
+            } else {
+              popupContent = `<img src="${props.reg_thumbnail}" class="popup-image">`;
+            }
+
+            layer.bindPopup(popupContent, {
+                minWidth: POPUP_WIDTH,
+                maxWidth: POPUP_WIDTH,
+                autoPan: true,
+                autoPanPadding: AUTOPAN_PADDING
+            });
+          }
+        });
+
+        markers.addLayer(geoJsonLayer);
+        map.addLayer(markers);
+
+        if (markers.getLayers().length > 0) {
+          map.fitBounds(markers.getBounds(), { padding: MAP_PADDING });
+        }
+
+        document.getElementById('loading').style.display = 'none';
+      })
+      .catch((error) => {
+        console.error(error);
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error').style.display = 'block';
+        document.getElementById('error-message').textContent = error;
+      });
+  </script>
+</body>
+</html>
