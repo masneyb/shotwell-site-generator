@@ -229,7 +229,7 @@ class Structured(CommonWriter):
                         media['motion_photo']['reg_gif'] if 'motion_photo' in media else ''),
                 ('smallest_video',
                     lambda media, _colname, _event_names, _tag_names:
-                        '' if media.type != 'video'
+                        '' if media['type'] != 'video'
                         else (
                           media['variants']['480p']
                               if 'variants' in media and '480p' in media['variants']
