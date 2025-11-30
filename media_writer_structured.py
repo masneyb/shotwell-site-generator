@@ -227,6 +227,14 @@ class Structured(CommonWriter):
                 ('reg_motion_photo',
                     lambda media, _colname, _event_names, _tag_names:
                         media['motion_photo']['reg_gif'] if 'motion_photo' in media else ''),
+                ('smallest_video',
+                    lambda media, _colname, _event_names, _tag_names:
+                        '' if media.type != 'video'
+                        else (
+                          media['variants']['480p']
+                              if 'variants' in media and '480p' in media['variants']
+                          else media['link']
+                        )),
                 ('event_id', write_column),
                 ('event_name',
                     lambda media, _colname, event_names, _tag_names:
