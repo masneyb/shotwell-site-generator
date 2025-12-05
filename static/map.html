@@ -87,6 +87,13 @@
       color: #c00;
     }
   </style>
+    <script>
+      window.onerror = function (message, source, lineno, colno, error) {
+        alert(`JS error: ${message} at ${source}:${lineno}:${colno}`);
+        return false;
+      };
+    </script>
+
 </head>
 <body>
   <div id="loading">Loading map data...</div>
