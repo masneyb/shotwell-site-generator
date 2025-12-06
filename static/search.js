@@ -2631,16 +2631,9 @@ class SearchUI {
 
       const osmAnchor = document.createElement('a');
       osmAnchor.target = '_new';
-      osmAnchor.href =
-        `https://www.openstreetmap.org/?mlat=${entity.lat}&mlon=${entity.lon}#map=16/${entity.lat}/${entity.lon}`;
-      osmAnchor.innerText = 'OpenStreetMap';
+      osmAnchor.href = `map.html?lat=${entity.lat}&lon=${entity.lon}`;
+      osmAnchor.innerText = 'Map';
       extStats.push(this.createMediaStat(osmAnchor));
-
-      const googleMapsAnchor = document.createElement('a');
-      googleMapsAnchor.target = '_new';
-      googleMapsAnchor.href = `https://www.google.com/maps?q=${entity.lat}%2C${entity.lon}`;
-      googleMapsAnchor.innerText = 'Google Maps';
-      extStats.push(this.createMediaStat(googleMapsAnchor));
     }
 
     if (SearchEngine.MEDIA_TYPES.includes(entity.type)) {
