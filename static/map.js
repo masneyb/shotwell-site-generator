@@ -76,7 +76,11 @@ function initMap() {
     markers.addLayer(geoJsonLayer);
     map.addLayer(markers);
 
-    if (markers.getLayers().length > 0) {
+    const lat = getFloatQueryParameter('lat', null);
+    const lon = getFloatQueryParameter('lon', null);
+    if (lat !== null && lon !== null) {
+      map.setView([lat, lon], 13);
+    } else if (markers.getLayers().length > 0) {
       map.fitBounds(markers.getBounds(), { padding: MAP_PADDING });
     }
 

@@ -64,6 +64,14 @@ function getIntQueryParameter(name, defaultValue) {
   return val ? parseInt(val, 10) : defaultValue;
 }
 
+function getFloatQueryParameter(name, defaultValue) {
+  const val = getQueryParameter(name, null);
+  if (val === null)
+    return defaultValue;
+  let value = parseFloat(val);
+  return isNaN(value) ? defaultValue : value;
+}
+
 class SingleIconSizeWriter {
   constructor() {
     this.currentGroupEle = null;
