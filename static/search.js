@@ -3091,12 +3091,10 @@ class SearchUI {
   }
 }
 
-function doinit() {
+function doSearchInit() {
   const _state = new SearchState();
   const _searchEngine = new SearchEngine(_state);
   const _csvWriter = new CsvWriter(_state);
   const _mediaSearchUI = new SearchUI(_state, _searchEngine, _csvWriter);
   _mediaSearchUI.init();
 }
-
-doinit();
