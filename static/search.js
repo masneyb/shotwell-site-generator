@@ -2182,7 +2182,7 @@ class SearchUI {
     this.doPerformSearch();
   }
 
-  searchPageLinkGenerator(event, criterias, matchPolicy = 'all', overrideIconSize = null) {
+  searchPageLinkGenerator(event, criterias, matchPolicy = 'all', overrideIconSize = null, navigateToUrl = false) {
     const parts = [];
     for (const criteria of criterias) {
       // field,op,value
@@ -2199,6 +2199,8 @@ class SearchUI {
       event.preventDefault();
       event.stopPropagation();
       window.open(search, '_blank');
+    } else if (navigateToUrl) {
+      window.location.href = search;
     } else {
       window.history.pushState({}, '', search);
       this.doPerformSearch();
@@ -2477,14 +2479,14 @@ class SearchUI {
     return this.createMediaStat(anchor);
   }
 
-  createSearchLink(label, field, op, val, extraOnClick) {
+  createSearchLink(label, field, op, val, extraOnClick, navigateToUrl = false) {
     const anchor = document.createElement('a');
     anchor.href = '#';
     anchor.onclick = (event) => {
       if (extraOnClick) {
         extraOnClick(event);
       }
-      this.searchPageLinkGenerator(event, [[field, op, val]]);
+      this.searchPageLinkGenerator(event, [[field, op, val]], 'all', null, navigateToUrl);
       return false;
     };
     anchor.innerText = label;
@@ -2506,7 +2508,7 @@ class SearchUI {
     return `${number.toLocaleString()} ${number === 1 ? singular : plural}`;
   }
 
-  createMediaStatsHtml(entity, onSlideshowPage, showBriefMetadata, extraOnClick) {
+  createMediaStatsHtml(entity, onSlideshowPage, showBriefMetadata, extraOnClick, navigateToUrl = false) {
     const stats = [];
     const extStats = [];
 
@@ -2576,7 +2578,7 @@ class SearchUI {
     }
 
     if (entity.camera) {
-      extStats.push(this.createSearchLink(entity.camera, 'Camera', 'equals', entity.camera, extraOnClick));
+      extStats.push(this.createSearchLink(entity.camera, 'Camera', 'equals', entity.camera, extraOnClick, navigateToUrl));
     }
 
     if (entity.exif) {
@@ -2588,7 +2590,7 @@ class SearchUI {
     if (entity.event_id && entity.type !== 'events') {
       extStats.push(
         this.createSearchLink(`Event: ${this.state.eventNames[entity.event_id]}`, 'Event ID', 'equals',
-          entity.event_id, extraOnClick));
+          entity.event_id, extraOnClick, navigateToUrl));
     }
 
     if (entity.tags && entity.type !== 'tags') {
@@ -2602,7 +2604,7 @@ class SearchUI {
       for (const tagId of entity.tags) {
         if (!parentTags.has(tagId)) {
           extStats.push(this.createSearchLink(`Tag: ${this.state.tags[tagId].title}`, 'Tag ID', 'equals',
-            tagId, extraOnClick));
+            tagId, extraOnClick, navigateToUrl));
         }
       }
     }
@@ -2613,7 +2615,7 @@ class SearchUI {
 
     if (entity.rating) {
       const stars = '★'.repeat(entity.rating) + '☆'.repeat(5 - entity.rating);
-      extStats.push(this.createSearchLink(stars, 'Rating', 'is at least', entity.rating, extraOnClick));
+      extStats.push(this.createSearchLink(stars, 'Rating', 'is at least', entity.rating, extraOnClick, navigateToUrl));
     }
 
     if (entity.motion_photo?.mp4) {
@@ -2627,13 +2629,17 @@ class SearchUI {
           'GPS Coordinate',
           'is within',
           `${entity.lat},${entity.lon},0.1`,
-          extraOnClick));
+          extraOnClick,
+          navigateToUrl));
 
-      const osmAnchor = document.createElement('a');
-      osmAnchor.target = '_new';
-      osmAnchor.href = `map.html?lat=${entity.lat}&lon=${entity.lon}`;
-      osmAnchor.innerText = 'Map';
-      extStats.push(this.createMediaStat(osmAnchor));
+      // Only show the Map link when not already on the map page
+      if (!navigateToUrl) {
+        const osmAnchor = document.createElement('a');
+        osmAnchor.target = '_new';
+        osmAnchor.href = `map.html?lat=${entity.lat}&lon=${entity.lon}`;
+        osmAnchor.innerText = 'Map';
+        extStats.push(this.createMediaStat(osmAnchor));
+      }
     }
 
     if (SearchEngine.MEDIA_TYPES.includes(entity.type)) {

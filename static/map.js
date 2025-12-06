@@ -49,6 +49,8 @@ function initMap() {
 
     const state = new SearchState();
     const searchEngine = new SearchEngine(state);
+    const csvWriter = new CsvWriter(state);
+    const searchUI = new SearchUI(state, searchEngine, csvWriter);
 
     searchEngine.processJson((filteredMedia, _extraHeader, _newDateRange, preferredView) => {
       if (preferredView && preferredView.title) {
@@ -69,14 +71,29 @@ function initMap() {
         onEachFeature: function (feature, layer) {
           const props = feature.properties || {};
 
-          let popupContent = '';
+          const popupContainer = document.createElement('div');
+          popupContainer.className = 'popup-container';
+
           if (props.type === 'video') {
-            popupContent = `<video src="${props.smallest_video}" class="popup-image" autoplay loop controls></video>`;
+            const video = document.createElement('video');
+            video.src = props.smallest_video;
+            video.className = 'popup-image';
+            video.autoplay = true;
+            video.loop = true;
+            video.controls = true;
+            popupContainer.appendChild(video);
           } else {
-            popupContent = `<img src="${props.reg_thumbnail}" class="popup-image">`;
+            const img = document.createElement('img');
+            img.src = props.reg_thumbnail;
+            img.className = 'popup-image';
+            popupContainer.appendChild(img);
           }
 
-          layer.bindPopup(popupContent, {
+          const metadata = searchUI.createMediaStatsHtml(props, false, false, null, true);
+          metadata.className = 'popup-metadata';
+          popupContainer.appendChild(metadata);
+
+          layer.bindPopup(popupContainer, {
             minWidth: POPUP_WIDTH,
             maxWidth: POPUP_WIDTH,
             autoPan: true,

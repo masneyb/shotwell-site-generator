@@ -15,10 +15,15 @@ html, body {
   width: 100%;
 }
 
+.popup-container {
+  text-align: center;
+}
+
 .popup-image {
   display: block;
   max-width: 100%;
   height: auto;
+  margin: 0 auto;
 }
 
 .popup-title {
@@ -28,8 +33,31 @@ html, body {
 
 .popup-metadata {
   font-size: 0.9em;
-  color: #666;
-  margin-top: 4px;
+  margin-top: 8px;
+  text-align: center;
+  display: block;
+}
+
+.popup-metadata .media_stat {
+  display: inline-block;
+  margin-right: 8px;
+  margin-bottom: 4px;
+}
+
+.popup-metadata .media_stat a {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+.popup-metadata .media_stat a:hover {
+  text-decoration: underline;
+}
+
+.popup-metadata .more_less {
+  font-style: italic;
+  text-decoration: underline;
+  cursor: pointer;
+  color: #0066cc;
 }
 
 #loading {
