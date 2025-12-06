@@ -109,8 +109,6 @@ def process_photos(options):
                     os.path.join(options.dest_directory, "map.css"))
     shutil.copyfile(__get_assets_path(options, "static/map.html"),
                     os.path.join(options.dest_directory, "map.html"))
-    shutil.copyfile(__get_assets_path(options, "static/map.js"),
-                    os.path.join(options.dest_directory, "map.js"))
     shutil.copyfile(__get_assets_path(options, "static/search.css"),
                     os.path.join(options.dest_directory, "search.css"))
     shutil.copyfile(__get_assets_path(options, "static/search.js"),
