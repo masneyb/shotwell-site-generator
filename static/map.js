@@ -13,6 +13,29 @@ function showError(message) {
   document.getElementById('error-message').textContent = message;
 }
 
+function populateMapWithMedia(filteredMedia) {
+  const features = [];
+  for (const media of filteredMedia) {
+    if (!media.lat || !media.lon) {
+      continue;
+    }
+
+    media['reg_thumbnail'] = media.thumbnail?.reg;
+    media['smallest_video'] = media.type === 'video' ? (media.variants?.['480p'] || media.link) : null;
+
+    features.push({
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: [media.lon, media.lat]
+      },
+      properties: media,
+    });
+  }
+
+  return features;
+}
+
 function initMap() {
   try {
     const map = L.map('map').setView([0, 0], 2);
@@ -24,67 +47,57 @@ function initMap() {
 
     const markers = L.markerClusterGroup();
 
-    const resp = getAllMediaViaJsFile();
+    const state = new SearchState();
+    const searchEngine = new SearchEngine(state);
 
-    const features = [];
-    for (const media of resp.media) {
-      if (!media.lat || !media.lon) {
-        continue;
+    searchEngine.processJson((filteredMedia, _extraHeader, _newDateRange, preferredView) => {
+      if (preferredView && preferredView.title) {
+        document.title = preferredView.title + ' - Map';
       }
 
-      media['reg_thumbnail'] = media.thumbnail.reg;
-      media['smallest_video'] = media.type === 'video' ? (media.variants?.['480p'] || media.link) : null;
+      const features = populateMapWithMedia(filteredMedia);
 
-      features.push({
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [media.lon, media.lat]
+      const geojson = {
+        type: 'FeatureCollection',
+        features: features
+      };
+
+      const geoJsonLayer = L.geoJSON(geojson, {
+        pointToLayer: function (feature, latlng) {
+          return L.marker(latlng);
         },
-        properties: media,
-      });
-    }
+        onEachFeature: function (feature, layer) {
+          const props = feature.properties || {};
 
-    const geojson = {
-      type: 'FeatureCollection',
-      features: features
-    };
+          let popupContent = '';
+          if (props.type === 'video') {
+            popupContent = `<video src="${props.smallest_video}" class="popup-image" autoplay loop controls></video>`;
+          } else {
+            popupContent = `<img src="${props.reg_thumbnail}" class="popup-image">`;
+          }
 
-    const geoJsonLayer = L.geoJSON(geojson, {
-      pointToLayer: function (feature, latlng) {
-        return L.marker(latlng);
-      },
-      onEachFeature: function (feature, layer) {
-        const props = feature.properties || {};
-
-        let popupContent = '';
-        if (props.type === 'video') {
-          popupContent = `<video src="${props.smallest_video}" class="popup-image" autoplay loop controls></video>`;
-        } else {
-          popupContent = `<img src="${props.reg_thumbnail}" class="popup-image">`;
+          layer.bindPopup(popupContent, {
+            minWidth: POPUP_WIDTH,
+            maxWidth: POPUP_WIDTH,
+            autoPan: true,
+            autoPanPadding: AUTOPAN_PADDING
+          });
         }
+      });
 
-        layer.bindPopup(popupContent, {
-          minWidth: POPUP_WIDTH,
-          maxWidth: POPUP_WIDTH,
-          autoPan: true,
-          autoPanPadding: AUTOPAN_PADDING
-        });
+      markers.addLayer(geoJsonLayer);
+      map.addLayer(markers);
+
+      const lat = getFloatQueryParameter('lat', null);
+      const lon = getFloatQueryParameter('lon', null);
+      if (lat !== null && lon !== null) {
+        map.setView([lat, lon], 13);
+      } else if (markers.getLayers().length > 0) {
+        map.fitBounds(markers.getBounds(), { padding: MAP_PADDING });
       }
+
+      document.getElementById('loading').style.display = 'none';
     });
-
-    markers.addLayer(geoJsonLayer);
-    map.addLayer(markers);
-
-    const lat = getFloatQueryParameter('lat', null);
-    const lon = getFloatQueryParameter('lon', null);
-    if (lat !== null && lon !== null) {
-      map.setView([lat, lon], 13);
-    } else if (markers.getLayers().length > 0) {
-      map.fitBounds(markers.getBounds(), { padding: MAP_PADDING });
-    }
-
-    document.getElementById('loading').style.display = 'none';
   } catch (error) {
     showError(error.message || 'An error occurred while loading the map');
   }

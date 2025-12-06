@@ -2951,6 +2951,12 @@ class SearchUI {
         return this.stopEvent(event);
       };
 
+      document.querySelector('#map_link').onclick = (event) => {
+        const mapUrl = `map.html${window.location.search}`;
+        window.location.href = mapUrl;
+        return this.stopEvent(event);
+      };
+
       document.querySelector('.summary_stats').replaceChildren(this.createAllStatsHtml());
     }, 0);
   }
