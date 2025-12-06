@@ -3107,10 +3107,143 @@ class SearchUI {
   }
 }
 
+class MapUI {
+  constructor(state, searchEngine, searchUI) {
+    this.state = state;
+    this.searchEngine = searchEngine;
+    this.searchUI = searchUI;
+  }
+
+  populateMapWithMedia(filteredMedia) {
+    const features = [];
+    for (const media of filteredMedia) {
+      if (!media.lat || !media.lon) {
+        continue;
+      }
+
+      media['reg_thumbnail'] = media.thumbnail?.reg;
+      media['smallest_video'] = media.type === 'video' ?
+        (media.variants?.['480p'] || media.link) : null;
+
+      features.push({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [media.lon, media.lat]
+        },
+        properties: media,
+      });
+    }
+
+    return features;
+  }
+
+  initMap(mapInstance, markers, popupWidth, autoPanPadding) {
+    this.searchEngine.processJson((filteredMedia, _extraHeader, _newDateRange, preferredView) => {
+      if (preferredView && preferredView.title) {
+        document.title = preferredView.title + ' - Map';
+      }
+
+      const features = this.populateMapWithMedia(filteredMedia);
+
+      const geojson = {
+        type: 'FeatureCollection',
+        features: features
+      };
+
+      const geoJsonLayer = L.geoJSON(geojson, {
+        pointToLayer: (feature, latlng) => {
+          return L.marker(latlng);
+        },
+        onEachFeature: (feature, layer) => {
+          const props = feature.properties || {};
+
+          const popupContainer = document.createElement('div');
+          popupContainer.className = 'popup-container';
+
+          if (props.type === 'video') {
+            const video = document.createElement('video');
+            video.src = props.smallest_video;
+            video.className = 'popup-image';
+            video.autoplay = true;
+            video.loop = true;
+            video.controls = true;
+            popupContainer.appendChild(video);
+          } else {
+            const img = document.createElement('img');
+            img.src = props.reg_thumbnail;
+            img.className = 'popup-image';
+            popupContainer.appendChild(img);
+          }
+
+          const metadata = this.searchUI.createMediaStatsHtml(props, false, false, null, true);
+          metadata.className = 'popup-metadata';
+          popupContainer.appendChild(metadata);
+
+          layer.bindPopup(popupContainer, {
+            minWidth: popupWidth,
+            maxWidth: popupWidth,
+            autoPan: true,
+            autoPanPadding: autoPanPadding
+          });
+        }
+      });
+
+      markers.addLayer(geoJsonLayer);
+      mapInstance.addLayer(markers);
+
+      const lat = getFloatQueryParameter('lat', null);
+      const lon = getFloatQueryParameter('lon', null);
+      if (lat !== null && lon !== null) {
+        mapInstance.setView([lat, lon], 13);
+      } else if (markers.getLayers().length > 0) {
+        mapInstance.fitBounds(markers.getBounds(), { padding: [20, 20] });
+      }
+
+      document.getElementById('loading').style.display = 'none';
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          mapInstance.closePopup();
+        }
+      });
+    });
+  }
+}
+
 function doSearchInit() {
   const _state = new SearchState();
   const _searchEngine = new SearchEngine(_state);
   const _csvWriter = new CsvWriter(_state);
   const _mediaSearchUI = new SearchUI(_state, _searchEngine, _csvWriter);
   _mediaSearchUI.init();
+}
+
+function doMapInit() {
+  const POPUP_WIDTH = 350;
+  const AUTOPAN_PADDING = [30, 30];
+
+  try {
+    const map = L.map('map').setView([0, 0], 2);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    const markers = L.markerClusterGroup();
+
+    const state = new SearchState();
+    const searchEngine = new SearchEngine(state);
+    const csvWriter = new CsvWriter(state);
+    const searchUI = new SearchUI(state, searchEngine, csvWriter);
+    const mapUI = new MapUI(state, searchEngine, searchUI);
+
+    mapUI.initMap(map, markers, POPUP_WIDTH, AUTOPAN_PADDING);
+  } catch (error) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display = 'block';
+    document.getElementById('error-message').textContent =
+      error.message || 'An error occurred while loading the map';
+  }
 }

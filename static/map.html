@@ -51,7 +51,15 @@
   </script>
 
   <script src="search.min.js"></script>
-  <script src="map.min.js"></script>
-  <script src="media.js" defer="defer" onerror="showError('Error loading media.js');"></script>
+  <script>
+    window.addEventListener('load', doMapInit);
+
+    function showMediaLoadError() {
+      document.getElementById('error-message').textContent = 'Error loading media.js';
+      document.getElementById('error').style.display = 'block';
+      document.getElementById('loading').style.display = 'none';
+    }
+  </script>
+  <script src="media.js" defer="defer" onerror="showMediaLoadError();"></script>
 </body>
 </html>
