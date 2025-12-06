@@ -100,13 +100,21 @@ def process_photos(options):
                                 "index.html"),
                    "media/index.html")
     subprocess.run(["uglifyjs", "--compress", "--mangle",
+                    "--source-map", "url='map.min.js.map'",
+                    "-o", os.path.join(options.dest_directory, "map.min.js"),
+                    __get_assets_path(options, "static/map.js")], check=True)
+    subprocess.run(["uglifyjs", "--compress", "--mangle",
                     "--source-map", "url='search.min.js.map'",
                     "-o", os.path.join(options.dest_directory, "search.min.js"),
                     __get_assets_path(options, "static/search.js")], check=True)
     shutil.copyfile(__get_assets_path(options, "static/index.html"),
                     os.path.join(options.dest_directory, "index.html"))
+    shutil.copyfile(__get_assets_path(options, "static/map.css"),
+                    os.path.join(options.dest_directory, "map.css"))
     shutil.copyfile(__get_assets_path(options, "static/map.html"),
                     os.path.join(options.dest_directory, "map.html"))
+    shutil.copyfile(__get_assets_path(options, "static/map.js"),
+                    os.path.join(options.dest_directory, "map.js"))
     shutil.copyfile(__get_assets_path(options, "static/search.css"),
                     os.path.join(options.dest_directory, "search.css"))
     shutil.copyfile(__get_assets_path(options, "static/search.js"),
