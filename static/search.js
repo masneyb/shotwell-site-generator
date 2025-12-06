@@ -3173,6 +3173,11 @@ class MapUI {
             const img = document.createElement('img');
             img.src = props.reg_thumbnail;
             img.className = 'popup-image';
+
+            if (props.motion_photo) {
+              this.searchUI.setupMotionPhotoHover(img, props.reg_thumbnail, props.motion_photo.reg_gif);
+            }
+
             popupContainer.appendChild(img);
           }
 
