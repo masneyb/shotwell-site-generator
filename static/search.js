@@ -3163,19 +3163,18 @@ class MapUI {
 
           if (props.type === 'video') {
             const video = document.createElement('video');
-            video.src = props.smallest_video;
+            video.setAttribute('data-src', props.smallest_video);
             video.className = 'popup-image';
-            video.autoplay = true;
             video.loop = true;
             video.controls = true;
             popupContainer.appendChild(video);
           } else {
             const img = document.createElement('img');
-            img.src = props.reg_thumbnail;
+            img.setAttribute('data-src', props.reg_thumbnail);
             img.className = 'popup-image';
 
             if (props.motion_photo) {
-              this.searchUI.setupMotionPhotoHover(img, props.reg_thumbnail, props.motion_photo.reg_gif);
+              img.setAttribute('data-motion-photo', props.motion_photo.reg_gif);
             }
 
             popupContainer.appendChild(img);
@@ -3196,6 +3195,39 @@ class MapUI {
 
       markers.addLayer(geoJsonLayer);
       mapInstance.addLayer(markers);
+
+      // Lazy load media when popup opens
+      mapInstance.on('popupopen', (e) => {
+        const popup = e.popup;
+        const content = popup.getContent();
+
+        if (content && content.querySelector) {
+          const video = content.querySelector('video[data-src]');
+          const img = content.querySelector('img[data-src]');
+
+          if (video) {
+            video.src = video.getAttribute('data-src');
+            video.removeAttribute('data-src');
+            video.load();
+            video.play().catch(() => {
+              // Autoplay might be blocked, user can click play button
+            });
+          }
+
+          if (img) {
+            const imgSrc = img.getAttribute('data-src');
+            const motionPhotoSrc = img.getAttribute('data-motion-photo');
+
+            img.src = imgSrc;
+            img.removeAttribute('data-src');
+
+            if (motionPhotoSrc) {
+              this.searchUI.setupMotionPhotoHover(img, imgSrc, motionPhotoSrc);
+              img.removeAttribute('data-motion-photo');
+            }
+          }
+        }
+      });
 
       const lat = getFloatQueryParameter('lat', null);
       const lon = getFloatQueryParameter('lon', null);
