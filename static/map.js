@@ -114,6 +114,12 @@ function initMap() {
       }
 
       document.getElementById('loading').style.display = 'none';
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          map.closePopup();
+        }
+      });
     });
   } catch (error) {
     showError(error.message || 'An error occurred while loading the map');
