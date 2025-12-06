@@ -2543,8 +2543,11 @@ class SearchUI {
     }
 
     if (entity.exposure_time_pretty) {
-      stats.push(this.createTextMediaStat(entity.exposure_time_pretty));
-      extStats.push(this.createTextMediaStat(entity.exposure_time_pretty));
+      const dateOnly = entity.exposure_time.split('T')[0];
+      stats.push(this.createSearchLink(entity.exposure_time_pretty, 'Date', 'was taken on date',
+        dateOnly, extraOnClick, navigateToUrl));
+      extStats.push(this.createSearchLink(entity.exposure_time_pretty, 'Date', 'was taken on date',
+        dateOnly, extraOnClick, navigateToUrl));
     }
 
     if (entity.date_range) {
