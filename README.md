@@ -40,8 +40,6 @@ The search page also allows you setting up a browser in kiosk mode
 on a small single board computer like a Raspberry Pi and use it as a photo frame that pulls
 from your home server as described on the [photo frame page](photoframe/README.md).
 
-![Photo Frame Back](screenshots/photo-frame-back.jpg?raw=1)
-
 ![Photo Frame Front](screenshots/photo-frame-front.jpg?raw=1)
 
 
