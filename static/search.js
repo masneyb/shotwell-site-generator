@@ -3161,17 +3161,24 @@ class MapUI {
           const popupContainer = document.createElement('div');
           popupContainer.className = 'popup-container';
 
+          const loadingText = document.createElement('div');
+          loadingText.className = 'popup-loading';
+          loadingText.textContent = 'Loading...';
+          popupContainer.appendChild(loadingText);
+
           if (props.type === 'video') {
             const video = document.createElement('video');
             video.setAttribute('data-src', props.smallest_video);
             video.className = 'popup-image';
             video.loop = true;
             video.controls = true;
+            video.style.display = 'none';
             popupContainer.appendChild(video);
           } else {
             const img = document.createElement('img');
             img.setAttribute('data-src', props.reg_thumbnail);
             img.className = 'popup-image';
+            img.style.display = 'none';
 
             if (props.motion_photo) {
               img.setAttribute('data-motion-photo', props.motion_photo.reg_gif);
@@ -3202,12 +3209,19 @@ class MapUI {
         const content = popup.getContent();
 
         if (content && content.querySelector) {
+          const loadingText = content.querySelector('.popup-loading');
           const video = content.querySelector('video[data-src]');
           const img = content.querySelector('img[data-src]');
 
           if (video) {
             video.src = video.getAttribute('data-src');
             video.removeAttribute('data-src');
+            video.addEventListener('loadeddata', () => {
+              if (loadingText) {
+                loadingText.style.display = 'none';
+              }
+              video.style.display = 'block';
+            }, { once: true });
             video.load();
             video.play().catch(() => {
               // Autoplay might be blocked, user can click play button
@@ -3217,6 +3231,13 @@ class MapUI {
           if (img) {
             const imgSrc = img.getAttribute('data-src');
             const motionPhotoSrc = img.getAttribute('data-motion-photo');
+
+            img.onload = () => {
+              if (loadingText) {
+                loadingText.style.display = 'none';
+              }
+              img.style.display = 'block';
+            };
 
             img.src = imgSrc;
             img.removeAttribute('data-src');

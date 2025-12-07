@@ -19,6 +19,12 @@ html, body {
   text-align: center;
 }
 
+.popup-loading {
+  padding: 20px;
+  color: #666;
+  font-style: italic;
+}
+
 .popup-image {
   display: block;
   max-width: 100%;
