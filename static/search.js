@@ -3258,6 +3258,15 @@ class MapUI {
 
       document.getElementById('loading').style.display = 'none';
 
+      // Set up zoom extents button
+      const zoomExtentsBtn = document.getElementById('zoom-extents');
+      if (zoomExtentsBtn && markers.getLayers().length > 0) {
+        zoomExtentsBtn.style.display = 'block';
+        zoomExtentsBtn.onclick = () => {
+          mapInstance.fitBounds(markers.getBounds(), { padding: [20, 20] });
+        };
+      }
+
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
           mapInstance.closePopup();
