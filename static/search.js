@@ -2626,22 +2626,20 @@ class SearchUI {
     }
 
     if (entity.lat) {
-      extStats.push(
-        this.createSearchLink(
-          `GPS ${entity.lat},${entity.lon}`,
-          'GPS Coordinate',
-          'is within',
-          `${entity.lat},${entity.lon},0.1`,
-          extraOnClick,
-          navigateToUrl));
-
-      // Only show the Map link when not already on the map page
       if (!navigateToUrl) {
+        // Only show the Map link when not already on the map page
         const osmAnchor = document.createElement('a');
         osmAnchor.target = '_new';
-        osmAnchor.href = `map.html?lat=${entity.lat}&lon=${entity.lon}`;
-        osmAnchor.innerText = 'Map';
+
+        const searchParams = new URLSearchParams(window.location.search);
+        searchParams.set('lat', entity.lat);
+        searchParams.set('lon', entity.lon);
+
+        osmAnchor.href = `map.html?${searchParams.toString()}`;
+        osmAnchor.innerText = `${entity.lat},${entity.lon}`;
         extStats.push(this.createMediaStat(osmAnchor));
+      } else {
+        extStats.push(this.createTextMediaStat(`${entity.lat},${entity.lon}`));
       }
     }
 
