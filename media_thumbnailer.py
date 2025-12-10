@@ -41,10 +41,32 @@ class Thumbnailer:
         self.play_icon_small = play_icon_small
         self.play_icon_medium = play_icon_medium
         self.generated_artifacts = set([])
+        self.video_metadata_cache_file = os.path.join(dest_directory, "video-metadata-cache.json")
+        self.video_metadata_cache = self._load_video_metadata_cache()
 
     def _do_run_command(self, cmd, capture_output):
         logging.debug("Executing %s", " ".join(cmd))
         return subprocess.run(cmd, check=False, capture_output=capture_output)
+
+    def _load_video_metadata_cache(self):
+        if not os.path.exists(self.video_metadata_cache_file):
+            return {}
+
+        try:
+            with open(self.video_metadata_cache_file, 'r', encoding='UTF-8') as f:
+                cache = json.load(f)
+                return cache
+        except (json.JSONDecodeError, IOError) as e:
+            logging.warning("Failed to load video metadata cache: %s", e)
+            return {}
+
+    def _save_video_metadata_cache(self):
+        try:
+            with open(self.video_metadata_cache_file, 'w', encoding='UTF-8') as f:
+                json.dump(self.video_metadata_cache, f, indent=2)
+            self.generated_artifacts.add(self.video_metadata_cache_file)
+        except IOError as e:
+            logging.warning("Failed to save video metadata cache: %s", e)
 
     def create_composite_media_thumbnail(self, title, source_media, dest_filename):
         base_dir = os.path.dirname(dest_filename)
@@ -325,6 +347,18 @@ class Thumbnailer:
         return None
 
     def _get_video_resolution(self, filename):
+        # Check if we have cached metadata for this file
+        abs_filename = os.path.abspath(filename)
+        file_mtime = os.path.getmtime(filename)
+
+        cache_key = abs_filename
+        if cache_key in self.video_metadata_cache:
+            cached = self.video_metadata_cache[cache_key]
+            # Verify the cached entry is still valid by checking modification time
+            if cached.get('mtime') == file_mtime:
+                logging.debug("Using cached video metadata for %s", filename)
+                return (cached['width'], cached['height'], cached['rotate'])
+
         # Look up the video resolution
         cmd = [self.ffprobe_command, "-v", "error", "-select_streams", "v:0", "-show_entries",
                "stream=width,height", "-of", "csv=s=x:p=0", filename]
@@ -359,6 +393,14 @@ class Thumbnailer:
 
         if rotate in (90, -90):
             (width, height) = (height, width)
+
+        # Cache the result
+        self.video_metadata_cache[cache_key] = {
+            'width': width,
+            'height': height,
+            'rotate': rotate,
+            'mtime': file_mtime
+        }
 
         return (width, height, rotate)
 
@@ -659,3 +701,4 @@ class Thumbnailer:
                                       self.remove_stale_artifacts)
         common.remove_stale_artifacts(self.motion_photo_directory, self.generated_artifacts,
                                       self.remove_stale_artifacts)
+        self._save_video_metadata_cache()
