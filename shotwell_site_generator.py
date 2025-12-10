@@ -79,7 +79,6 @@ def process_photos(options):
                                      thumbnailer, set(options.tags_to_skip),
                                      options.add_path_to_overall_diskspace, icons)
 
-    logging.info("Fetching all media")
     all_media = fetcher.get_all_media()
 
     if options.extra_header_link and options.extra_header_link_descr:

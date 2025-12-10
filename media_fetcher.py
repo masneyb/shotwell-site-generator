@@ -54,6 +54,8 @@ class Database:
         self.__fetch_media(all_media)
         self.__fetch_events(all_media)
 
+        logging.info("Processing media and events")
+
         for event in all_media["events_by_id"].values():
             if event["date"] is None:
                 logging.warning("Ignoring event id %d with no media.", event["id"])
@@ -158,7 +160,7 @@ class Database:
         return ret
 
     def __fetch_media(self, all_media):
-        # Download regular photos...
+        logging.info("Fetching regular photos")
         qry = "SELECT event_id, id, filename, title, comment, filesize, exposure_time, " + \
               "time_created, rating, width, height, orientation, transformations " + \
               "FROM PhotoTable WHERE develop_embedded_id = -1 AND event_id != -1 AND " + \
@@ -168,7 +170,7 @@ class Database:
             self.__process_photo_row(all_media, row)
 
         if self.__does_table_exist("BackingPhotoTable"):
-            # Now download RAW photos...
+            logging.info("Fetching raw photos")
             qry = "SELECT PhotoTable.event_id, PhotoTable.id, " + \
                   "PhotoTable.filename as download_filename, " + \
                   "BackingPhotoTable.filepath AS filename, PhotoTable.title, " + \
@@ -185,6 +187,7 @@ class Database:
                 self.__process_photo_row(all_media, row)
 
         if self.__does_table_exist("VideoTable"):
+            logging.info("Fetching videos")
             qry = "SELECT event_id, id, filename, title, comment, filesize, exposure_time, " + \
                   "time_created, rating, clip_duration FROM VideoTable " + \
                   "WHERE event_id != -1 AND rating >= 0 " + \
@@ -340,6 +343,7 @@ class Database:
         return ret
 
     def __fetch_events(self, all_media):
+        logging.info("Fetching events")
         qry = "SELECT id, name, comment, primary_source_id FROM EventTable"
         cursor = self.conn.cursor()
         for row in cursor.execute(qry):
