@@ -1516,12 +1516,36 @@ class SearchUI {
     MEDIUM_LARGE: 'medium_large',
     SMALL_MEDIUM_LARGE: 'small_medium_large',
     LARGE_FULL_META: 'large_full_meta',
+    LARGE_TAG_META: 'large_tag_meta',
     LARGE_NO_META: 'large_no_meta',
     REGULAR: 'regular',
     REGULAR_FULL_META: 'regular_full_meta',
+    REGULAR_TAG_META: 'regular_tag_meta',
     REGULAR_NO_META: 'regular_no_meta',
     LARGE_REGULAR: 'large_regular',
   };
+
+  static FULL_METADATA_SIZES = [
+    SearchUI.ICON_SIZES.LARGE_FULL_META,
+    SearchUI.ICON_SIZES.REGULAR_FULL_META
+  ];
+
+  static TAG_METADATA_SIZES = [
+    SearchUI.ICON_SIZES.LARGE_TAG_META,
+    SearchUI.ICON_SIZES.REGULAR_TAG_META
+  ];
+
+  static BRIEF_METADATA_SIZES = [
+    SearchUI.ICON_SIZES.LARGE,
+    SearchUI.ICON_SIZES.REGULAR
+  ];
+
+  static LARGE_ICON_SIZES = [
+    SearchUI.ICON_SIZES.LARGE,
+    SearchUI.ICON_SIZES.LARGE_FULL_META,
+    SearchUI.ICON_SIZES.LARGE_TAG_META,
+    SearchUI.ICON_SIZES.LARGE_NO_META
+  ];
 
   static FILE_SIZE_UNITS = {
     GB: 1024 * 1024 * 1024,
@@ -1671,7 +1695,7 @@ class SearchUI {
 
   updateMediaDescriptionText(descrEle) {
     const entity = this.state.allMedia[this.state.allMediaFullScreenIndex];
-    descrEle.replaceChildren(this.createMediaStatsHtml(entity, true, false, (event) => {
+    descrEle.replaceChildren(this.createMediaStatsHtml(entity, true, (event) => {
       this.exitImageFullscreen();
       return this.stopEvent(event);
     }));
@@ -2540,9 +2564,12 @@ class SearchUI {
     return `${number.toLocaleString()} ${number === 1 ? singular : plural}`;
   }
 
-  createMediaStatsHtml(entity, onSlideshowPage, showBriefMetadata, extraOnClick, navigateToUrl = false) {
+  createMediaStatsHtml(entity, onSlideshowPage, extraOnClick, navigateToUrl = false, iconSize = null) {
     const stats = [];
     const extStats = [];
+
+    const showBriefMetadata = iconSize !== null && SearchUI.BRIEF_METADATA_SIZES.includes(iconSize);
+    const isTagMetadataMode = iconSize && SearchUI.TAG_METADATA_SIZES.includes(iconSize);
 
     const name = `title${entity.type}${entity.id}`;
     if (onSlideshowPage && entity.title) {
@@ -2556,25 +2583,25 @@ class SearchUI {
       extStats.push(this.getExpandableString(name, entity.comment, 'inline'));
     }
 
-    if (entity.num_photos > 0) {
+    if (!isTagMetadataMode && entity.num_photos > 0) {
       const val = this.getNumberString(entity.num_photos, 'photo', 'photos');
       stats.push(this.createTextMediaStat(val));
       extStats.push(this.createTextMediaStat(val));
     }
 
-    if (entity.num_videos > 0) {
+    if (!isTagMetadataMode && entity.num_videos > 0) {
       const val = this.getNumberString(entity.num_videos, 'video', 'videos');
       stats.push(this.createTextMediaStat(val));
       extStats.push(this.createTextMediaStat(val));
     }
 
-    if (entity.num_events > 1) {
+    if (!isTagMetadataMode && entity.num_events > 1) {
       const val = `${entity.num_events.toLocaleString()} events`;
       stats.push(this.createTextMediaStat(val));
       extStats.push(this.createTextMediaStat(val));
     }
 
-    if (entity.exposure_time_pretty) {
+    if (!isTagMetadataMode && entity.exposure_time_pretty) {
       const dateOnly = entity.exposure_time.split('T')[0];
       stats.push(this.createSearchLink(entity.exposure_time_pretty, 'Date', 'was taken on date',
         dateOnly, extraOnClick, navigateToUrl));
@@ -2582,47 +2609,47 @@ class SearchUI {
         dateOnly, extraOnClick, navigateToUrl));
     }
 
-    if (entity.date_range) {
+    if (!isTagMetadataMode && entity.date_range) {
       stats.push(this.createTextMediaStat(entity.date_range));
       extStats.push(this.createTextMediaStat(entity.date_range));
     }
 
-    if (entity.filesize) {
+    if (!isTagMetadataMode && entity.filesize) {
       const val = this.getPrettyFileSize(entity.filesize);
       stats.push(this.createTextMediaStat(val));
       extStats.push(this.createTextMediaStat(val));
     }
 
-    if (entity.clip_duration) {
+    if (!isTagMetadataMode && entity.clip_duration) {
       stats.push(this.createTextMediaStat(entity.clip_duration));
       extStats.push(this.createTextMediaStat(entity.clip_duration));
     }
 
-    if (entity.fps) {
+    if (!isTagMetadataMode && entity.fps) {
       extStats.push(this.createTextMediaStat(`${entity.fps} FPS`));
     }
 
-    if (entity.megapixels) {
+    if (!isTagMetadataMode && entity.megapixels) {
       const val = `${entity.megapixels}MP`;
       stats.push(this.createTextMediaStat(val));
       extStats.push(this.createTextMediaStat(val));
     }
 
-    if (entity.width) {
+    if (!isTagMetadataMode && entity.width) {
       extStats.push(this.createTextMediaStat(`${entity.width}x${entity.height}`));
     }
 
-    if (entity.camera) {
+    if (!isTagMetadataMode && entity.camera) {
       extStats.push(this.createSearchLink(entity.camera, 'Camera', 'equals', entity.camera, extraOnClick, navigateToUrl));
     }
 
-    if (entity.exif) {
+    if (!isTagMetadataMode && entity.exif) {
       for (const exif of entity.exif) {
         extStats.push(this.createTextMediaStat(exif));
       }
     }
 
-    if (entity.event_id && entity.type !== 'events') {
+    if (!isTagMetadataMode && entity.event_id && entity.type !== 'events') {
       extStats.push(
         this.createSearchLink(`Event: ${this.state.events[entity.event_id].title}`, 'Event ID', 'equals',
           entity.event_id, extraOnClick, navigateToUrl));
@@ -2644,20 +2671,20 @@ class SearchUI {
       }
     }
 
-    if (entity.metadata_text) {
+    if (!isTagMetadataMode && entity.metadata_text) {
       extStats.push(this.createOpenInNewTabLink('Metadata', entity.metadata_text));
     }
 
-    if (entity.rating) {
+    if (!isTagMetadataMode && entity.rating) {
       const stars = '★'.repeat(entity.rating) + '☆'.repeat(5 - entity.rating);
       extStats.push(this.createSearchLink(stars, 'Rating', 'is at least', entity.rating, extraOnClick, navigateToUrl));
     }
 
-    if (entity.motion_photo?.mp4) {
+    if (!isTagMetadataMode && entity.motion_photo?.mp4) {
       extStats.push(this.createOpenInNewTabLink('Motion Photo', entity.motion_photo.mp4));
     }
 
-    if (entity.lat) {
+    if (!isTagMetadataMode && entity.lat) {
       if (!navigateToUrl) {
         // Only show the Map link when not already on the map page
         const osmAnchor = document.createElement('a');
@@ -2738,8 +2765,7 @@ class SearchUI {
       } else if (iconSize === 'medium') {
         img.src = media.motion_photo.medium_gif;
         mediaEle.className = 'media_medium';
-      } else if (['large', 'large_full_meta', 'large_no_meta'].includes(iconSize) ||
-                 !('reg_gif' in media.motion_photo)) {
+      } else if (SearchUI.LARGE_ICON_SIZES.includes(iconSize) || !('reg_gif' in media.motion_photo)) {
         img.src = media.motion_photo.large_gif;
         if (this.showLargeIconWithNoDescr(iconSize, media.type)) {
           mediaEle.className = 'media_no_descr';
@@ -2764,8 +2790,7 @@ class SearchUI {
         this.setupMotionPhotoHover(img, media.thumbnail.medium, media.motion_photo.medium_gif);
       }
       mediaEle.className = 'media_medium';
-    } else if (['large', 'large_full_meta', 'large_no_meta'].includes(iconSize) ||
-               !media.thumbnail.reg) {
+    } else if (SearchUI.LARGE_ICON_SIZES.includes(iconSize) || !media.thumbnail.reg) {
       img.src = media.thumbnail.large;
       if (media.motion_photo) {
         this.setupMotionPhotoHover(img, media.thumbnail.large, media.motion_photo.large_gif);
@@ -2785,7 +2810,9 @@ class SearchUI {
       mediaEle.style.width = `${this.getMediaRegularWidth(media)}px`;
     }
 
-    if (['large', 'large_full_meta', 'regular', 'regular_full_meta'].includes(iconSize) &&
+    if ((SearchUI.FULL_METADATA_SIZES.includes(iconSize) ||
+         SearchUI.TAG_METADATA_SIZES.includes(iconSize) ||
+         SearchUI.BRIEF_METADATA_SIZES.includes(iconSize)) &&
         !this.showLargeIconWithNoDescr(iconSize, media.type)) {
       if (media.title) {
         const name = `title${media.type}${media.id}`;
@@ -2807,8 +2834,7 @@ class SearchUI {
         mediaEle.appendChild(comment);
       }
 
-      const showBriefMeta = ['large', 'regular'].includes(iconSize);
-      const metadata = this.createMediaStatsHtml(media, false, showBriefMeta, null);
+      const metadata = this.createMediaStatsHtml(media, false, null, false, iconSize);
       metadata.className = 'media_metadata';
       mediaEle.appendChild(metadata);
     }
@@ -3217,7 +3243,7 @@ class MapUI {
             popupContainer.appendChild(img);
           }
 
-          const metadata = this.searchUI.createMediaStatsHtml(props, false, false, null, true);
+          const metadata = this.searchUI.createMediaStatsHtml(props, false, null, true);
           metadata.className = 'popup-metadata';
           popupContainer.appendChild(metadata);
 
