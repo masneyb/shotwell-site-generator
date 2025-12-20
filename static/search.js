@@ -11,7 +11,7 @@
 class SearchState {
   currentPageNumber = 1;
   allMedia = null;
-  eventNames = null;
+  events = null;
   tags = null;
   mediaWriter = null;
   dateRange = null;
@@ -1051,7 +1051,7 @@ class SearchEngine {
 
         if (media.event_id) {
           // Write out the event name into the media element to simplify code for the text search.
-          media.event_name = this.state.eventNames[media.event_id];
+          media.event_name = this.state.events[media.event_id].title;
         }
 
         if (mediaType[0] !== 'media') {
@@ -1127,6 +1127,7 @@ class SearchEngine {
     // Search criteria can be chained in any order. Get the distinct types and order below.
     let eventTitle = null;
     let eventDefaultSort = null;
+    let eventId = null;
     let yearTitle = null;
     let yearDefaultSort = null;
     let tagTitle = null;
@@ -1148,7 +1149,8 @@ class SearchEngine {
         eventTitle = `${mainTitle}: All Events`;
         eventDefaultSort = 'takenZA';
       } else if (criteria.field.title === 'Event ID' && criteria.op.descr === 'equals') {
-        let eventName = this.state.eventNames[criteria.searchValues[0]];
+        eventId = criteria.searchValues[0];
+        let eventName = this.state.events[eventId]?.title;
         if (eventName === undefined) {
           eventName = 'Unknown event';
         }
@@ -1170,6 +1172,7 @@ class SearchEngine {
         defaultSort: eventDefaultSort,
         currentYearView: null,
         searchTag: null,
+        searchEventId: eventId,
       },
       {
         title: yearTitle,
@@ -1177,6 +1180,7 @@ class SearchEngine {
         defaultSort: yearDefaultSort,
         currentYearView: yearView,
         searchTag: null,
+        searchEventId: null,
       },
       {
         title: tagTitle,
@@ -1184,6 +1188,7 @@ class SearchEngine {
         defaultSort: 'takenZA',
         currentYearView: null,
         searchTag: tagView,
+        searchEventId: null,
       },
       {
         title: `${mainTitle}: Search`,
@@ -1191,6 +1196,7 @@ class SearchEngine {
         defaultSort: 'takenZA',
         currentYearView: null,
         searchTag: null,
+        searchEventId: null,
       }];
 
     return views.find((ent) => ent.title !== null);
@@ -1461,9 +1467,13 @@ class SearchEngine {
       // getAllMediaViaJsFile() is defined in the media.json file.
       // eslint-disable-next-line no-undef
       const resp = getAllMediaViaJsFile();
-      this.state.eventNames = {};
+      this.state.events = {};
       for (const evt of resp.events) {
-        this.state.eventNames[evt.id] = 'title' in evt ? evt.title : `Unnamed ${evt.id}`;
+        this.state.events[evt.id] = {
+          id: evt.id,
+          title: 'title' in evt ? evt.title : `Unnamed ${evt.id}`,
+          comment: evt.comment ?? ''
+        };
       }
 
       this.state.tags = {};
@@ -2228,6 +2238,27 @@ class SearchUI {
     }
   }
 
+  showEventComment(searchEventId) {
+    const eventCommentEle = document.querySelector('#event_comment');
+    eventCommentEle.replaceChildren();
+
+    if (searchEventId != null && this.state.events[searchEventId]) {
+      const comment = this.state.events[searchEventId].comment;
+      if (comment && comment.trim()) {
+        const name = `event_comment_${searchEventId}`;
+        const commentSpan = document.createElement('span');
+        commentSpan.className = 'event_comment';
+        commentSpan.appendChild(this.getExpandableString(name, comment, 'block'));
+        eventCommentEle.appendChild(commentSpan);
+        eventCommentEle.style.display = 'block';
+      } else {
+        eventCommentEle.style.display = 'none';
+      }
+    } else {
+      eventCommentEle.style.display = 'none';
+    }
+  }
+
   showParentTags(searchTag) {
     const tagParentsEle = document.querySelector('#tag_parents');
     tagParentsEle.replaceChildren();
@@ -2303,6 +2334,7 @@ class SearchUI {
     this.state.preferredPageIconSize = this.getPageIconSize();
     this.setIconWriter();
 
+    this.showEventComment(preferredView.searchEventId);
     this.showParentTags(preferredView.searchTag);
   }
 
@@ -2592,7 +2624,7 @@ class SearchUI {
 
     if (entity.event_id && entity.type !== 'events') {
       extStats.push(
-        this.createSearchLink(`Event: ${this.state.eventNames[entity.event_id]}`, 'Event ID', 'equals',
+        this.createSearchLink(`Event: ${this.state.events[entity.event_id].title}`, 'Event ID', 'equals',
           entity.event_id, extraOnClick, navigateToUrl));
     }
 

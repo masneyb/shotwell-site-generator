@@ -115,14 +115,20 @@ a {
   font-weight: bold;
 }
 
-.summary_stats, .date_range, .event_comment {
+.summary_stats, .date_range {
   display: block;
   font-size: 80%;
   padding-top: 1px;
   padding-bottom: 1px;
 }
 
-.header_links, #tag_parents {
+.event_comment, #tag_parents {
+  display: block;
+  font-size: 80%;
+  padding-bottom: 10px;
+}
+
+.header_links {
   display: block;
   font-size: 80%;
   padding-top: 2px;
