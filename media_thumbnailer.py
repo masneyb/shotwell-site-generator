@@ -603,10 +603,10 @@ class Thumbnailer:
     def _read_exif_txt(self, file_contents):
         ret = {}
         for line in file_contents:
-            parts = re.split(r'\s+', line.strip())
+            parts = re.split(r'\s+', line.strip(), maxsplit=3)
             if len(parts) == 3:
                 ret[parts[0]] = ''
-            elif len(parts) == 4:
+            elif len(parts) >= 4:
                 ret[parts[0]] = parts[3]
 
         return ret
@@ -621,7 +621,7 @@ class Thumbnailer:
             with open(exif_filename, "r", encoding="UTF-8") as infile:
                 return (short_path, self._read_exif_txt(infile))
 
-        cmd = [self.exiv2_command, "-pa", img_filename]
+        cmd = [self.exiv2_command, "-PEXvkyc", img_filename]
 
         logging.debug("Executing %s", cmd)
         ret = subprocess.run(cmd, check=False, capture_output=True)

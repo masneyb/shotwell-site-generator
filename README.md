@@ -66,15 +66,13 @@ for creating these books is described on [this page](photobook-helper/README.md)
 Ensure that you have the proper dependencies installed on your system:
 
     # Red Hat-based systems
-    sudo dnf install -y exiv2 exiv2-devel ffmpeg ImageMagick boost-python3 python3 \
-                        python3-dateutil python3-exiv2 python3-geojson python3-humanize \
-                        python3-pillow python3-pip uglify-js
+    sudo dnf install -y exiv2 ffmpeg ImageMagick python3 python3-dateutil python3-geojson \
+                        python3-humanize python3-pillow python3-pip uglify-js
 
     # Debian-based systems
-    sudo apt-get install -y exiv2 ffmpeg imagemagick libboost-python-dev libexiv2-dev python3 \
-                            python3-dateutil python3-geojson python3-humanize python3-pil \
-                            python3-pip python3-pkg-resources uglifyjs
-    pip3 install py3exiv2
+    sudo apt-get install -y exiv2 ffmpeg imagemagick python3 python3-dateutil python3-geojson \
+                            python3-humanize python3-pil python3-pip python3-pkg-resources \
+                            uglifyjs
 
 Backup your Shotwell database/library and then generate a static HTML site:
 

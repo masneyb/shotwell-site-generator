@@ -9,10 +9,10 @@ import datetime
 import logging
 import os
 import re
-import pyexiv2
 from PIL import Image
 from common import add_date_to_stats, cleanup_event_title, get_dir_hash
 from media_thumbnailer import ThumbnailType
+from exiv2_metadata import Exiv2MetadataParser
 
 class Icons:
     def __init__(self, panorama, panorama_small, panorama_medium,
@@ -41,10 +41,8 @@ class Database:
         self.add_paths_to_overall_diskspace = add_paths_to_overall_diskspace
         self.icons = icons
         self.camera_transformations = self.__get_camera_transformations()
+        self.metadata_parser = Exiv2MetadataParser(self.camera_transformations)
         Image.MAX_IMAGE_PIXELS = None
-
-        # Register the Pixel Motion Photo namespace. Make up a fake URL.
-        pyexiv2.xmp.register_namespace('MotionPhotoItem/', 'Item')
 
     def get_all_media(self):
         all_media = {"events_by_year": {}, "all_stats": self.__create_new_stats(),
@@ -245,26 +243,13 @@ class Database:
                                                                   row["width"], row["height"],
                                                                   rotate)
 
-        # Read the EXIV/XMP/IPTC metadata two separate times: the first using
-        # python (and in turn libexiv2) since it provides a nice easy way to
-        # retrieve various attributes (like shutter speed, GPS, etc).
-        #
-        # The second method is from the generated text file with all of the
-        # metadata in text form. Some of the Android phones that support motion
-        # photos write out the XMP metadata with a tag like
-        # Xmp.Container.Directory[2]/Container:Item/Item:Length. However, some
-        # photos get written out with the tag
-        # Xmp.Container_1_.Directory[2]/Container_1_:Item/Item_1_:Length
-        # instead. Unfortunately, libexiv2 has a bug somewhere where
-        # you can't read successive photos from the two different XMP
-        # namespaces after the library has been initialized. It'll either
-        # read one or the other, depending on which one was read first. Reading
-        # via a new process and reinitializing the library each time works
-        # around the issue. So use the generated text files to generate the
-        # animated GIFs and to extract the motion photos.
-        exiv2_metadata = pyexiv2.ImageMetadata(row["filename"])
-        exiv2_metadata.read()
-
+        # Read the EXIV/XMP/IPTC metadata from the generated text file with all of the metadata
+        # in text form. Some of the Android phones that support motion photos write out the XMP
+        # metadata with a tag like
+        # Xmp.Container.Directory[2]/Container:Item/Item:Length. However, some photos get written
+        # out with the tag Xmp.Container_1_.Directory[2]/Container_1_:Item/Item_1_:Length instead.
+        # The text files are used to extract photo metadata (GPS, aperture, shutter speed, etc.),
+        # generate the animated GIFs, and extract the motion photos.
         media_id = "thumb%016x" % (row["id"])
         (metadata_text, exif_metadata) = self.thumbnailer.write_exif_txt(row["filename"], media_id)
 
@@ -316,7 +301,7 @@ class Database:
                                  small_short_mp_path, medium_short_mp_path, metadata_text,
                                  width, height, None)
 
-        media.update(self.__parse_photo_exiv2_metadata(exiv2_metadata))
+        media.update(self.metadata_parser.parse_photo_metadata(exif_metadata))
         media["width"] = width
         media["height"] = height
 
@@ -687,22 +672,6 @@ class Database:
 
         return ret
 
-    def __parse_camera_make_model(self, make, model):
-        if not make:
-            camera = model
-        elif not model:
-            camera = make
-        elif model.startswith(make):
-            camera = model
-        else:
-            camera = "%s %s" % (make, model)
-
-        if not camera:
-            return None
-        if camera in self.camera_transformations:
-            return self.camera_transformations[camera]
-        return camera
-
     def __convert_lat_lon_strings(self, sign, num):
         return float(num) * -1 if sign == '-' else float(num)
 
@@ -730,7 +699,7 @@ class Database:
                 camera_model = tags[tag]
                 break
 
-        camera = self.__parse_camera_make_model(camera_make, camera_model)
+        camera = self.metadata_parser.parse_camera_make_model(camera_make, camera_model)
         if camera:
             ret["camera"] = camera
 
@@ -750,58 +719,6 @@ class Database:
 
         if "clip_duration" in tags:
             ret["clip_duration"] = tags["clip_duration"]
-
-        return ret
-
-    def __parse_photo_exiv2_metadata(self, exiv2_metadata):
-        ret = {}
-        ret["exif"] = []
-
-        if "Exif.GPSInfo.GPSLatitude" in exiv2_metadata and \
-           "Exif.GPSInfo.GPSLatitudeRef" in exiv2_metadata:
-            lat = self.__convert_ddmmss(exiv2_metadata["Exif.GPSInfo.GPSLatitude"].value,
-                                        exiv2_metadata["Exif.GPSInfo.GPSLatitudeRef"].value)
-            lon = self.__convert_ddmmss(exiv2_metadata["Exif.GPSInfo.GPSLongitude"].value,
-                                        exiv2_metadata["Exif.GPSInfo.GPSLongitudeRef"].value)
-            if lat != 0.0 and lon != 0.0:
-                ret["lat"] = lat
-                ret["lon"] = lon
-
-        aperture = exiv2_metadata.get_aperture()
-        if aperture:
-            ret["exif"].append("f/%.2f" % (aperture))
-
-        shutter = exiv2_metadata.get_shutter_speed()
-        if shutter:
-            if shutter.denominator == 1:
-                ret["exif"].append("%ds" % (shutter.numerator))
-            else:
-                ret["exif"].append("1/%ds" % (round(shutter.denominator / shutter.numerator)))
-
-        focal_length = exiv2_metadata.get_focal_length()
-        if focal_length:
-            ret["exif"].append("%smm" % (focal_length))
-
-        iso = exiv2_metadata.get_iso()
-        if iso:
-            ret["exif"].append("ISO%s" % (iso))
-
-        if "Exif.Image.Make" in exiv2_metadata:
-            camera_make = exiv2_metadata["Exif.Image.Make"].value.strip()
-            camera_model = exiv2_metadata["Exif.Image.Model"].value.strip()
-            camera = self.__parse_camera_make_model(camera_make, camera_model)
-            if camera:
-                ret["camera"] = camera
-
-        return ret
-
-    def __convert_ddmmss(self, ddmmss, direction):
-        if not ddmmss:
-            return None
-
-        ret = float(ddmmss[0]) + float(ddmmss[1] / 60) + float(ddmmss[2] / 3600)
-        if direction in ("W", "S"):
-            ret = ret * -1
 
         return ret
 
