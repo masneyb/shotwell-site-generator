@@ -1580,6 +1580,11 @@ class SearchUI {
     document.querySelector('#fullimage_background').style.display = displayState;
     document.querySelector('#fullimage_container').style.display = displayState;
 
+    const mapEle = document.querySelector('#map');
+    if (mapEle) {
+      mapEle.style.display = shown ? 'none' : 'block';
+    }
+
     if (shown) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -3098,17 +3103,7 @@ class SearchUI {
     };
   }
 
-  init() {
-    this.updateAnimationsText();
-
-    window.onload = () => {
-      this.doPerformSearch();
-      this.checkForPhotoFrameMode();
-    };
-
-    window.onpopstate = () => this.doPerformSearch();
-    window.onscroll = () => this.windowScrolled();
-    window.onresize = () => this.windowSizeChanged();
+  initFullscreenControls() {
     document.querySelector('#fullimage').onclick = () => this.toggleFullscreenDescription();
 
     const keyHandlers = {
@@ -3124,6 +3119,34 @@ class SearchUI {
 
     const fullImageEle = document.querySelector('#fullimage_container');
     this.setupSwipeDetection(fullImageEle);
+
+    this.setupClickHandler('#metadata', () => this.toggleFullscreenDescription());
+    document.querySelector('#slideshow_videos').onchange = (event) => {
+      const videoSize = event.target.value;
+      document.cookie = `video_size=${videoSize}`;
+
+      this.doShowFullscreenImage(false);
+      document.querySelector('#fullvideo').focus();
+      return this.stopEvent(event);
+    };
+    this.setupClickHandler('#play', () => this.playIconClicked());
+    this.setupClickHandler('#fullscreen', () => this.fullscreenClicked());
+    this.setupClickHandler('#close', () => this.exitImageFullscreen());
+  }
+
+  init() {
+    this.updateAnimationsText();
+
+    window.onload = () => {
+      this.doPerformSearch();
+      this.checkForPhotoFrameMode();
+    };
+
+    window.onpopstate = () => this.doPerformSearch();
+    window.onscroll = () => this.windowScrolled();
+    window.onresize = () => this.windowSizeChanged();
+
+    this.initFullscreenControls();
 
     this.setupClickHandler('#today_link', (event) => {
       const criteria = [
@@ -3144,18 +3167,6 @@ class SearchUI {
         [['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.TAGS], ['Tag Parent ID', 'is not set']]));
     this.setupClickHandler('#add_search_row', () => this.addSearchInputRow());
     this.setupClickHandler('#clear_search_criteria', () => this.clearSearchCriteria());
-    this.setupClickHandler('#metadata', () => this.toggleFullscreenDescription());
-    document.querySelector('#slideshow_videos').onchange = (event) => {
-      const videoSize = event.target.value;
-      document.cookie = `video_size=${videoSize}`;
-
-      this.doShowFullscreenImage(false);
-      document.querySelector('#fullvideo').focus();
-      return this.stopEvent(event);
-    };
-    this.setupClickHandler('#play', () => this.playIconClicked());
-    this.setupClickHandler('#fullscreen', () => this.fullscreenClicked());
-    this.setupClickHandler('#close', () => this.exitImageFullscreen());
     this.setupChangeHandler('#match', () => this.updateSearchCriteria());
     this.setupChangeHandler('#group', () => this.updateSearchCriteria());
     this.setupChangeHandler('#sort', () => this.updateSearchCriteria());
@@ -3172,7 +3183,7 @@ class MapUI {
 
   populateMapWithMedia(filteredMedia) {
     const features = [];
-    for (const media of filteredMedia) {
+    for (const [index, media] of filteredMedia.entries()) {
       if (!media.lat || !media.lon) {
         continue;
       }
@@ -3180,6 +3191,7 @@ class MapUI {
       media['reg_thumbnail'] = media.thumbnail?.reg;
       media['smallest_video'] = media.type === 'video' ?
         (media.variants?.['480p'] || media.link) : null;
+      media['mediaIndex'] = index;
 
       features.push({
         type: 'Feature',
@@ -3200,6 +3212,8 @@ class MapUI {
         document.title = preferredView.title + ' - Map';
       }
 
+      this.state.allMedia = filteredMedia;
+
       const features = this.populateMapWithMedia(filteredMedia);
 
       const geojson = {
@@ -3216,6 +3230,7 @@ class MapUI {
 
           const popupContainer = document.createElement('div');
           popupContainer.className = 'popup-container';
+          popupContainer.setAttribute('data-media-index', props.mediaIndex);
 
           const loadingText = document.createElement('div');
           loadingText.className = 'popup-loading';
@@ -3268,6 +3283,7 @@ class MapUI {
           const loadingText = content.querySelector('.popup-loading');
           const video = content.querySelector('video[data-src]');
           const img = content.querySelector('img[data-src]');
+          const mediaIndex = parseInt(content.getAttribute('data-media-index'));
 
           if (video) {
             video.src = video.getAttribute('data-src');
@@ -3302,6 +3318,11 @@ class MapUI {
               this.searchUI.setupMotionPhotoHover(img, imgSrc, motionPhotoSrc);
               img.removeAttribute('data-motion-photo');
             }
+
+            img.style.cursor = 'pointer';
+            img.onclick = () => {
+              this.searchUI.enterSlideshowMode(mediaIndex);
+            };
           }
         }
       });
@@ -3360,6 +3381,7 @@ function doMapInit() {
     const searchEngine = new SearchEngine(state);
     const csvWriter = new CsvWriter(state);
     const searchUI = new SearchUI(state, searchEngine, csvWriter);
+    searchUI.initFullscreenControls();
     const mapUI = new MapUI(state, searchEngine, searchUI);
 
     mapUI.initMap(map, markers, POPUP_WIDTH, AUTOPAN_PADDING);

@@ -16,10 +16,10 @@
 
   /* Z-index layers */
   --z-base: 1;
-  --z-background: 2;
-  --z-container: 3;
-  --z-description: 4;
-  --z-controls: 5;
+  --z-background: 10000;
+  --z-container: 10001;
+  --z-description: 10002;
+  --z-controls: 10003;
 
   /* Spacing */
   --padding-small: 2px;
