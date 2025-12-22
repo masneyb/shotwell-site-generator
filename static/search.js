@@ -213,10 +213,10 @@ class CsvWriter {
     if (typeof col === 'string' || col instanceof String) {
       if (col.includes('"') || col.includes(',') || col.includes('\n') || col.includes('\r')) {
         col = col.replace(/"/g, '""');
-        return `"${col}"`;
+        return `"${encodeURIComponent(col)}"`;
       }
 
-      return col;
+      return encodeURIComponent(col);
     }
 
     return String(col);
