@@ -126,3 +126,30 @@ html, body {
 #zoom-extents:active {
   background: #e0e0e0;
 }
+
+#my-location {
+  position: absolute;
+  top: 124px;
+  left: 10px;
+  z-index: 1000;
+  background: white;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  width: 34px;
+  height: 34px;
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+  display: none;
+  line-height: 30px;
+  text-align: center;
+  padding: 0;
+}
+
+#my-location:hover {
+  background: #f4f4f4;
+}
+
+#my-location:active {
+  background: #e0e0e0;
+}

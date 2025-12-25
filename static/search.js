@@ -3337,12 +3337,43 @@ class MapUI {
 
       document.getElementById('loading').style.display = 'none';
 
-      // Set up zoom extents button
       const zoomExtentsBtn = document.getElementById('zoom-extents');
       if (zoomExtentsBtn && markers.getLayers().length > 0) {
         zoomExtentsBtn.style.display = 'block';
         zoomExtentsBtn.onclick = () => {
           mapInstance.fitBounds(markers.getBounds(), { padding: [20, 20] });
+        };
+      }
+
+      const myLocationBtn = document.getElementById('my-location');
+      if (myLocationBtn) {
+        myLocationBtn.style.display = 'block';
+        myLocationBtn.onclick = () => {
+          if ('geolocation' in navigator) {
+            myLocationBtn.disabled = true;
+            myLocationBtn.style.opacity = '0.5';
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                mapInstance.setView([lat, lng], 16);
+                myLocationBtn.disabled = false;
+                myLocationBtn.style.opacity = '1';
+              },
+              (error) => {
+                alert('Error getting location: ' + error.message);
+                myLocationBtn.disabled = false;
+                myLocationBtn.style.opacity = '1';
+              },
+              {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+              }
+            );
+          } else {
+            alert('Geolocation is not supported by your browser');
+          }
         };
       }
 
