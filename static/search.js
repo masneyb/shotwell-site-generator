@@ -3377,6 +3377,66 @@ class MapUI {
         };
       }
 
+      const zoomLastBtn = document.getElementById('zoom-last');
+      if (zoomLastBtn) {
+        const MAX_HISTORY = 20;
+        let viewHistory = [];
+        let currentViewIndex = -1;
+        let isRestoringView = false;
+
+        mapInstance.on('zoomend moveend', () => {
+          if (!isRestoringView) {
+            const currentCenter = mapInstance.getCenter();
+            const currentZoom = mapInstance.getZoom();
+            const newView = {
+              center: currentCenter,
+              zoom: currentZoom
+            };
+
+            // Check if this is a different view from the current one in history
+            if (currentViewIndex >= 0 && currentViewIndex < viewHistory.length) {
+              const currentHistoryView = viewHistory[currentViewIndex];
+              if (currentHistoryView.zoom === currentZoom &&
+                  currentHistoryView.center.lat === currentCenter.lat &&
+                  currentHistoryView.center.lng === currentCenter.lng) {
+                return;
+              }
+            }
+
+            // If we're not at the end of history, truncate everything after current position
+            if (currentViewIndex < viewHistory.length - 1) {
+              viewHistory = viewHistory.slice(0, currentViewIndex + 1);
+            }
+
+            // Add the new view to history
+            viewHistory.push(newView);
+
+            // Cap the history at MAX_HISTORY entries
+            if (viewHistory.length > MAX_HISTORY) {
+              viewHistory.shift();
+            } else {
+              currentViewIndex++;
+            }
+
+            // Enable/disable button based on history
+            zoomLastBtn.disabled = currentViewIndex <= 0;
+          }
+          isRestoringView = false;
+        });
+
+        zoomLastBtn.style.display = 'block';
+        zoomLastBtn.disabled = true;
+        zoomLastBtn.onclick = () => {
+          if (currentViewIndex > 0) {
+            currentViewIndex--;
+            const previousView = viewHistory[currentViewIndex];
+            isRestoringView = true;
+            mapInstance.setView([previousView.center.lat, previousView.center.lng], previousView.zoom);
+            zoomLastBtn.disabled = currentViewIndex <= 0;
+          }
+        };
+      }
+
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
           mapInstance.closePopup();
