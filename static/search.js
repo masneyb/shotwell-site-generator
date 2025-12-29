@@ -3379,7 +3379,7 @@ class MapUI {
 
       const zoomLastBtn = document.getElementById('zoom-last');
       if (zoomLastBtn) {
-        const MAX_HISTORY = 20;
+        const MAX_HISTORY = 50;
         let viewHistory = [];
         let currentViewIndex = -1;
         let isRestoringView = false;
