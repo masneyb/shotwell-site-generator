@@ -1809,6 +1809,11 @@ class SearchUI {
     }
 
     const entity = this.state.allMedia[this.state.allMediaFullScreenIndex];
+    if (entity == undefined) {
+      this.exitImageFullscreen();
+      return;
+    }
+
     const videoUrl = this.getFullscreenVideoUrl(entity);
     if (videoUrl !== null) {
       const imageEle = document.querySelector('#fullimage');
