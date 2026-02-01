@@ -354,10 +354,8 @@ class Thumbnailer:
         cache_key = abs_filename
         if cache_key in self.video_metadata_cache:
             cached = self.video_metadata_cache[cache_key]
-            # Verify the cached entry is still valid by checking modification time
-            if cached.get('mtime') == file_mtime:
-                logging.debug("Using cached video metadata for %s", filename)
-                return (cached['width'], cached['height'], cached['rotate'])
+            logging.debug("Using cached video metadata for %s", filename)
+            return (cached['width'], cached['height'], cached['rotate'])
 
         # Look up the video resolution
         cmd = [self.ffprobe_command, "-v", "error", "-select_streams", "v:0", "-show_entries",
