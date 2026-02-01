@@ -2685,7 +2685,7 @@ class SearchUI {
       extStats.push(this.createOpenInNewTabLink('Metadata', entity.metadata_text));
     }
 
-    if (!isTagMetadataMode && entity.rating) {
+    if (entity.rating) {
       const stars = '★'.repeat(entity.rating) + '☆'.repeat(5 - entity.rating);
       extStats.push(this.createSearchLink(stars, 'Rating', 'is at least', entity.rating, extraOnClick, navigateToUrl));
     }
