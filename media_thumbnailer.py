@@ -268,9 +268,49 @@ class Thumbnailer:
             white = (float(parts[2]) / 255.0) * 100.0
             args += ["-level", "%.1f%%,%.1f%%" % (black, white)]
 
-        # FIXME - some other transformations that are used in my library need to be implemented:
-        # adjustments.shadows, adjustments.exposure, and adjustments.saturation. There are others
-        # that are supported by shotwell that are not referenced here.
+        # ImageMagick's -modulate takes brightness,saturation,hue
+        # We'll build up the modulate parameters if any adjustments are present
+        brightness = None
+        saturation = None
+
+        if "adjustments.exposure" in transformations:
+            # Shotwell range: -16.0 to 16.0
+            # Shotwell formula: adjusted = ((param + 16.0) / 32.0) + 0.5
+            # This maps -16 to 0.5 and +16 to 1.5 (multiplier on RGB values)
+            # ImageMagick -modulate brightness: 100 is normal, 50 is half, 150 is 1.5x
+            exposure_param = float(transformations["adjustments.exposure"])
+            exposure_multiplier = ((exposure_param + 16.0) / 32.0) + 0.5
+            brightness = exposure_multiplier * 100.0
+
+        if "adjustments.saturation" in transformations:
+            # Shotwell range: -16.0 to 16.0
+            # Shotwell formula: adjusted = (param / 16.0) + 1.0
+            # This maps -16 to 0 (grayscale) and +16 to 2.0 (double saturation)
+            # ImageMagick -modulate saturation: 100 is normal, 0 is grayscale, 200 is double
+            saturation_param = float(transformations["adjustments.saturation"])
+            saturation_multiplier = (saturation_param / 16.0) + 1.0
+            saturation = saturation_multiplier * 100.0
+
+        if brightness is not None or saturation is not None:
+            # Use default value of 100 for any parameter not being adjusted
+            brightness_val = brightness if brightness is not None else 100.0
+            saturation_val = saturation if saturation is not None else 100.0
+            if brightness_val != 100.0 or saturation_val != 100.0:
+                args += ["-modulate", "%.1f,%.1f" % (brightness_val, saturation_val)]
+
+        if "adjustments.shadows" in transformations:
+            # Shotwell range: 0.0 to 32.0
+            # Higher values brighten shadows more
+            # ImageMagick doesn't have a direct shadows adjustment, so we'll use
+            # a gamma adjustment on the darker tones. This is an approximation.
+            shadows_param = float(transformations["adjustments.shadows"])
+            if shadows_param > 0.0:
+                # Scale to a reasonable gamma adjustment
+                # Shotwell uses a hermite gamma approximation affecting tones up to 0.5
+                # We'll approximate with a sigmoidal contrast adjustment
+                intensity = shadows_param / 32.0  # normalize to 0-1
+                # Negative contrast with sigmoidal-contrast brightens shadows
+                args += ["-sigmoidal-contrast", "%.1f,30%%" % (3.0 - (intensity * 2.0))]
 
         return [self.imagemagick_command, original_image, *args, transformed_image]
 
