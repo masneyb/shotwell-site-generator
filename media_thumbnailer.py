@@ -519,12 +519,9 @@ class Thumbnailer:
             complex_filter += (f"select=not(mod(n-1\\,{select_frames}))[skip];"
                                f"[skip]setpts=N/({pts}*TB)[fps];[fps]")
 
-        # FIXME - some other transformations that are used in my library need to be implemented:
-        # adjustments.shadows, adjustments.exposure, and adjustments.saturation. There are others
-        # that are supported by shotwell that are not referenced here.
-        #
-        # straighten.angle and adjustments.expansion are implemented below in
-        # __get_imagemagick_transformation_cmd() and also need to be implemented here.
+        # FIXME - adjustments.shadows, adjustments.exposure, referenced, straighten.angle,
+        # adjustments.expansion are implemented below in __get_imagemagick_transformation_cmd()
+        # and also need to be implemented here.
 
         if transformations and "crop.left" in transformations:
             # For the motion photos, the video resolution is different than the image
