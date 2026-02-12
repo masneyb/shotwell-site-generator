@@ -12,9 +12,6 @@ user experience that allows browsing your library through various predefined vie
 over time, all events over time, year view, and nested tag view. Additionally you can search
 your library using 24 different fields.
 
-A second static site is generated where the use of Javascript is minimized for the long-term
-preservation of the library.
-
 You can serve these static files on a webserver such as nginx / apache2, and if desired, setup
 some kind of authentication (like HTTP basic auth over HTTPS). There's no complicated additional
 webserver plugins that need to be setup for a particular application runtime since you're just
@@ -85,5 +82,4 @@ Backup your Shotwell database/library and then generate a static HTML site:
                 --title "My Photos"
 
 Open the top level `index.html` file in your browser to view your library using the rich search
-experience. The file `static-site/media/index.html` contains the site that minimizes the use of
-Javascript.
+experience.

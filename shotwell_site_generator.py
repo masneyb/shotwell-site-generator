@@ -14,7 +14,6 @@ import subprocess
 import sys
 import media_fetcher
 import media_thumbnailer
-import media_writer_html
 import media_writer_structured
 
 def _app_icon_by_size(size, purpose):
@@ -130,24 +129,6 @@ def process_photos(options):
         if os.path.islink(media_dir):
             os.unlink(media_dir)
         os.symlink(options.input_media_path, media_dir)
-
-    photos = media_writer_html.Html(all_media,
-                                    os.path.join(options.dest_directory, "static-site"),
-                                    options.title, options.years_prior_are_approximate,
-                                    options.max_media_per_page, options.expand_all_elements,
-                                    extra_header, options.version_label,
-                                    options.remove_stale_artifacts)
-
-    logging.info("Generating all media HTML files")
-    all_media_year_index = photos.write_all_media_index_file()
-
-    logging.info("Generating year and event HTML files")
-    photos.write_year_and_event_html_files(all_media_year_index)
-
-    logging.info("Generating tag HTML files")
-    photos.write_tag_html_files()
-
-    photos.remove_stale_files()
 
     logging.info("Finished")
 
