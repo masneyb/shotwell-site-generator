@@ -421,6 +421,9 @@ input.button {
   --calendar-cell-level1: #9be9a8;
   --calendar-cell-level2: #40c463;
   --calendar-cell-level3: #216e39;
+  --calendar-bar-photo: #40c463;
+  --calendar-bar-video: #4a90d9;
+  --calendar-bar-bg: #d0d7de;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -429,6 +432,9 @@ input.button {
     --calendar-cell-level1: #0e4429;
     --calendar-cell-level2: #006d32;
     --calendar-cell-level3: #26a641;
+    --calendar-bar-photo: #26a641;
+    --calendar-bar-video: #1a6fa8;
+    --calendar-bar-bg: #30363d;
   }
 }
 
@@ -478,4 +484,33 @@ input.button {
   fill: currentColor;
   font-size: 9px;
   font-family: sans-serif;
+}
+
+.calendar_year_stats {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+.calendar_stats_row {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  text-align: left;
+}
+
+.calendar_stats_section {
+  flex: 1;
+  min-width: 0;
+}
+
+.calendar_stats_title {
+  font-weight: bold;
+  font-size: 80%;
+  margin-bottom: 3px;
+}
+
+.calendar_stats_storage {
+  font-size: 80%;
+  margin-top: 6px;
 }

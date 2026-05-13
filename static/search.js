@@ -3362,13 +3362,170 @@ class SearchUI {
     });
   }
 
+  buildCalendarStatsBars(title, entries, maxVal) {
+    const E = (tag, attrs = {}) => {
+      const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+      return el;
+    };
+    const sec = document.createElement('div');
+    sec.className = 'calendar_stats_section';
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'calendar_stats_title';
+    titleDiv.textContent = title;
+    sec.appendChild(titleDiv);
+    const svgH = entries.length * 16 + 4;
+    const svg = E('svg', { width: '100%', height: svgH, viewBox: `0 0 200 ${svgH}` });
+    entries.forEach(([label, count], i) => {
+      const y = i * 16 + 4;
+      const lbl = label.length > 13 ? label.slice(0, 12) + '…' : label;
+      const lt = E('text', { x: 72, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      lt.textContent = lbl;
+      svg.appendChild(lt);
+      svg.appendChild(E('rect', { x: 75, y, width: 100, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
+      const bw = maxVal > 0 ? Math.round((count / maxVal) * 100) : 0;
+      if (bw > 0) svg.appendChild(E('rect', { x: 75, y, width: bw, height: 10, fill: 'var(--calendar-bar-photo)', rx: 2 }));
+      const ct = E('text', { x: 180, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      ct.textContent = count.toLocaleString();
+      svg.appendChild(ct);
+      const hit = E('rect', { x: 0, y, width: 200, height: 14, fill: 'transparent' });
+      const tt = E('title'); tt.textContent = `${label}: ${count.toLocaleString()}`; hit.appendChild(tt);
+      svg.appendChild(hit);
+    });
+    sec.appendChild(svg);
+    return sec;
+  }
+
+  buildYearStats(year, yearMedia) {
+    const total = yearMedia.length;
+    if (total === 0) return document.createDocumentFragment();
+
+    let photos = 0, videos = 0, withGPS = 0, withTitle = 0, withComment = 0, totalSize = 0;
+    const cameras = {}, ratings = [0, 0, 0, 0, 0, 0];
+    const monthlyPhotos = new Array(12).fill(0);
+    const monthlyVideos = new Array(12).fill(0);
+
+    for (const m of yearMedia) {
+      const month = parseInt(m.exposure_time.split('-')[1], 10) - 1;
+      if (m.type === 'video') { videos++; monthlyVideos[month]++; }
+      else { photos++; monthlyPhotos[month]++; }
+      if (m.lat && m.lon) withGPS++;
+      if (m.title?.trim()) withTitle++;
+      if (m.comment?.trim()) withComment++;
+      totalSize += m.filesize || 0;
+      if (m.camera) cameras[m.camera] = (cameras[m.camera] || 0) + 1;
+      ratings[Math.min(5, Math.max(0, Math.round(m.rating ?? 0)))]++;
+    }
+
+    const E = (tag, attrs = {}) => {
+      const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+      return el;
+    };
+    const fmtBytes = b => b >= 1e12 ? `${(b / 1e12).toFixed(1)} TB`
+      : b >= 1e9 ? `${(b / 1e9).toFixed(1)} GB`
+      : b >= 1e6 ? `${(b / 1e6).toFixed(1)} MB`
+      : `${Math.round(b / 1e3)} KB`;
+
+    const statsDiv = document.createElement('div');
+    statsDiv.className = 'calendar_year_stats';
+
+    // Monthly bar chart
+    const W = 707, ML = 32, MR = 5, MT = 16, MB = 16, CH = 55;
+    const chartW = W - ML - MR;
+    const barSvg = E('svg', { width: W, height: MT + CH + MB, viewBox: `0 0 ${W} ${MT + CH + MB}`, role: 'img', 'aria-label': `Monthly breakdown for ${year}` });
+
+    const addLegend = (lx, color, text) => {
+      barSvg.appendChild(E('rect', { x: lx, y: 2, width: 8, height: 8, fill: color }));
+      const t = E('text', { x: lx + 11, y: 10, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      t.textContent = text; barSvg.appendChild(t);
+    };
+    addLegend(ML, 'var(--calendar-bar-photo)', `Photos (${photos.toLocaleString()})`);
+    if (videos > 0) addLegend(ML + 95, 'var(--calendar-bar-video)', `Videos (${videos.toLocaleString()})`);
+
+    const maxM = Math.max(1, ...monthlyPhotos.map((p, i) => p + monthlyVideos[i]));
+    for (const v of [maxM, Math.round(maxM / 2)]) {
+      const gy = MT + CH - (v / maxM) * CH;
+      barSvg.appendChild(E('line', { x1: ML, y1: gy, x2: ML + chartW, y2: gy, stroke: 'currentColor', 'stroke-opacity': '0.2', 'stroke-width': '1' }));
+      const gt = E('text', { x: ML - 3, y: gy + 3, 'text-anchor': 'end', 'font-size': '8', fill: 'currentColor', 'font-family': 'sans-serif' });
+      gt.textContent = v.toLocaleString(); barSvg.appendChild(gt);
+    }
+
+    const bw = Math.floor(chartW / 12) - 2;
+    const MNAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    for (let i = 0; i < 12; i++) {
+      const bx = ML + i * (chartW / 12) + (chartW / 12 - bw) / 2;
+      const ph = (monthlyPhotos[i] / maxM) * CH;
+      const vh = (monthlyVideos[i] / maxM) * CH;
+      if (monthlyVideos[i] > 0) {
+        const r = E('rect', { x: bx, y: MT + CH - ph - vh, width: bw, height: vh, fill: 'var(--calendar-bar-video)' });
+        const t = E('title'); t.textContent = `${MNAMES[i]}: ${monthlyVideos[i].toLocaleString()} video${monthlyVideos[i] !== 1 ? 's' : ''}`;
+        r.appendChild(t); barSvg.appendChild(r);
+      }
+      if (monthlyPhotos[i] > 0) {
+        const r = E('rect', { x: bx, y: MT + CH - ph, width: bw, height: ph, fill: 'var(--calendar-bar-photo)' });
+        const t = E('title'); t.textContent = `${MNAMES[i]}: ${monthlyPhotos[i].toLocaleString()} photo${monthlyPhotos[i] !== 1 ? 's' : ''}`;
+        r.appendChild(t); barSvg.appendChild(r);
+      }
+      const lbl = E('text', { x: bx + bw / 2, y: MT + CH + 12, 'text-anchor': 'middle', 'font-size': '8', fill: 'currentColor', 'font-family': 'sans-serif' });
+      lbl.textContent = MNAMES[i]; barSvg.appendChild(lbl);
+    }
+    statsDiv.appendChild(barSvg);
+
+    // Bottom row: cameras | ratings | coverage + storage
+    const row = document.createElement('div');
+    row.className = 'calendar_stats_row';
+
+    const topCams = Object.entries(cameras).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    if (topCams.length > 0) row.appendChild(this.buildCalendarStatsBars('Cameras', topCams, topCams[0][1]));
+
+    if (ratings.slice(1).some(c => c > 0)) {
+      const ratingRows = ratings.map((c, r) => [r === 0 ? '☆' : '★'.repeat(r), c]).filter(([, c]) => c > 0);
+      row.appendChild(this.buildCalendarStatsBars('Ratings', ratingRows, Math.max(...ratingRows.map(([, c]) => c))));
+    }
+
+    const coverSec = document.createElement('div');
+    coverSec.className = 'calendar_stats_section';
+    const coverTitle = document.createElement('div');
+    coverTitle.className = 'calendar_stats_title';
+    coverTitle.textContent = 'Coverage';
+    coverSec.appendChild(coverTitle);
+    const coverItems = [['GPS', withGPS], ['Titles', withTitle], ['Comments', withComment]];
+    const coverSvgH = coverItems.length * 16 + 4;
+    const coverSvg = E('svg', { width: '100%', height: coverSvgH, viewBox: `0 0 200 ${coverSvgH}` });
+    coverItems.forEach(([label, count], i) => {
+      const y = i * 16 + 4;
+      const pct = total > 0 ? count / total : 0;
+      const lt = E('text', { x: 58, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      lt.textContent = label; coverSvg.appendChild(lt);
+      coverSvg.appendChild(E('rect', { x: 61, y, width: 110, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
+      if (count > 0) coverSvg.appendChild(E('rect', { x: 61, y, width: Math.round(pct * 110), height: 10, fill: 'var(--calendar-bar-photo)', rx: 2 }));
+      const pt = E('text', { x: 175, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      pt.textContent = `${Math.round(pct * 100)}%`; coverSvg.appendChild(pt);
+    });
+    coverSec.appendChild(coverSvg);
+    if (totalSize > 0) {
+      const storageDiv = document.createElement('div');
+      storageDiv.className = 'calendar_stats_storage';
+      storageDiv.textContent = `Storage: ${fmtBytes(totalSize)}`;
+      coverSec.appendChild(storageDiv);
+    }
+    row.appendChild(coverSec);
+    statsDiv.appendChild(row);
+    return statsDiv;
+  }
+
   doShowCalendar() {
     const dateCounts = {};
+    const mediaByYear = {};
     for (const media of this.state.allMedia) {
       if (!SearchEngine.MEDIA_TYPES.includes(media.type)) continue;
       if (!media.exposure_time) continue;
       const dateKey = media.exposure_time.split('T')[0];
       dateCounts[dateKey] = (dateCounts[dateKey] || 0) + 1;
+      const yr = parseInt(dateKey.split('-')[0], 10);
+      if (!mediaByYear[yr]) mediaByYear[yr] = [];
+      mediaByYear[yr].push(media);
     }
 
     const dates = Object.keys(dateCounts).sort();
@@ -3383,7 +3540,9 @@ class SearchUI {
     const container = document.createElement('div');
     container.className = 'calendar_heatmap';
     for (let y = maxYear; y >= minYear; y--) {
-      container.appendChild(this.buildYearHeatmap(y, dateCounts));
+      const yearDiv = this.buildYearHeatmap(y, dateCounts);
+      yearDiv.appendChild(this.buildYearStats(y, mediaByYear[y] || []));
+      container.appendChild(yearDiv);
     }
 
     let dragStartDate = null;
