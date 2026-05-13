@@ -3525,7 +3525,7 @@ class SearchUI {
     }
     statsDiv.appendChild(barSvg);
 
-    // Bottom row: cameras | ratings | coverage + storage
+    // Bottom row: cameras | ratings + storage | coverage
     const row = document.createElement('div');
     row.className = 'calendar_stats_row';
 
@@ -3537,6 +3537,7 @@ class SearchUI {
       row.appendChild(this.buildCalendarStatsBars('Cameras', topCams, topCams[0][1], camHandlers));
     }
 
+    let ratingSec = null;
     if (ratings.slice(1).some(c => c > 0)) {
       const ratingRows = [], ratingHandlers = [];
       ratings.forEach((c, r) => {
@@ -3546,7 +3547,8 @@ class SearchUI {
           [['Year', 'equals', String(year)], ['Rating', 'equals', String(r)], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
           'all', 'large_regular'));
       });
-      row.appendChild(this.buildCalendarStatsBars('Ratings', ratingRows, Math.max(...ratingRows.map(([, c]) => c)), ratingHandlers));
+      ratingSec = this.buildCalendarStatsBars('Ratings', ratingRows, Math.max(...ratingRows.map(([, c]) => c)), ratingHandlers);
+      row.appendChild(ratingSec);
     }
 
     const coverSec = document.createElement('div');
@@ -3583,8 +3585,9 @@ class SearchUI {
     if (totalSize > 0) {
       const storageDiv = document.createElement('div');
       storageDiv.className = 'calendar_stats_storage';
+      storageDiv.style.paddingLeft = `${(100 / 225 * 100).toFixed(2)}%`;
       storageDiv.textContent = `Storage: ${fmtBytes(totalSize)}`;
-      coverSec.appendChild(storageDiv);
+      (ratingSec ?? coverSec).appendChild(storageDiv);
     }
     row.appendChild(coverSec);
     statsDiv.appendChild(row);
