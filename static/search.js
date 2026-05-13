@@ -3413,21 +3413,21 @@ class SearchUI {
     titleDiv.textContent = title;
     sec.appendChild(titleDiv);
     const svgH = entries.length * 16 + 4;
-    const svg = E('svg', { width: '100%', height: svgH, viewBox: `0 0 200 ${svgH}` });
+    const svg = E('svg', { width: '100%', height: svgH, viewBox: `0 0 225 ${svgH}` });
     entries.forEach(([label, count], i) => {
       const y = i * 16 + 4;
-      const lbl = label.length > 13 ? label.slice(0, 12) + '…' : label;
-      const lt = E('text', { x: 72, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      const lbl = label.length > 18 ? label.slice(0, 17) + '…' : label;
+      const lt = E('text', { x: 97, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
       lt.textContent = lbl;
       svg.appendChild(lt);
-      svg.appendChild(E('rect', { x: 75, y, width: 100, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
+      svg.appendChild(E('rect', { x: 100, y, width: 100, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
       const bw = maxVal > 0 ? Math.round((count / maxVal) * 100) : 0;
-      if (bw > 0) svg.appendChild(E('rect', { x: 75, y, width: bw, height: 10, fill: 'var(--calendar-bar-photo)', rx: 2 }));
-      const ct = E('text', { x: 180, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      if (bw > 0) svg.appendChild(E('rect', { x: 100, y, width: bw, height: 10, fill: 'var(--calendar-bar-photo)', rx: 2 }));
+      const ct = E('text', { x: 205, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
       ct.textContent = count.toLocaleString();
       svg.appendChild(ct);
       const handler = clickHandlers ? clickHandlers[i] : null;
-      const hit = E('rect', { x: 0, y, width: 200, height: 14, fill: 'transparent' });
+      const hit = E('rect', { x: 0, y, width: 225, height: 14, fill: 'transparent' });
       if (handler) {
         hit.style.cursor = 'pointer';
         hit.addEventListener('click', handler);
@@ -3560,18 +3560,18 @@ class SearchUI {
       ['Comments', withComment, [['Comment', 'is set']]],
     ];
     const coverSvgH = coverItems.length * 16 + 4;
-    const coverSvg = E('svg', { width: '100%', height: coverSvgH, viewBox: `0 0 200 ${coverSvgH}` });
+    const coverSvg = E('svg', { width: '100%', height: coverSvgH, viewBox: `0 0 225 ${coverSvgH}` });
     coverItems.forEach(([label, count, extraCriteria], i) => {
       const y = i * 16 + 4;
       const pct = total > 0 ? count / total : 0;
-      const lt = E('text', { x: 58, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      const lt = E('text', { x: 83, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
       lt.textContent = label; coverSvg.appendChild(lt);
-      coverSvg.appendChild(E('rect', { x: 61, y, width: 110, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
-      if (count > 0) coverSvg.appendChild(E('rect', { x: 61, y, width: Math.round(pct * 110), height: 10, fill: 'var(--calendar-bar-photo)', rx: 2 }));
-      const pt = E('text', { x: 175, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      coverSvg.appendChild(E('rect', { x: 86, y, width: 110, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
+      if (count > 0) coverSvg.appendChild(E('rect', { x: 86, y, width: Math.round(pct * 110), height: 10, fill: 'var(--calendar-bar-photo)', rx: 2 }));
+      const pt = E('text', { x: 200, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
       pt.textContent = `${Math.round(pct * 100)}%`; coverSvg.appendChild(pt);
       if (count > 0) {
-        const hit = E('rect', { x: 0, y, width: 200, height: 14, fill: 'transparent', style: 'cursor: pointer' });
+        const hit = E('rect', { x: 0, y, width: 225, height: 14, fill: 'transparent', style: 'cursor: pointer' });
         const criteria = [['Year', 'equals', String(year)], ...extraCriteria, ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]];
         hit.addEventListener('click', () => this.searchPageLinkGenerator(null, criteria, 'all', 'large_regular'));
         coverSvg.appendChild(hit);
