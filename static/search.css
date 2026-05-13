@@ -20,6 +20,7 @@
   --z-container: 10001;
   --z-description: 10002;
   --z-controls: 10003;
+  --z-overlay: 10004;
 
   /* Spacing */
   --padding-small: 2px;
@@ -316,6 +317,61 @@ a {
 
 #play:hover {
   cursor: pointer;
+}
+
+#keyboard_shortcuts {
+  padding-left: 3px;
+  padding-right: 3px;
+  text-decoration: none;
+  color: var(--color-text-light);
+  font-size: 1.1em;
+  font-weight: bold;
+  vertical-align: middle;
+}
+
+#keyboard_shortcuts:hover {
+  cursor: pointer;
+}
+
+#keyboard_shortcuts_overlay {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  border-radius: 10px;
+  padding: 16px 24px;
+  z-index: var(--z-overlay);
+  min-width: 320px;
+}
+
+#keyboard_shortcuts_overlay h3 {
+  margin: 0 0 12px 0;
+  text-align: center;
+}
+
+#keyboard_shortcuts_overlay table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+#keyboard_shortcuts_overlay td {
+  padding: 4px 8px;
+}
+
+#keyboard_shortcuts_overlay td:first-child {
+  text-align: right;
+  white-space: nowrap;
+}
+
+#keyboard_shortcuts_overlay kbd {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-family: monospace;
+  font-size: 0.9em;
 }
 
 #filmstrip {

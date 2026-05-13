@@ -1863,6 +1863,26 @@ class SearchUI {
     }
   }
 
+  showFirstImageFullscreen() {
+    if (this.isImageFullscreen()) {
+      this.state.allMediaFullScreenIndex = 0;
+      this.doShowFullscreenImage(true);
+    }
+  }
+
+  showLastImageFullscreen() {
+    if (this.isImageFullscreen()) {
+      this.state.allMediaFullScreenIndex = this.state.allMedia.length - 1;
+      this.doShowFullscreenImage(true);
+    }
+  }
+
+  toggleKeyboardShortcutsOverlay() {
+    if (!this.isImageFullscreen()) return;
+    const overlay = document.querySelector('#keyboard_shortcuts_overlay');
+    overlay.style.display = overlay.style.display === 'block' ? 'none' : 'block';
+  }
+
   buildFilmstrip() {
     const filmstripEle = document.querySelector('#filmstrip');
     if (!filmstripEle) return;
@@ -3189,12 +3209,30 @@ class SearchUI {
     const keyHandlers = {
       'ArrowLeft': () => this.showPreviousImageFullscreen(),
       'ArrowRight': () => this.showNextImageFullscreen(true),
-      'Escape': (event) => this.exitImageFullscreen(event),
-      ' ': () => this.toggleFullscreenDescription(),
+      'Escape': (event) => {
+        const overlay = document.querySelector('#keyboard_shortcuts_overlay');
+        if (overlay.style.display === 'block') {
+          overlay.style.display = 'none';
+        } else {
+          this.exitImageFullscreen(event);
+        }
+      },
+      ' ': () => this.toggleSlideshowTimers(),
+      'i': () => this.toggleFullscreenDescription(),
+      'Enter': () => this.toggleFullscreenDescription(),
+      'f': () => this.fullscreenClicked(),
+      'Home': () => this.showFirstImageFullscreen(),
+      'End': () => this.showLastImageFullscreen(),
+      '?': () => this.toggleKeyboardShortcutsOverlay(),
     };
 
     document.onkeydown = (event) => {
-      keyHandlers[event.key]?.(event);
+      if (!this.isImageFullscreen()) return;
+      const handler = keyHandlers[event.key];
+      if (handler) {
+        event.preventDefault();
+        handler(event);
+      }
     };
 
     const fullImageEle = document.querySelector('#fullimage_container');
@@ -3211,6 +3249,7 @@ class SearchUI {
     };
     this.setupClickHandler('#play', () => this.playIconClicked());
     this.setupClickHandler('#fullscreen', () => this.fullscreenClicked());
+    this.setupClickHandler('#keyboard_shortcuts', () => this.toggleKeyboardShortcutsOverlay());
     this.setupClickHandler('#close', () => this.exitImageFullscreen());
   }
 
