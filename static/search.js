@@ -3541,7 +3541,7 @@ class SearchUI {
       const ratingRows = [], ratingHandlers = [];
       ratings.forEach((c, r) => {
         if (c === 0) return;
-        ratingRows.push([r === 0 ? '☆' : '★'.repeat(r), c]);
+        ratingRows.push(['★'.repeat(r) + '☆'.repeat(5 - r), c]);
         ratingHandlers.push(() => this.searchPageLinkGenerator(null,
           [['Year', 'equals', String(year)], ['Rating', 'equals', String(r)], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
           'all', 'large_regular'));
