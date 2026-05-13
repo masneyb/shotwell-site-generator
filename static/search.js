@@ -601,7 +601,11 @@ class SearchEngine {
       {
         descr: 'is between',
         matches: (field, op, values, media) => {
-          const match = (input, value) => input != null && input >= value[0] && input <= value[1];
+          const match = (input, value) => {
+            if (input == null) return false;
+            const date = input.split('T')[0];
+            return date >= value[0] && date <= value[1];
+          };
           return this.performGenericOp(field, media, values, match);
         },
         placeholder: ['yyyy-MM-dd', 'yyyy-MM-dd'],
