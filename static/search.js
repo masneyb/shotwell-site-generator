@@ -3362,7 +3362,7 @@ class SearchUI {
     });
   }
 
-  buildCalendarStatsBars(title, entries, maxVal) {
+  buildCalendarStatsBars(title, entries, maxVal, clickHandlers = null) {
     const E = (tag, attrs = {}) => {
       const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
       for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
@@ -3388,7 +3388,12 @@ class SearchUI {
       const ct = E('text', { x: 180, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
       ct.textContent = count.toLocaleString();
       svg.appendChild(ct);
+      const handler = clickHandlers ? clickHandlers[i] : null;
       const hit = E('rect', { x: 0, y, width: 200, height: 14, fill: 'transparent' });
+      if (handler) {
+        hit.style.cursor = 'pointer';
+        hit.addEventListener('click', handler);
+      }
       const tt = E('title'); tt.textContent = `${label}: ${count.toLocaleString()}`; hit.appendChild(tt);
       svg.appendChild(hit);
     });
@@ -3469,6 +3474,15 @@ class SearchUI {
       }
       const lbl = E('text', { x: bx + bw / 2, y: MT + CH + 12, 'text-anchor': 'middle', 'font-size': '8', fill: 'currentColor', 'font-family': 'sans-serif' });
       lbl.textContent = MNAMES[i]; barSvg.appendChild(lbl);
+      if ((monthlyPhotos[i] + monthlyVideos[i]) > 0) {
+        const month2 = String(i + 1).padStart(2, '0');
+        const hit = E('rect', { x: ML + i * (chartW / 12), y: MT, width: chartW / 12, height: CH + MB, fill: 'transparent', style: 'cursor: pointer' });
+        const tt = E('title'); tt.textContent = `${MNAMES[i]}: ${(monthlyPhotos[i] + monthlyVideos[i]).toLocaleString()} item${(monthlyPhotos[i] + monthlyVideos[i]) !== 1 ? 's' : ''}`; hit.appendChild(tt);
+        hit.addEventListener('click', () => this.searchPageLinkGenerator(null,
+          [['Year', 'equals', String(year)], ['Date', 'was taken on month', month2], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+          'all', 'large_regular'));
+        barSvg.appendChild(hit);
+      }
     }
     statsDiv.appendChild(barSvg);
 
@@ -3477,11 +3491,23 @@ class SearchUI {
     row.className = 'calendar_stats_row';
 
     const topCams = Object.entries(cameras).sort((a, b) => b[1] - a[1]).slice(0, 5);
-    if (topCams.length > 0) row.appendChild(this.buildCalendarStatsBars('Cameras', topCams, topCams[0][1]));
+    if (topCams.length > 0) {
+      const camHandlers = topCams.map(([cam]) => () => this.searchPageLinkGenerator(null,
+        [['Year', 'equals', String(year)], ['Camera', 'equals', cam], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+        'all', 'large_regular'));
+      row.appendChild(this.buildCalendarStatsBars('Cameras', topCams, topCams[0][1], camHandlers));
+    }
 
     if (ratings.slice(1).some(c => c > 0)) {
-      const ratingRows = ratings.map((c, r) => [r === 0 ? '☆' : '★'.repeat(r), c]).filter(([, c]) => c > 0);
-      row.appendChild(this.buildCalendarStatsBars('Ratings', ratingRows, Math.max(...ratingRows.map(([, c]) => c))));
+      const ratingRows = [], ratingHandlers = [];
+      ratings.forEach((c, r) => {
+        if (c === 0) return;
+        ratingRows.push([r === 0 ? '☆' : '★'.repeat(r), c]);
+        ratingHandlers.push(() => this.searchPageLinkGenerator(null,
+          [['Year', 'equals', String(year)], ['Rating', 'equals', String(r)], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+          'all', 'large_regular'));
+      });
+      row.appendChild(this.buildCalendarStatsBars('Ratings', ratingRows, Math.max(...ratingRows.map(([, c]) => c)), ratingHandlers));
     }
 
     const coverSec = document.createElement('div');
@@ -3490,10 +3516,14 @@ class SearchUI {
     coverTitle.className = 'calendar_stats_title';
     coverTitle.textContent = 'Coverage';
     coverSec.appendChild(coverTitle);
-    const coverItems = [['GPS', withGPS], ['Titles', withTitle], ['Comments', withComment]];
+    const coverItems = [
+      ['GPS', withGPS, [['GPS Coordinate', 'is set']]],
+      ['Titles', withTitle, [['Title', 'is set']]],
+      ['Comments', withComment, [['Comment', 'is set']]],
+    ];
     const coverSvgH = coverItems.length * 16 + 4;
     const coverSvg = E('svg', { width: '100%', height: coverSvgH, viewBox: `0 0 200 ${coverSvgH}` });
-    coverItems.forEach(([label, count], i) => {
+    coverItems.forEach(([label, count, extraCriteria], i) => {
       const y = i * 16 + 4;
       const pct = total > 0 ? count / total : 0;
       const lt = E('text', { x: 58, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
@@ -3502,6 +3532,12 @@ class SearchUI {
       if (count > 0) coverSvg.appendChild(E('rect', { x: 61, y, width: Math.round(pct * 110), height: 10, fill: 'var(--calendar-bar-photo)', rx: 2 }));
       const pt = E('text', { x: 175, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
       pt.textContent = `${Math.round(pct * 100)}%`; coverSvg.appendChild(pt);
+      if (count > 0) {
+        const hit = E('rect', { x: 0, y, width: 200, height: 14, fill: 'transparent', style: 'cursor: pointer' });
+        const criteria = [['Year', 'equals', String(year)], ...extraCriteria, ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]];
+        hit.addEventListener('click', () => this.searchPageLinkGenerator(null, criteria, 'all', 'large_regular'));
+        coverSvg.appendChild(hit);
+      }
     });
     coverSec.appendChild(coverSvg);
     if (totalSize > 0) {
