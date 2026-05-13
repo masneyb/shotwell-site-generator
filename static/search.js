@@ -2369,6 +2369,15 @@ class SearchUI {
       }
     }
 
+    const calendarLinkEle = document.querySelector('#calendar_link');
+    if (calendarLinkEle) {
+      if (getQueryParameter('view', null) === 'calendar') {
+        calendarLinkEle.classList.add('main_view_selected');
+      } else {
+        calendarLinkEle.classList.remove('main_view_selected');
+      }
+    }
+
     this.state.preferredPageIconSize = this.getPageIconSize();
     this.setIconWriter();
 
@@ -3019,7 +3028,11 @@ class SearchUI {
       // In case an event was in flight before the JSON was processed
       this.clearPreviousMedia(allMediaEle);
 
-      this.doShowMedia(1);
+      if (getQueryParameter('view', null) === 'calendar') {
+        this.doShowCalendar();
+      } else {
+        this.doShowMedia(1);
+      }
 
       for (const ele of document.querySelectorAll('.header_links')) {
         ele.style.display = 'block';
@@ -3081,6 +3094,7 @@ class SearchUI {
   }
 
   windowScrolled() {
+    if (getQueryParameter('view', null) === 'calendar') return;
     if (this.loadMoreMedia()) {
       this.doShowMedia(this.state.currentPageNumber + 1);
     }
@@ -3174,12 +3188,209 @@ class SearchUI {
     this.setupClickHandler('#tag_link', (event) =>
       this.searchPageLinkGenerator(event,
         [['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.TAGS], ['Tag Parent ID', 'is not set']]));
+    this.setupClickHandler('#calendar_link', () => {
+      window.history.pushState({}, '', 'index.html?view=calendar#');
+      this.doPerformSearch();
+    });
     this.setupClickHandler('#add_search_row', () => this.addSearchInputRow());
     this.setupClickHandler('#clear_search_criteria', () => this.clearSearchCriteria());
     this.setupChangeHandler('#match', () => this.updateSearchCriteria());
     this.setupChangeHandler('#group', () => this.updateSearchCriteria());
     this.setupChangeHandler('#sort', () => this.updateSearchCriteria());
     this.setupChangeHandler('#icons', () => this.updateSearchCriteria());
+  }
+
+  getHeatmapLevel(count) {
+    if (count === 0) return 0;
+    if (count <= 5) return 1;
+    if (count <= 20) return 2;
+    return 3;
+  }
+
+  buildYearHeatmap(year, dateCounts) {
+    const CELL = 11;
+    const STEP = 13;
+    const DOW_W = 18;
+    const MONTH_H = 16;
+    const WEEKS = 53;
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    const yearDiv = document.createElement('div');
+    yearDiv.className = 'calendar_year';
+    const label = document.createElement('div');
+    label.className = 'calendar_year_label';
+    label.textContent = year;
+    yearDiv.appendChild(label);
+
+    const svgW = DOW_W + WEEKS * STEP;
+    const svgH = MONTH_H + 7 * STEP;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', svgW);
+    svg.setAttribute('height', svgH);
+    svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
+    svg.setAttribute('aria-label', `Photo heatmap for ${year}`);
+
+    ['', 'M', '', 'W', '', 'F', ''].forEach((lbl, i) => {
+      if (!lbl) return;
+      const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      t.setAttribute('x', DOW_W - 3);
+      t.setAttribute('y', MONTH_H + i * STEP + CELL - 1);
+      t.setAttribute('text-anchor', 'end');
+      t.textContent = lbl;
+      svg.appendChild(t);
+    });
+
+    const jan1Dow = new Date(year, 0, 1).getDay();
+    const isLeap = (year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0));
+    const totalDays = isLeap ? 366 : 365;
+    let prevMonth = -1;
+
+    for (let d = 0; d < totalDays; d++) {
+      const pos = d + jan1Dow;
+      const col = Math.floor(pos / 7);
+      const row = pos % 7;
+      const date = new Date(year, 0, d + 1);
+      const month = date.getMonth();
+      const day = date.getDate();
+
+      if (month !== prevMonth) {
+        const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        t.setAttribute('x', DOW_W + col * STEP);
+        t.setAttribute('y', MONTH_H - 4);
+        t.textContent = MONTHS[month];
+        svg.appendChild(t);
+        prevMonth = month;
+      }
+
+      const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const count = dateCounts[dateKey] || 0;
+
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', DOW_W + col * STEP);
+      rect.setAttribute('y', MONTH_H + row * STEP);
+      rect.setAttribute('width', CELL);
+      rect.setAttribute('height', CELL);
+      rect.setAttribute('rx', 2);
+      rect.setAttribute('class', `calendar_cell_${this.getHeatmapLevel(count)}`);
+      rect.setAttribute('data-date', dateKey);
+      if (count > 0) rect.style.cursor = 'pointer';
+
+      const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+      title.textContent = count > 0
+        ? `${dateKey}: ${count} photo${count !== 1 ? 's' : ''}`
+        : `${dateKey}: no photos`;
+      rect.appendChild(title);
+
+      svg.appendChild(rect);
+    }
+
+    yearDiv.appendChild(svg);
+    return yearDiv;
+  }
+
+  clearCalendarHighlight(container) {
+    container.querySelectorAll('[data-date]').forEach(el => {
+      el.classList.remove('calendar_cell_selected');
+    });
+  }
+
+  highlightCalendarRange(container, startDate, endDate) {
+    const minDate = startDate <= endDate ? startDate : endDate;
+    const maxDate = startDate <= endDate ? endDate : startDate;
+    this.clearCalendarHighlight(container);
+    container.querySelectorAll('[data-date]').forEach(el => {
+      const d = el.getAttribute('data-date');
+      if (d >= minDate && d <= maxDate) el.classList.add('calendar_cell_selected');
+    });
+  }
+
+  doShowCalendar() {
+    const dateCounts = {};
+    for (const media of this.state.allMedia) {
+      if (!SearchEngine.MEDIA_TYPES.includes(media.type)) continue;
+      if (!media.exposure_time) continue;
+      const dateKey = media.exposure_time.split('T')[0];
+      dateCounts[dateKey] = (dateCounts[dateKey] || 0) + 1;
+    }
+
+    const dates = Object.keys(dateCounts).sort();
+    if (dates.length === 0) {
+      updateOverallStatusMessage('No dated photos found');
+      return;
+    }
+
+    const minYear = parseInt(dates[0].split('-')[0], 10);
+    const maxYear = parseInt(dates[dates.length - 1].split('-')[0], 10);
+    const allMediaEle = document.querySelector('#all_media');
+    const container = document.createElement('div');
+    container.className = 'calendar_heatmap';
+    for (let y = maxYear; y >= minYear; y--) {
+      container.appendChild(this.buildYearHeatmap(y, dateCounts));
+    }
+
+    let dragStartDate = null;
+    let dragCurrentDate = null;
+    let isDragging = false;
+
+    const getDateAtPoint = (x, y) => {
+      const el = document.elementFromPoint(x, y);
+      if (!el) return null;
+      if (el.getAttribute('data-date')) return el.getAttribute('data-date');
+      const parent = el.parentElement;
+      return parent ? parent.getAttribute('data-date') : null;
+    };
+
+    container.addEventListener('pointerdown', (e) => {
+      const date = getDateAtPoint(e.clientX, e.clientY);
+      if (!date) return;
+      dragStartDate = date;
+      dragCurrentDate = date;
+      isDragging = false;
+      container.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+
+    container.addEventListener('pointermove', (e) => {
+      if (!dragStartDate) return;
+      const date = getDateAtPoint(e.clientX, e.clientY);
+      if (!date || date === dragCurrentDate) return;
+      isDragging = true;
+      dragCurrentDate = date;
+      this.highlightCalendarRange(container, dragStartDate, date);
+    });
+
+    container.addEventListener('pointerup', () => {
+      if (!dragStartDate) return;
+      const minDate = dragStartDate <= dragCurrentDate ? dragStartDate : dragCurrentDate;
+      const maxDate = dragStartDate <= dragCurrentDate ? dragCurrentDate : dragStartDate;
+      if (minDate === maxDate) {
+        if ((dateCounts[minDate] || 0) > 0) {
+          this.searchPageLinkGenerator(null,
+            [['Date', 'was taken on date', minDate],
+              ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+            'all', 'large_regular', true);
+        }
+      } else {
+        this.searchPageLinkGenerator(null,
+          [['Date', 'is between', minDate, maxDate],
+            ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+          'all', 'large_regular', true);
+      }
+      dragStartDate = null;
+      dragCurrentDate = null;
+      isDragging = false;
+      this.clearCalendarHighlight(container);
+    });
+
+    container.addEventListener('pointercancel', () => {
+      dragStartDate = null;
+      dragCurrentDate = null;
+      isDragging = false;
+      this.clearCalendarHighlight(container);
+    });
+
+    allMediaEle.appendChild(container);
   }
 }
 

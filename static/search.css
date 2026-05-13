@@ -368,3 +368,68 @@ input.button {
   max-width: 100%;
   max-height: 100%;
 }
+
+/* Calendar heatmap */
+:root {
+  --calendar-cell-empty: #ebedf0;
+  --calendar-cell-level1: #9be9a8;
+  --calendar-cell-level2: #40c463;
+  --calendar-cell-level3: #216e39;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --calendar-cell-empty: #161b22;
+    --calendar-cell-level1: #0e4429;
+    --calendar-cell-level2: #006d32;
+    --calendar-cell-level3: #26a641;
+  }
+}
+
+.calendar_heatmap {
+  padding: 10px;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.calendar_year {
+  margin-bottom: 16px;
+  display: inline-block;
+  text-align: left;
+}
+
+.calendar_year_label {
+  font-weight: bold;
+  font-size: 110%;
+  margin-bottom: 4px;
+}
+
+.calendar_cell_0 { fill: var(--calendar-cell-empty); }
+.calendar_cell_1 { fill: var(--calendar-cell-level1); }
+.calendar_cell_2 { fill: var(--calendar-cell-level2); }
+.calendar_cell_3 { fill: var(--calendar-cell-level3); }
+
+.calendar_cell_1:hover,
+.calendar_cell_2:hover,
+.calendar_cell_3:hover {
+  stroke: white;
+  stroke-width: 1px;
+}
+
+.calendar_cell_selected {
+  fill: #0969da !important;
+  stroke: white;
+  stroke-width: 1px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .calendar_cell_selected {
+    fill: #1f6feb !important;
+  }
+}
+
+.calendar_heatmap text {
+  fill: currentColor;
+  font-size: 9px;
+  font-family: sans-serif;
+}
