@@ -3410,6 +3410,7 @@ class SearchUI {
     sec.className = 'calendar_stats_section';
     const titleDiv = document.createElement('div');
     titleDiv.className = 'calendar_stats_title';
+    titleDiv.style.paddingLeft = `${(100 / 225 * 100).toFixed(2)}%`;
     titleDiv.textContent = title;
     sec.appendChild(titleDiv);
     const svgH = entries.length * 16 + 4;
@@ -3552,6 +3553,7 @@ class SearchUI {
     coverSec.className = 'calendar_stats_section';
     const coverTitle = document.createElement('div');
     coverTitle.className = 'calendar_stats_title';
+    coverTitle.style.paddingLeft = `${(86 / 225 * 100).toFixed(2)}%`;
     coverTitle.textContent = 'Coverage';
     coverSec.appendChild(coverTitle);
     const coverItems = [
