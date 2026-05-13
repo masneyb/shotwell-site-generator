@@ -1818,6 +1818,8 @@ class SearchUI {
       return;
     }
 
+    this.updateFilmstrip();
+
     const videoUrl = this.getFullscreenVideoUrl(entity);
     if (videoUrl !== null) {
       const imageEle = document.querySelector('#fullimage');
@@ -1858,6 +1860,61 @@ class SearchUI {
     if (this.isImageFullscreen()) {
       this.state.allMediaFullScreenIndex = this.getPreviousImageIndex();
       this.doShowFullscreenImage(true);
+    }
+  }
+
+  buildFilmstrip() {
+    const filmstripEle = document.querySelector('#filmstrip');
+    if (!filmstripEle) return;
+    const allMedia = this.state.allMedia;
+    if (!allMedia || allMedia.length === 0) return;
+
+    filmstripEle.replaceChildren();
+
+    for (let i = 0; i < allMedia.length; i++) {
+      const media = allMedia[i];
+      const thumbUrl = media.thumbnail?.small ?? media.thumbnail?.reg ?? null;
+      if (!thumbUrl) continue;
+
+      const thumb = document.createElement('div');
+      thumb.className = 'filmstrip_thumb';
+      thumb.dataset.index = i;
+
+      const img = document.createElement('img');
+      img.src = thumbUrl;
+      img.alt = media.title ?? '';
+      img.loading = 'lazy';
+      thumb.appendChild(img);
+
+      thumb.addEventListener('click', () => {
+        this.state.allMediaFullScreenIndex = i;
+        this.doShowFullscreenImage(true);
+      });
+
+      filmstripEle.appendChild(thumb);
+    }
+  }
+
+  updateFilmstrip() {
+    const filmstripEle = document.querySelector('#filmstrip');
+    if (!filmstripEle) return;
+
+    if (filmstripEle.dataset.mediaCount !== String(this.state.allMedia.length)) {
+      filmstripEle.dataset.mediaCount = this.state.allMedia.length;
+      this.buildFilmstrip();
+    }
+
+    const currentIndex = this.state.allMediaFullScreenIndex;
+    let activeThumb = null;
+
+    for (const thumb of filmstripEle.children) {
+      const isActive = parseInt(thumb.dataset.index, 10) === currentIndex;
+      thumb.className = isActive ? 'filmstrip_thumb filmstrip_thumb_active' : 'filmstrip_thumb';
+      if (isActive) activeThumb = thumb;
+    }
+
+    if (activeThumb) {
+      requestAnimationFrame(() => activeThumb.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'instant' }));
     }
   }
 

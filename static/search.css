@@ -318,10 +318,56 @@ a {
   cursor: pointer;
 }
 
+#filmstrip {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 4px 0;
+  z-index: var(--z-description);
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+#filmstrip::-webkit-scrollbar {
+  display: none;
+}
+
+.filmstrip_thumb {
+  flex: 0 0 auto;
+  width: 60px;
+  height: 60px;
+  margin: 0 2px;
+  cursor: pointer;
+  opacity: 0.5;
+  border: 2px solid transparent;
+  box-sizing: border-box;
+}
+
+.filmstrip_thumb:hover {
+  opacity: 0.85;
+}
+
+.filmstrip_thumb_active {
+  opacity: 1;
+  border-color: white;
+}
+
+.filmstrip_thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 #description {
   position: fixed;
   left: 50%;
-  bottom: 15px;
+  bottom: 72px;
   min-width: 360px;
   width: 40%;
   height: auto;
