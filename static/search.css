@@ -319,20 +319,6 @@ a {
   cursor: pointer;
 }
 
-#keyboard_shortcuts {
-  padding-left: 3px;
-  padding-right: 3px;
-  text-decoration: none;
-  color: var(--color-text-light);
-  font-size: 1.1em;
-  font-weight: bold;
-  vertical-align: middle;
-}
-
-#keyboard_shortcuts:hover {
-  cursor: pointer;
-}
-
 #keyboard_shortcuts_overlay {
   display: none;
   position: fixed;

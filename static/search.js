@@ -3217,8 +3217,7 @@ class SearchUI {
           this.exitImageFullscreen(event);
         }
       },
-      ' ': () => this.toggleSlideshowTimers(),
-      'i': () => this.toggleFullscreenDescription(),
+      ' ': () => this.toggleFullscreenDescription(),
       'Enter': () => this.toggleFullscreenDescription(),
       'f': () => this.fullscreenClicked(),
       'Home': () => this.showFirstImageFullscreen(),
@@ -3249,7 +3248,6 @@ class SearchUI {
     };
     this.setupClickHandler('#play', () => this.playIconClicked());
     this.setupClickHandler('#fullscreen', () => this.fullscreenClicked());
-    this.setupClickHandler('#keyboard_shortcuts', () => this.toggleKeyboardShortcutsOverlay());
     this.setupClickHandler('#close', () => this.exitImageFullscreen());
   }
 
