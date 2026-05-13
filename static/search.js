@@ -3092,8 +3092,9 @@ class SearchUI {
       return;
     }
 
-    document.querySelector('#search_controls').style.display = 'block';
-    document.querySelector('#search_criterias').style.display = 'block';
+    const isCalendarView = getQueryParameter('view', null) === 'calendar';
+    document.querySelector('#search_controls').style.display = isCalendarView ? 'none' : 'block';
+    document.querySelector('#search_criterias').style.display = isCalendarView ? 'none' : 'block';
 
     if (this.state.allMedia.length === 0) {
       updateOverallStatusMessage('No results found');
