@@ -3421,10 +3421,10 @@ class SearchUI {
       const lt = E('text', { x: 97, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
       lt.textContent = lbl;
       svg.appendChild(lt);
-      svg.appendChild(E('rect', { x: 100, y, width: 100, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
-      const bw = maxVal > 0 ? Math.round((count / maxVal) * 100) : 0;
+      svg.appendChild(E('rect', { x: 100, y, width: 90, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
+      const bw = maxVal > 0 ? Math.round((count / maxVal) * 90) : 0;
       if (bw > 0) svg.appendChild(E('rect', { x: 100, y, width: bw, height: 10, fill: 'var(--calendar-bar-photo)', rx: 2 }));
-      const ct = E('text', { x: 205, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      const ct = E('text', { x: 195, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
       ct.textContent = count.toLocaleString();
       svg.appendChild(ct);
       const handler = clickHandlers ? clickHandlers[i] : null;
