@@ -3413,7 +3413,7 @@ class SearchUI {
     });
   }
 
-  buildCalendarStatsBars(title, entries, maxVal, clickHandlers = null) {
+  buildCalendarStatsBars(title, entries, maxVal, clickHandlers = null, barColor = 'var(--calendar-bar-photo)') {
     const E = (tag, attrs = {}) => {
       const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
       for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
@@ -3423,21 +3423,21 @@ class SearchUI {
     sec.className = 'calendar_stats_section';
     const titleDiv = document.createElement('div');
     titleDiv.className = 'calendar_stats_title';
-    titleDiv.style.paddingLeft = `${(100 / 225 * 100).toFixed(2)}%`;
+    titleDiv.style.paddingLeft = `${(115 / 225 * 100).toFixed(2)}%`;
     titleDiv.textContent = title;
     sec.appendChild(titleDiv);
     const svgH = entries.length * 16 + 4;
     const svg = E('svg', { width: '100%', height: svgH, viewBox: `0 0 225 ${svgH}` });
     entries.forEach(([label, count], i) => {
       const y = i * 16 + 4;
-      const lbl = label.length > 18 ? label.slice(0, 17) + '…' : label;
-      const lt = E('text', { x: 97, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      const lbl = label.length > 20 ? label.slice(0, 19) + '…' : label;
+      const lt = E('text', { x: 112, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
       lt.textContent = lbl;
       svg.appendChild(lt);
-      svg.appendChild(E('rect', { x: 100, y, width: 90, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
-      const bw = maxVal > 0 ? Math.round((count / maxVal) * 90) : 0;
-      if (bw > 0) svg.appendChild(E('rect', { x: 100, y, width: bw, height: 10, fill: 'var(--calendar-bar-photo)', rx: 2 }));
-      const ct = E('text', { x: 195, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      svg.appendChild(E('rect', { x: 115, y, width: 65, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
+      const bw = maxVal > 0 ? Math.round((count / maxVal) * 65) : 0;
+      if (bw > 0) svg.appendChild(E('rect', { x: 115, y, width: bw, height: 10, fill: barColor, rx: 2 }));
+      const ct = E('text', { x: 185, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
       ct.textContent = count.toLocaleString();
       svg.appendChild(ct);
       const handler = clickHandlers ? clickHandlers[i] : null;
@@ -3460,7 +3460,8 @@ class SearchUI {
       ? this.searchEngine.getSearchQueryParams().map(p => p.split(','))
       : [['Year', 'equals', String(year)]];
 
-    let photos = 0, videos = 0, withGPS = 0, withTitle = 0, withComment = 0, totalSize = 0;
+    let photos = 0, videos = 0, withGPS = 0, withTitle = 0, withComment = 0;
+    let photoSize = 0, videoSize = 0;
     const cameras = {}, ratings = [0, 0, 0, 0, 0, 0];
     const monthlyPhotos = new Array(12).fill(0);
     const monthlyVideos = new Array(12).fill(0);
@@ -3482,12 +3483,11 @@ class SearchUI {
 
     for (const m of yearMedia) {
       const month = parseInt(m.exposure_time.split('-')[1], 10) - 1;
-      if (m.type === 'video') { videos++; monthlyVideos[month]++; }
-      else { photos++; monthlyPhotos[month]++; }
+      if (m.type === 'video') { videos++; monthlyVideos[month]++; videoSize += m.filesize || 0; }
+      else { photos++; monthlyPhotos[month]++; photoSize += m.filesize || 0; }
       if (m.lat && m.lon) withGPS++;
       if (m.title?.trim()) withTitle++;
       if (m.comment?.trim()) withComment++;
-      totalSize += m.filesize || 0;
       if (m.camera) cameras[m.camera] = (cameras[m.camera] || 0) + 1;
       ratings[Math.min(5, Math.max(0, Math.round(m.rating ?? 0)))]++;
       if (m.megapixels != null) {
@@ -3501,6 +3501,7 @@ class SearchUI {
         if (bi >= 0) vidCounts[bi]++;
       }
     }
+    const totalSize = photoSize + videoSize;
 
     const E = (tag, attrs = {}) => {
       const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
@@ -3633,7 +3634,7 @@ class SearchUI {
     coverSec.className = 'calendar_stats_section';
     const coverTitle = document.createElement('div');
     coverTitle.className = 'calendar_stats_title';
-    coverTitle.style.paddingLeft = `${(86 / 225 * 100).toFixed(2)}%`;
+    coverTitle.style.paddingLeft = `${(93 / 225 * 100).toFixed(2)}%`;
     coverTitle.textContent = 'Coverage';
     coverSec.appendChild(coverTitle);
     const coverItems = [
@@ -3646,11 +3647,11 @@ class SearchUI {
     coverItems.forEach(([label, count, extraCriteria], i) => {
       const y = i * 16 + 4;
       const pct = total > 0 ? count / total : 0;
-      const lt = E('text', { x: 83, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      const lt = E('text', { x: 90, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
       lt.textContent = label; coverSvg.appendChild(lt);
-      coverSvg.appendChild(E('rect', { x: 86, y, width: 110, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
-      if (count > 0) coverSvg.appendChild(E('rect', { x: 86, y, width: Math.round(pct * 110), height: 10, fill: 'var(--calendar-bar-photo)', rx: 2 }));
-      const pt = E('text', { x: 200, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      coverSvg.appendChild(E('rect', { x: 93, y, width: 85, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
+      if (count > 0) coverSvg.appendChild(E('rect', { x: 93, y, width: Math.round(pct * 85), height: 10, fill: 'var(--calendar-bar-photo)', rx: 2 }));
+      const pt = E('text', { x: 183, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
       pt.textContent = `${Math.round(pct * 100)}%`; coverSvg.appendChild(pt);
       if (count > 0) {
         const hit = E('rect', { x: 0, y, width: 225, height: 14, fill: 'transparent', style: 'cursor: pointer' });
@@ -3678,7 +3679,7 @@ class SearchUI {
 
       if (vidRows.length > 0) {
         row2.appendChild(this.buildCalendarStatsBars('Video Length', vidRows,
-          Math.max(...vidRows.map(([, c]) => c)), vidHandlers));
+          Math.max(...vidRows.map(([, c]) => c)), vidHandlers, 'var(--calendar-bar-video)'));
       } else {
         row2.appendChild(mkPlaceholder());
       }
@@ -3686,11 +3687,64 @@ class SearchUI {
       const storageCol = document.createElement('div');
       storageCol.className = 'calendar_stats_section';
       if (totalSize > 0) {
-        const storageDiv = document.createElement('div');
-        storageDiv.className = 'calendar_stats_title';
-        storageDiv.style.paddingLeft = `${(86 / 225 * 100).toFixed(2)}%`;
-        storageDiv.textContent = `Storage: ${fmtBytes(totalSize)}`;
-        storageCol.appendChild(storageDiv);
+        const storItems = [];
+        if (photoSize > 0) storItems.push(['Photos', photoSize, ['Type', 'is not a', 'video']]);
+        if (videoSize > 0) storItems.push(['Videos', videoSize, ['Type', 'is a', 'video']]);
+        const maxStor = Math.max(...storItems.map(([, v]) => v));
+
+        const storTitle = document.createElement('div');
+        storTitle.className = 'calendar_stats_title';
+        storTitle.style.paddingLeft = `${(93 / 225 * 100).toFixed(2)}%`;
+        storTitle.textContent = 'Storage';
+        storageCol.appendChild(storTitle);
+
+        const storSvgH = storItems.length * 16 + 4;
+        const storSvg = E('svg', { width: '100%', height: storSvgH, viewBox: `0 0 225 ${storSvgH}` });
+        const storColors = ['var(--calendar-bar-photo)', 'var(--calendar-bar-video)'];
+        storItems.forEach(([label, size, typeFilter], i) => {
+          const y = i * 16 + 4;
+          const bw = Math.round((size / maxStor) * 85);
+          const lt = E('text', { x: 90, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+          lt.textContent = label; storSvg.appendChild(lt);
+          storSvg.appendChild(E('rect', { x: 93, y, width: 85, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
+          storSvg.appendChild(E('rect', { x: 93, y, width: bw, height: 10, fill: storColors[i], rx: 2 }));
+          const vt = E('text', { x: 183, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+          vt.textContent = fmtBytes(size); storSvg.appendChild(vt);
+          const hit = E('rect', { x: 0, y, width: 225, height: 14, fill: 'transparent', style: 'cursor: pointer' });
+          const tt = E('title'); tt.textContent = `${label}: ${fmtBytes(size)}`; hit.appendChild(tt);
+          const criteria = [...criteriaPrefix, typeFilter, ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]];
+          hit.addEventListener('click', () => this.searchPageLinkGenerator(null, criteria, 'all', 'large_regular'));
+          storSvg.appendChild(hit);
+        });
+        storageCol.appendChild(storSvg);
+
+        const photoAvg = photos > 0 ? photoSize / photos : 0;
+        const videoAvg = videos > 0 ? videoSize / videos : 0;
+        const avgItems = [];
+        if (photoAvg > 0) avgItems.push(['Photo', photoAvg, 'var(--calendar-bar-photo)']);
+        if (videoAvg > 0) avgItems.push(['Video', videoAvg, 'var(--calendar-bar-video)']);
+        if (avgItems.length > 0) {
+          const maxAvg = Math.max(...avgItems.map(([, v]) => v));
+          const avgTitle = document.createElement('div');
+          avgTitle.className = 'calendar_stats_title';
+          avgTitle.style.paddingLeft = `${(93 / 225 * 100).toFixed(2)}%`;
+          avgTitle.textContent = 'Avg Size';
+          storageCol.appendChild(avgTitle);
+
+          const avgSvgH = avgItems.length * 16 + 4;
+          const avgSvg = E('svg', { width: '100%', height: avgSvgH, viewBox: `0 0 225 ${avgSvgH}` });
+          avgItems.forEach(([label, avg, color], i) => {
+            const y = i * 16 + 4;
+            const bw = Math.round((avg / maxAvg) * 85);
+            const lt = E('text', { x: 90, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+            lt.textContent = label; avgSvg.appendChild(lt);
+            avgSvg.appendChild(E('rect', { x: 93, y, width: 85, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
+            avgSvg.appendChild(E('rect', { x: 93, y, width: bw, height: 10, fill: color, rx: 2 }));
+            const vt = E('text', { x: 183, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+            vt.textContent = fmtBytes(avg); avgSvg.appendChild(vt);
+          });
+          storageCol.appendChild(avgSvg);
+        }
       }
       row2.appendChild(storageCol);
 
