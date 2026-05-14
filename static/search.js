@@ -3010,6 +3010,7 @@ class SearchUI {
   clearPreviousMedia(allMediaEle) {
     this.state.mediaWriter.clear();
     allMediaEle.replaceChildren();
+    document.querySelector('#search_results_calendar').replaceChildren();
     window.scrollTo(0, 0);
   }
 
@@ -3110,6 +3111,7 @@ class SearchUI {
         this.doShowCalendar();
       } else {
         this.doShowMedia(1);
+        this.doShowCalendar(document.querySelector('#search_results_calendar'), true);
       }
 
       for (const ele of document.querySelectorAll('.header_links')) {
@@ -3440,9 +3442,12 @@ class SearchUI {
     return sec;
   }
 
-  buildYearStats(year, yearMedia) {
+  buildYearStats(year, yearMedia, preserveExistingCriteria = false) {
     const total = yearMedia.length;
     if (total === 0) return document.createDocumentFragment();
+    const criteriaPrefix = preserveExistingCriteria
+      ? this.searchEngine.getSearchQueryParams().map(p => p.split(','))
+      : [['Year', 'equals', String(year)]];
 
     let photos = 0, videos = 0, withGPS = 0, withTitle = 0, withComment = 0, totalSize = 0;
     const cameras = {}, ratings = [0, 0, 0, 0, 0, 0];
@@ -3518,7 +3523,7 @@ class SearchUI {
         const hit = E('rect', { x: ML + i * (chartW / 12), y: MT, width: chartW / 12, height: CH + MB, fill: 'transparent', style: 'cursor: pointer' });
         const tt = E('title'); tt.textContent = `${MNAMES[i]}: ${(monthlyPhotos[i] + monthlyVideos[i]).toLocaleString()} item${(monthlyPhotos[i] + monthlyVideos[i]) !== 1 ? 's' : ''}`; hit.appendChild(tt);
         hit.addEventListener('click', () => this.searchPageLinkGenerator(null,
-          [['Year', 'equals', String(year)], ['Date', 'was taken on month', month2], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+          [...criteriaPrefix, ['Date', 'was taken on month', month2], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
           'all', 'large_regular'));
         barSvg.appendChild(hit);
       }
@@ -3532,7 +3537,7 @@ class SearchUI {
     const topCams = Object.entries(cameras).sort((a, b) => b[1] - a[1]).slice(0, 5);
     if (topCams.length > 0) {
       const camHandlers = topCams.map(([cam]) => () => this.searchPageLinkGenerator(null,
-        [['Year', 'equals', String(year)], ['Camera', 'equals', cam], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+        [...criteriaPrefix, ['Camera', 'equals', cam], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
         'all', 'large_regular'));
       row.appendChild(this.buildCalendarStatsBars('Cameras', topCams, topCams[0][1], camHandlers));
     }
@@ -3544,7 +3549,7 @@ class SearchUI {
         if (c === 0) return;
         ratingRows.push(['★'.repeat(r) + '☆'.repeat(5 - r), c]);
         ratingHandlers.push(() => this.searchPageLinkGenerator(null,
-          [['Year', 'equals', String(year)], ['Rating', 'equals', String(r)], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+          [...criteriaPrefix, ['Rating', 'equals', String(r)], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
           'all', 'large_regular'));
       });
       ratingSec = this.buildCalendarStatsBars('Ratings', ratingRows, Math.max(...ratingRows.map(([, c]) => c)), ratingHandlers);
@@ -3576,7 +3581,7 @@ class SearchUI {
       pt.textContent = `${Math.round(pct * 100)}%`; coverSvg.appendChild(pt);
       if (count > 0) {
         const hit = E('rect', { x: 0, y, width: 225, height: 14, fill: 'transparent', style: 'cursor: pointer' });
-        const criteria = [['Year', 'equals', String(year)], ...extraCriteria, ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]];
+        const criteria = [...criteriaPrefix, ...extraCriteria, ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]];
         hit.addEventListener('click', () => this.searchPageLinkGenerator(null, criteria, 'all', 'large_regular'));
         coverSvg.appendChild(hit);
       }
@@ -3594,7 +3599,7 @@ class SearchUI {
     return statsDiv;
   }
 
-  doShowCalendar() {
+  doShowCalendar(container = null, preserveExistingCriteria = false) {
     const dateCounts = {};
     const mediaByYear = {};
     for (const media of this.state.allMedia) {
@@ -3609,19 +3614,21 @@ class SearchUI {
 
     const dates = Object.keys(dateCounts).sort();
     if (dates.length === 0) {
-      updateOverallStatusMessage('No dated photos found');
+      if (container === null) {
+        updateOverallStatusMessage('No dated photos found');
+      }
       return;
     }
 
     const minYear = parseInt(dates[0].split('-')[0], 10);
     const maxYear = parseInt(dates[dates.length - 1].split('-')[0], 10);
-    const allMediaEle = document.querySelector('#all_media');
-    const container = document.createElement('div');
-    container.className = 'calendar_heatmap';
+    const allMediaEle = container ?? document.querySelector('#all_media');
+    const calendarEle = document.createElement('div');
+    calendarEle.className = 'calendar_heatmap';
     for (let y = maxYear; y >= minYear; y--) {
       const yearDiv = this.buildYearHeatmap(y, dateCounts);
-      yearDiv.appendChild(this.buildYearStats(y, mediaByYear[y] || []));
-      container.appendChild(yearDiv);
+      yearDiv.appendChild(this.buildYearStats(y, mediaByYear[y] || [], preserveExistingCriteria));
+      calendarEle.appendChild(yearDiv);
     }
 
     let dragStartDate = null;
@@ -3636,56 +3643,61 @@ class SearchUI {
       return parent ? parent.getAttribute('data-date') : null;
     };
 
-    container.addEventListener('pointerdown', (e) => {
+    calendarEle.addEventListener('pointerdown', (e) => {
       const date = getDateAtPoint(e.clientX, e.clientY);
       if (!date) return;
       dragStartDate = date;
       dragCurrentDate = date;
       isDragging = false;
-      container.setPointerCapture(e.pointerId);
+      calendarEle.setPointerCapture(e.pointerId);
       e.preventDefault();
     });
 
-    container.addEventListener('pointermove', (e) => {
+    calendarEle.addEventListener('pointermove', (e) => {
       if (!dragStartDate) return;
       const date = getDateAtPoint(e.clientX, e.clientY);
       if (!date || date === dragCurrentDate) return;
       isDragging = true;
       dragCurrentDate = date;
-      this.highlightCalendarRange(container, dragStartDate, date);
+      this.highlightCalendarRange(calendarEle, dragStartDate, date);
     });
 
-    container.addEventListener('pointerup', () => {
+    calendarEle.addEventListener('pointerup', () => {
       if (!dragStartDate) return;
       const minDate = dragStartDate <= dragCurrentDate ? dragStartDate : dragCurrentDate;
       const maxDate = dragStartDate <= dragCurrentDate ? dragCurrentDate : dragStartDate;
+      const existingCriteria = preserveExistingCriteria
+        ? this.searchEngine.getSearchQueryParams().map(p => p.split(','))
+        : [];
       if (minDate === maxDate) {
         if ((dateCounts[minDate] || 0) > 0) {
           this.searchPageLinkGenerator(null,
-            [['Date', 'was taken on date', minDate],
+            [...existingCriteria,
+              ['Date', 'was taken on date', minDate],
               ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
             'all', 'large_regular', true);
         }
       } else {
         this.searchPageLinkGenerator(null,
-          [['Date', 'is between', minDate, maxDate],
+          [...existingCriteria,
+            ['Date', 'is between', minDate, maxDate],
             ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
           'all', 'large_regular', true);
       }
       dragStartDate = null;
       dragCurrentDate = null;
       isDragging = false;
-      this.clearCalendarHighlight(container);
+      this.clearCalendarHighlight(calendarEle);
     });
 
-    container.addEventListener('pointercancel', () => {
+    calendarEle.addEventListener('pointercancel', () => {
       dragStartDate = null;
       dragCurrentDate = null;
       isDragging = false;
-      this.clearCalendarHighlight(container);
+      this.clearCalendarHighlight(calendarEle);
     });
 
-    allMediaEle.appendChild(container);
+    allMediaEle.appendChild(calendarEle);
   }
 }
 
