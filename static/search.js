@@ -1607,6 +1607,12 @@ class SearchUI {
   setFullscreenDescriptionShown(shown) {
     const descrEle = document.querySelector('#description');
     descrEle.style.display = shown ? 'block' : 'none';
+    if (this.state.inPhotoFrameMode) {
+      const filmstripEle = document.querySelector('#filmstrip');
+      if (filmstripEle) {
+        filmstripEle.style.display = shown ? 'flex' : 'none';
+      }
+    }
   }
 
   enableFullscreenPhotoUpdateTimer() {
@@ -1933,8 +1939,13 @@ class SearchUI {
       if (isActive) activeThumb = thumb;
     }
 
-    if (activeThumb) {
+    if (activeThumb && filmstripEle.style.display !== 'none') {
       requestAnimationFrame(() => activeThumb.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'instant' }));
+    }
+
+    if (this.state.inPhotoFrameMode) {
+      const descrEle = document.querySelector('#description');
+      filmstripEle.style.display = descrEle.style.display !== 'none' ? 'flex' : 'none';
     }
   }
 
