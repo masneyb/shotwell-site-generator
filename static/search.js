@@ -3460,7 +3460,7 @@ class SearchUI {
       ? this.searchEngine.getSearchQueryParams().map(p => p.split(','))
       : [['Year', 'equals', String(year)]];
 
-    let photos = 0, videos = 0, withGPS = 0, withTitle = 0, withComment = 0;
+    let photos = 0, videos = 0, withGPS = 0, withTitle = 0, withComment = 0, withMotionPhoto = 0;
     let photoSize = 0, videoSize = 0;
     const cameras = {}, ratings = [0, 0, 0, 0, 0, 0];
     const monthlyPhotos = new Array(12).fill(0);
@@ -3488,6 +3488,7 @@ class SearchUI {
       if (m.lat && m.lon) withGPS++;
       if (m.title?.trim()) withTitle++;
       if (m.comment?.trim()) withComment++;
+      if (m.motion_photo) withMotionPhoto++;
       if (m.camera) cameras[m.camera] = (cameras[m.camera] || 0) + 1;
       ratings[Math.min(5, Math.max(0, Math.round(m.rating ?? 0)))]++;
       if (m.megapixels != null) {
@@ -3641,6 +3642,7 @@ class SearchUI {
       ['GPS', withGPS, [['GPS Coordinate', 'is set']]],
       ['Titles', withTitle, [['Title', 'is set']]],
       ['Comments', withComment, [['Comment', 'is set']]],
+      ['Motion Photo', withMotionPhoto, [['Type', 'is a', 'motion_photo']]],
     ];
     const coverSvgH = coverItems.length * 16 + 4;
     const coverSvg = E('svg', { width: '100%', height: coverSvgH, viewBox: `0 0 225 ${coverSvgH}` });
