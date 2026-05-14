@@ -3464,6 +3464,21 @@ class SearchUI {
     const cameras = {}, ratings = [0, 0, 0, 0, 0, 0];
     const monthlyPhotos = new Array(12).fill(0);
     const monthlyVideos = new Array(12).fill(0);
+    const mpBuckets = [
+      ['< 5 MP',   null, 5],
+      ['5–12 MP',  5,   12],
+      ['12–20 MP', 12,  20],
+      ['20–50 MP', 20,  50],
+      ['≥ 50 MP',  50,  null],
+    ];
+    const vidBuckets = [
+      ['< 30s',   null,  30],
+      ['30s–5m',  30,   300],
+      ['5–30m',  300,  1800],
+      ['≥ 30m', 1800,  null],
+    ];
+    const mpCounts = new Array(mpBuckets.length).fill(0);
+    const vidCounts = new Array(vidBuckets.length).fill(0);
 
     for (const m of yearMedia) {
       const month = parseInt(m.exposure_time.split('-')[1], 10) - 1;
@@ -3475,6 +3490,16 @@ class SearchUI {
       totalSize += m.filesize || 0;
       if (m.camera) cameras[m.camera] = (cameras[m.camera] || 0) + 1;
       ratings[Math.min(5, Math.max(0, Math.round(m.rating ?? 0)))]++;
+      if (m.megapixels != null) {
+        const bi = mpBuckets.findIndex(([, lo, hi]) =>
+          (lo === null || m.megapixels >= lo) && (hi === null || m.megapixels < hi));
+        if (bi >= 0) mpCounts[bi]++;
+      }
+      if (m.clip_duration_secs != null) {
+        const bi = vidBuckets.findIndex(([, lo, hi]) =>
+          (lo === null || m.clip_duration_secs >= lo) && (hi === null || m.clip_duration_secs < hi));
+        if (bi >= 0) vidCounts[bi]++;
+      }
     }
 
     const E = (tag, attrs = {}) => {
@@ -3541,19 +3566,54 @@ class SearchUI {
     }
     statsDiv.appendChild(barSvg);
 
-    // Bottom row: cameras | ratings + storage | coverage
-    const row = document.createElement('div');
-    row.className = 'calendar_stats_row';
+    const mpRows = [], mpHandlers = [];
+    for (let i = 0; i < mpBuckets.length; i++) {
+      if (mpCounts[i] === 0) continue;
+      const [label, lo, hi] = mpBuckets[i];
+      mpRows.push([label, mpCounts[i]]);
+      mpHandlers.push(() => {
+        const criteria = [...criteriaPrefix];
+        if (lo !== null) criteria.push(['Megapixels', 'is at least', String(lo)]);
+        if (hi !== null) criteria.push(['Megapixels', 'is at most', String(hi - 0.1)]);
+        criteria.push(['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]);
+        this.searchPageLinkGenerator(null, criteria, 'all', 'large_regular');
+      });
+    }
+
+    const vidRows = [], vidHandlers = [];
+    for (let i = 0; i < vidBuckets.length; i++) {
+      if (vidCounts[i] === 0) continue;
+      const [label, lo, hi] = vidBuckets[i];
+      vidRows.push([label, vidCounts[i]]);
+      vidHandlers.push(() => {
+        const criteria = [...criteriaPrefix];
+        if (lo !== null) criteria.push(['Video Length', 'is at least', String(lo)]);
+        if (hi !== null) criteria.push(['Video Length', 'is at most', String(hi - 1)]);
+        criteria.push(['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]);
+        this.searchPageLinkGenerator(null, criteria, 'all', 'large_regular');
+      });
+    }
+
+    const mkPlaceholder = () => {
+      const ph = document.createElement('div');
+      ph.className = 'calendar_stats_section';
+      return ph;
+    };
+
+    // Row 1: cameras | ratings | coverage
+    const row1 = document.createElement('div');
+    row1.className = 'calendar_stats_row';
 
     const topCams = Object.entries(cameras).sort((a, b) => b[1] - a[1]).slice(0, 5);
     if (topCams.length > 0) {
       const camHandlers = topCams.map(([cam]) => () => this.searchPageLinkGenerator(null,
         [...criteriaPrefix, ['Camera', 'equals', cam], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
         'all', 'large_regular'));
-      row.appendChild(this.buildCalendarStatsBars('Cameras', topCams, topCams[0][1], camHandlers));
+      row1.appendChild(this.buildCalendarStatsBars('Cameras', topCams, topCams[0][1], camHandlers));
+    } else {
+      row1.appendChild(mkPlaceholder());
     }
 
-    let ratingSec = null;
     if (ratings.slice(1).some(c => c > 0)) {
       const ratingRows = [], ratingHandlers = [];
       ratings.forEach((c, r) => {
@@ -3563,8 +3623,10 @@ class SearchUI {
           [...criteriaPrefix, ['Rating', 'equals', String(r)], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
           'all', 'large_regular'));
       });
-      ratingSec = this.buildCalendarStatsBars('Ratings', ratingRows, Math.max(...ratingRows.map(([, c]) => c)), ratingHandlers);
-      row.appendChild(ratingSec);
+      row1.appendChild(this.buildCalendarStatsBars('Ratings', ratingRows,
+        Math.max(...ratingRows.map(([, c]) => c)), ratingHandlers));
+    } else {
+      row1.appendChild(mkPlaceholder());
     }
 
     const coverSec = document.createElement('div');
@@ -3598,15 +3660,42 @@ class SearchUI {
       }
     });
     coverSec.appendChild(coverSvg);
-    if (totalSize > 0) {
-      const storageDiv = document.createElement('div');
-      storageDiv.className = 'calendar_stats_storage';
-      storageDiv.style.paddingLeft = `${(100 / 225 * 100).toFixed(2)}%`;
-      storageDiv.textContent = `Storage: ${fmtBytes(totalSize)}`;
-      (ratingSec ?? coverSec).appendChild(storageDiv);
+    row1.appendChild(coverSec);
+
+    statsDiv.appendChild(row1);
+
+    // Row 2: photo size | video length | storage (only when at least one has content)
+    if (mpRows.length > 0 || vidRows.length > 0 || totalSize > 0) {
+      const row2 = document.createElement('div');
+      row2.className = 'calendar_stats_row';
+
+      if (mpRows.length > 0) {
+        row2.appendChild(this.buildCalendarStatsBars('Photo Size', mpRows,
+          Math.max(...mpRows.map(([, c]) => c)), mpHandlers));
+      } else {
+        row2.appendChild(mkPlaceholder());
+      }
+
+      if (vidRows.length > 0) {
+        row2.appendChild(this.buildCalendarStatsBars('Video Length', vidRows,
+          Math.max(...vidRows.map(([, c]) => c)), vidHandlers));
+      } else {
+        row2.appendChild(mkPlaceholder());
+      }
+
+      const storageCol = document.createElement('div');
+      storageCol.className = 'calendar_stats_section';
+      if (totalSize > 0) {
+        const storageDiv = document.createElement('div');
+        storageDiv.className = 'calendar_stats_title';
+        storageDiv.style.paddingLeft = `${(86 / 225 * 100).toFixed(2)}%`;
+        storageDiv.textContent = `Storage: ${fmtBytes(totalSize)}`;
+        storageCol.appendChild(storageDiv);
+      }
+      row2.appendChild(storageCol);
+
+      statsDiv.appendChild(row2);
     }
-    row.appendChild(coverSec);
-    statsDiv.appendChild(row);
     return statsDiv;
   }
 
