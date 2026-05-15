@@ -1927,7 +1927,11 @@ class SearchUI {
 
     if (filmstripEle.dataset.mediaCount !== String(this.state.allMedia.length)) {
       filmstripEle.dataset.mediaCount = this.state.allMedia.length;
-      this.buildFilmstrip();
+      if (this.state.allMedia.length > 0) {
+        addStatusMessage(filmstripEle, 'Loading');
+        setTimeout(() => { this.buildFilmstrip(); this.updateFilmstrip(); }, 0);
+        return;
+      }
     }
 
     const currentIndex = this.state.allMediaFullScreenIndex;
