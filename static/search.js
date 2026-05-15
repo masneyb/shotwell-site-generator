@@ -3491,7 +3491,7 @@ class SearchUI {
       if (m.title?.trim()) withTitle++;
       if (m.comment?.trim()) withComment++;
       if (m.motion_photo && m.type !== 'video') withMotionPhoto++;
-      if (m.camera) cameras[m.camera] = (cameras[m.camera] || 0) + 1;
+      cameras[m.camera || 'Unknown'] = (cameras[m.camera || 'Unknown'] || 0) + 1;
       ratings[Math.min(5, Math.max(0, Math.round(m.rating ?? 0)))]++;
       if (m.megapixels != null) {
         const bi = mpBuckets.findIndex(([, lo, hi]) =>
@@ -3611,7 +3611,7 @@ class SearchUI {
     const topCams = Object.entries(cameras).sort((a, b) => b[1] - a[1]).slice(0, 5);
     if (topCams.length > 0) {
       const camHandlers = topCams.map(([cam]) => () => this.searchPageLinkGenerator(null,
-        [...criteriaPrefix, ['Camera', 'equals', cam], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+        [...criteriaPrefix, cam === 'Unknown' ? ['Camera', 'is not set'] : ['Camera', 'equals', cam], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
         'all', 'large_regular'));
       row1.appendChild(this.buildCalendarStatsBars('Cameras', topCams, topCams[0][1], camHandlers));
     } else {
