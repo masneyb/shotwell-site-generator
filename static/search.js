@@ -2954,7 +2954,9 @@ class SearchUI {
   }
 
   loadMoreMedia() {
-    return window.innerHeight + window.scrollY >= document.body.offsetHeight * 0.85;
+    const allMediaEle = document.querySelector('#all_media');
+    const allMediaBottom = allMediaEle.getBoundingClientRect().bottom + window.scrollY;
+    return window.innerHeight + window.scrollY >= allMediaBottom * 0.85;
   }
 
   doShowMedia(pageNumber) {
