@@ -3488,7 +3488,7 @@ class SearchUI {
       if (m.lat && m.lon) withGPS++;
       if (m.title?.trim()) withTitle++;
       if (m.comment?.trim()) withComment++;
-      if (m.motion_photo) withMotionPhoto++;
+      if (m.motion_photo && m.type !== 'video') withMotionPhoto++;
       if (m.camera) cameras[m.camera] = (cameras[m.camera] || 0) + 1;
       ratings[Math.min(5, Math.max(0, Math.round(m.rating ?? 0)))]++;
       if (m.megapixels != null) {
@@ -3639,16 +3639,16 @@ class SearchUI {
     coverTitle.textContent = 'Coverage';
     coverSec.appendChild(coverTitle);
     const coverItems = [
-      ['GPS', withGPS, [['GPS Coordinate', 'is set']]],
-      ['Titles', withTitle, [['Title', 'is set']]],
-      ['Comments', withComment, [['Comment', 'is set']]],
-      ['Motion Photo', withMotionPhoto, [['Type', 'is a', 'motion_photo']]],
+      ['GPS', withGPS, total, [['GPS Coordinate', 'is set']]],
+      ['Titles', withTitle, total, [['Title', 'is set']]],
+      ['Comments', withComment, total, [['Comment', 'is set']]],
+      ['Motion Photo', withMotionPhoto, photos, [['Type', 'is a', 'motion_photo']]],
     ];
     const coverSvgH = coverItems.length * 16 + 4;
     const coverSvg = E('svg', { width: '100%', height: coverSvgH, viewBox: `0 0 225 ${coverSvgH}` });
-    coverItems.forEach(([label, count, extraCriteria], i) => {
+    coverItems.forEach(([label, count, denom, extraCriteria], i) => {
       const y = i * 16 + 4;
-      const pct = total > 0 ? count / total : 0;
+      const pct = denom > 0 ? count / denom : 0;
       const lt = E('text', { x: 90, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
       lt.textContent = label; coverSvg.appendChild(lt);
       coverSvg.appendChild(E('rect', { x: 93, y, width: 85, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
