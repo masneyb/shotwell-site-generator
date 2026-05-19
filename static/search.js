@@ -1610,6 +1610,9 @@ class SearchUI {
     const filmstripEle = document.querySelector('#filmstrip');
     if (filmstripEle) {
       filmstripEle.style.display = shown ? 'flex' : 'none';
+      if (shown) {
+        this.updateFilmstrip();
+      }
     }
   }
 
@@ -1941,12 +1944,12 @@ class SearchUI {
       if (isActive) activeThumb = thumb;
     }
 
+    const descrEle = document.querySelector('#description');
+    filmstripEle.style.display = descrEle.style.display !== 'none' ? 'flex' : 'none';
+
     if (activeThumb && filmstripEle.style.display !== 'none') {
       requestAnimationFrame(() => activeThumb.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'instant' }));
     }
-
-    const descrEle = document.querySelector('#description');
-    filmstripEle.style.display = descrEle.style.display !== 'none' ? 'flex' : 'none';
   }
 
   toggleSlideshowTimers() {
