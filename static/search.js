@@ -1675,7 +1675,7 @@ class SearchUI {
 
   isImageFullscreen() {
     const fullImageEle = document.querySelector('#fullimage_container');
-    return fullImageEle.style.display !== 'none';
+    return fullImageEle.style.display === 'block';
   }
 
   exitImageFullscreen() {
@@ -3246,6 +3246,7 @@ class SearchUI {
 
     document.onkeydown = (event) => {
       if (!this.isImageFullscreen()) return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
       const handler = keyHandlers[event.key];
       if (handler) {
         event.preventDefault();
