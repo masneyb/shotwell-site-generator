@@ -1,0 +1,4 @@
+- static/search.js has /People/ and /Activities/ nested tag names assumption based on
+  Brian's personal library. Add these as options to the python side of the code, and
+  pass it to the JS code via configuration in the media.json file. It can make it
+  easier to allow grouping by other tags as well.

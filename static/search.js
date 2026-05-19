@@ -3468,7 +3468,7 @@ class SearchUI {
 
     let photos = 0, videos = 0, withGPS = 0, withTitle = 0, withComment = 0, withMotionPhoto = 0;
     let photoSize = 0, videoSize = 0;
-    const cameras = {}, ratings = [0, 0, 0, 0, 0, 0];
+    const cameras = {}, ratings = [0, 0, 0, 0, 0, 0], events = {}, peopleTags = {}, activitiesTags = {};
     const monthlyPhotos = new Array(12).fill(0);
     const monthlyVideos = new Array(12).fill(0);
     const mpBuckets = [
@@ -3496,6 +3496,15 @@ class SearchUI {
       if (m.comment?.trim()) withComment++;
       if (m.motion_photo && m.type !== 'video') withMotionPhoto++;
       cameras[m.camera || 'Unknown'] = (cameras[m.camera || 'Unknown'] || 0) + 1;
+      if (m.event_id) events[m.event_id] = (events[m.event_id] || 0) + 1;
+      if (m.tags) {
+        for (const tagId of m.tags) {
+          const tag = this.state.tags[tagId];
+          if (!tag) continue;
+          if (tag.full_title.startsWith('/People/')) peopleTags[tagId] = (peopleTags[tagId] || 0) + 1;
+          else if (tag.full_title.startsWith('/Activities/')) activitiesTags[tagId] = (activitiesTags[tagId] || 0) + 1;
+        }
+      }
       ratings[Math.min(5, Math.max(0, Math.round(m.rating ?? 0)))]++;
       if (m.megapixels != null) {
         const bi = mpBuckets.findIndex(([, lo, hi]) =>
@@ -3758,6 +3767,71 @@ class SearchUI {
 
       statsDiv.appendChild(row2);
     }
+
+    const pickTopTags = (tagCounts, n) => {
+      const sorted = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
+      const selectedIds = new Set();
+      const ancestorsOfSelected = new Set();
+      const result = [];
+      for (const [tagId, count] of sorted) {
+        if (result.length >= n) break;
+        if (ancestorsOfSelected.has(tagId)) continue;
+        let blocked = false;
+        let cur = this.state.tags[tagId]?.parent_tag_id;
+        while (cur != null) {
+          if (selectedIds.has(cur)) { blocked = true; break; }
+          cur = this.state.tags[cur]?.parent_tag_id;
+        }
+        if (blocked) continue;
+        result.push([tagId, count]);
+        selectedIds.add(tagId);
+        cur = this.state.tags[tagId]?.parent_tag_id;
+        while (cur != null) {
+          ancestorsOfSelected.add(cur);
+          cur = this.state.tags[cur]?.parent_tag_id;
+        }
+      }
+      return result;
+    };
+
+    const topEvents = Object.entries(events).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const topPeople = pickTopTags(peopleTags, 5);
+    const topActivities = pickTopTags(activitiesTags, 5);
+    if (topEvents.length > 0 || topPeople.length > 0 || topActivities.length > 0) {
+      const evtRow = document.createElement('div');
+      evtRow.className = 'calendar_stats_row';
+      if (topEvents.length > 0) {
+        const evtRows = topEvents.map(([id, count]) => [this.state.events[id]?.title ?? id, count]);
+        const evtHandlers = topEvents.map(([id]) => () => this.searchPageLinkGenerator(null,
+          [...criteriaPrefix, ['Event ID', 'equals', id], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+          'all', 'large_regular'));
+        evtRow.appendChild(this.buildCalendarStatsBars('Top Events', evtRows, evtRows[0][1], evtHandlers));
+      } else {
+        evtRow.appendChild(mkPlaceholder());
+      }
+
+      if (topPeople.length > 0) {
+        const peopleRows = topPeople.map(([tagId, count]) => [this.state.tags[tagId].full_title.split('/').pop(), count]);
+        const peopleHandlers = topPeople.map(([tagId]) => () => this.searchPageLinkGenerator(null,
+          [...criteriaPrefix, ['Tag ID', 'equals', tagId], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+          'all', 'large_regular'));
+        evtRow.appendChild(this.buildCalendarStatsBars('Top People', peopleRows, peopleRows[0][1], peopleHandlers));
+      } else {
+        evtRow.appendChild(mkPlaceholder());
+      }
+
+      if (topActivities.length > 0) {
+        const activitiesRows = topActivities.map(([tagId, count]) => [this.state.tags[tagId].full_title.split('/').pop(), count]);
+        const activitiesHandlers = topActivities.map(([tagId]) => () => this.searchPageLinkGenerator(null,
+          [...criteriaPrefix, ['Tag ID', 'equals', tagId], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+          'all', 'large_regular'));
+        evtRow.appendChild(this.buildCalendarStatsBars('Top Activities', activitiesRows, activitiesRows[0][1], activitiesHandlers));
+      } else {
+        evtRow.appendChild(mkPlaceholder());
+      }
+      statsDiv.appendChild(evtRow);
+    }
+
     return statsDiv;
   }
 
