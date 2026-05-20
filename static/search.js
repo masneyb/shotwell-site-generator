@@ -3419,12 +3419,21 @@ class SearchUI {
     });
   }
 
+  static _svgEl(tag, attrs = {}) {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+    return el;
+  }
+
+  static _fmtBytes(b) {
+    return b >= 1e12 ? `${(b / 1e12).toFixed(1)} TB`
+      : b >= 1e9 ? `${(b / 1e9).toFixed(1)} GB`
+      : b >= 1e6 ? `${(b / 1e6).toFixed(1)} MB`
+      : `${Math.round(b / 1e3)} KB`;
+  }
+
   buildCalendarStatsBars(title, entries, maxVal, clickHandlers = null, barColor = 'var(--calendar-bar-photo)') {
-    const E = (tag, attrs = {}) => {
-      const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
-      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-      return el;
-    };
+    const E = SearchUI._svgEl;
     const sec = document.createElement('div');
     sec.className = 'calendar_stats_section';
     const titleDiv = document.createElement('div');
@@ -3517,18 +3526,8 @@ class SearchUI {
         if (bi >= 0) vidCounts[bi]++;
       }
     }
-    const totalSize = photoSize + videoSize;
 
-    const E = (tag, attrs = {}) => {
-      const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
-      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-      return el;
-    };
-    const fmtBytes = b => b >= 1e12 ? `${(b / 1e12).toFixed(1)} TB`
-      : b >= 1e9 ? `${(b / 1e9).toFixed(1)} GB`
-      : b >= 1e6 ? `${(b / 1e6).toFixed(1)} MB`
-      : `${Math.round(b / 1e3)} KB`;
-
+    const E = SearchUI._svgEl;
     const statsDiv = document.createElement('div');
     statsDiv.className = 'calendar_year_stats';
 
@@ -3583,117 +3582,102 @@ class SearchUI {
     }
     statsDiv.appendChild(barSvg);
 
-    const mpRows = [], mpHandlers = [];
-    for (let i = 0; i < mpBuckets.length; i++) {
-      if (mpCounts[i] === 0) continue;
-      const [label, lo, hi] = mpBuckets[i];
-      mpRows.push([label, mpCounts[i]]);
-      mpHandlers.push(() => {
-        const criteria = [...criteriaPrefix];
-        if (lo !== null) criteria.push(['Megapixels', 'is at least', String(lo)]);
-        if (hi !== null) criteria.push(['Megapixels', 'is at most', String(hi - 0.1)]);
-        criteria.push(['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]);
-        this.searchPageLinkGenerator(null, criteria, 'all', 'large_regular');
-      });
-    }
+    const eventsRow = this._buildYearStatsEventsRow(criteriaPrefix, events, peopleTags, activitiesTags);
+    if (eventsRow) statsDiv.appendChild(eventsRow);
 
-    const vidRows = [], vidHandlers = [];
-    for (let i = 0; i < vidBuckets.length; i++) {
-      if (vidCounts[i] === 0) continue;
-      const [label, lo, hi] = vidBuckets[i];
-      vidRows.push([label, vidCounts[i]]);
-      vidHandlers.push(() => {
-        const criteria = [...criteriaPrefix];
-        if (lo !== null) criteria.push(['Video Length', 'is at least', String(lo)]);
-        if (hi !== null) criteria.push(['Video Length', 'is at most', String(hi - 1)]);
-        criteria.push(['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]);
-        this.searchPageLinkGenerator(null, criteria, 'all', 'large_regular');
-      });
-    }
+    statsDiv.appendChild(this._buildYearStatsCamerasRow(criteriaPrefix, cameras, ratings,
+      withGPS, withTitle, withComment, withMotionPhoto, photos, total));
 
-    const mkPlaceholder = () => {
-      const ph = document.createElement('div');
-      ph.className = 'calendar_stats_section';
-      return ph;
-    };
+    const fileSizesRow = this._buildYearStatsFileSizesRow(criteriaPrefix,
+      mpBuckets, mpCounts, vidBuckets, vidCounts, photoSize, videoSize, photos, videos);
+    if (fileSizesRow) statsDiv.appendChild(fileSizesRow);
 
-    // Row 1: top events | people | activities
-    const pickTopTags = (tagCounts, n) => {
-      const sorted = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
-      const selectedIds = new Set();
-      const ancestorsOfSelected = new Set();
-      const result = [];
-      for (const [tagId, count] of sorted) {
-        if (result.length >= n) break;
-        if (ancestorsOfSelected.has(tagId)) continue;
-        let blocked = false;
-        let cur = this.state.tags[tagId]?.parent_tag_id;
-        while (cur != null) {
-          if (selectedIds.has(cur)) { blocked = true; break; }
-          cur = this.state.tags[cur]?.parent_tag_id;
-        }
-        if (blocked) continue;
-        result.push([tagId, count]);
-        selectedIds.add(tagId);
-        cur = this.state.tags[tagId]?.parent_tag_id;
-        while (cur != null) {
-          ancestorsOfSelected.add(cur);
-          cur = this.state.tags[cur]?.parent_tag_id;
-        }
+    return statsDiv;
+  }
+
+  _pickTopTags(tagCounts, n) {
+    const sorted = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
+    const selectedIds = new Set();
+    const ancestorsOfSelected = new Set();
+    const result = [];
+    for (const [tagId, count] of sorted) {
+      if (result.length >= n) break;
+      if (ancestorsOfSelected.has(tagId)) continue;
+      let blocked = false;
+      let cur = this.state.tags[tagId]?.parent_tag_id;
+      while (cur != null) {
+        if (selectedIds.has(cur)) { blocked = true; break; }
+        cur = this.state.tags[cur]?.parent_tag_id;
       }
-      return result;
-    };
+      if (blocked) continue;
+      result.push([tagId, count]);
+      selectedIds.add(tagId);
+      cur = this.state.tags[tagId]?.parent_tag_id;
+      while (cur != null) {
+        ancestorsOfSelected.add(cur);
+        cur = this.state.tags[cur]?.parent_tag_id;
+      }
+    }
+    return result;
+  }
 
+  _buildYearStatsEventsRow(criteriaPrefix, events, peopleTags, activitiesTags) {
     const topEvents = Object.entries(events).sort((a, b) => b[1] - a[1]).slice(0, 5);
-    const topPeople = pickTopTags(peopleTags, 5);
-    const topActivities = pickTopTags(activitiesTags, 5);
-    if (topEvents.length > 0 || topPeople.length > 0 || topActivities.length > 0) {
-      const evtRow = document.createElement('div');
-      evtRow.className = 'calendar_stats_row';
-      if (topEvents.length > 0) {
-        const evtRows = topEvents.map(([id, count]) => [this.state.events[id]?.title ?? id, count]);
-        const evtHandlers = topEvents.map(([id]) => () => this.searchPageLinkGenerator(null,
-          [...criteriaPrefix, ['Event ID', 'equals', id], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
-          'all', 'large_regular'));
-        evtRow.appendChild(this.buildCalendarStatsBars('Top Events', evtRows, evtRows[0][1], evtHandlers));
-      } else {
-        evtRow.appendChild(mkPlaceholder());
-      }
+    const topPeople = this._pickTopTags(peopleTags, 5);
+    const topActivities = this._pickTopTags(activitiesTags, 5);
+    if (topEvents.length === 0 && topPeople.length === 0 && topActivities.length === 0) return null;
 
-      if (topPeople.length > 0) {
-        const peopleRows = topPeople.map(([tagId, count]) => [this.state.tags[tagId].full_title.split('/').pop(), count]);
-        const peopleHandlers = topPeople.map(([tagId]) => () => this.searchPageLinkGenerator(null,
-          [...criteriaPrefix, ['Tag ID', 'equals', tagId], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
-          'all', 'large_regular'));
-        evtRow.appendChild(this.buildCalendarStatsBars('Top People', peopleRows, peopleRows[0][1], peopleHandlers));
-      } else {
-        evtRow.appendChild(mkPlaceholder());
-      }
+    const mkPlaceholder = () => { const ph = document.createElement('div'); ph.className = 'calendar_stats_section'; return ph; };
+    const row = document.createElement('div');
+    row.className = 'calendar_stats_row';
 
-      if (topActivities.length > 0) {
-        const activitiesRows = topActivities.map(([tagId, count]) => [this.state.tags[tagId].full_title.split('/').pop(), count]);
-        const activitiesHandlers = topActivities.map(([tagId]) => () => this.searchPageLinkGenerator(null,
-          [...criteriaPrefix, ['Tag ID', 'equals', tagId], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
-          'all', 'large_regular'));
-        evtRow.appendChild(this.buildCalendarStatsBars('Top Activities', activitiesRows, activitiesRows[0][1], activitiesHandlers));
-      } else {
-        evtRow.appendChild(mkPlaceholder());
-      }
-      statsDiv.appendChild(evtRow);
+    if (topEvents.length > 0) {
+      const evtRows = topEvents.map(([id, count]) => [this.state.events[id]?.title ?? id, count]);
+      const evtHandlers = topEvents.map(([id]) => () => this.searchPageLinkGenerator(null,
+        [...criteriaPrefix, ['Event ID', 'equals', id], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+        'all', 'large_regular'));
+      row.appendChild(this.buildCalendarStatsBars('Top Events', evtRows, evtRows[0][1], evtHandlers));
+    } else {
+      row.appendChild(mkPlaceholder());
     }
 
-    // Row 2: cameras | ratings | coverage
-    const row1 = document.createElement('div');
-    row1.className = 'calendar_stats_row';
+    if (topPeople.length > 0) {
+      const peopleRows = topPeople.map(([tagId, count]) => [this.state.tags[tagId].full_title.split('/').pop(), count]);
+      const peopleHandlers = topPeople.map(([tagId]) => () => this.searchPageLinkGenerator(null,
+        [...criteriaPrefix, ['Tag ID', 'equals', tagId], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+        'all', 'large_regular'));
+      row.appendChild(this.buildCalendarStatsBars('Top People', peopleRows, peopleRows[0][1], peopleHandlers));
+    } else {
+      row.appendChild(mkPlaceholder());
+    }
+
+    if (topActivities.length > 0) {
+      const activitiesRows = topActivities.map(([tagId, count]) => [this.state.tags[tagId].full_title.split('/').pop(), count]);
+      const activitiesHandlers = topActivities.map(([tagId]) => () => this.searchPageLinkGenerator(null,
+        [...criteriaPrefix, ['Tag ID', 'equals', tagId], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+        'all', 'large_regular'));
+      row.appendChild(this.buildCalendarStatsBars('Top Activities', activitiesRows, activitiesRows[0][1], activitiesHandlers));
+    } else {
+      row.appendChild(mkPlaceholder());
+    }
+
+    return row;
+  }
+
+  _buildYearStatsCamerasRow(criteriaPrefix, cameras, ratings, withGPS, withTitle, withComment, withMotionPhoto, photos, total) {
+    const E = SearchUI._svgEl;
+    const mkPlaceholder = () => { const ph = document.createElement('div'); ph.className = 'calendar_stats_section'; return ph; };
+    const row = document.createElement('div');
+    row.className = 'calendar_stats_row';
 
     const topCams = Object.entries(cameras).sort((a, b) => b[1] - a[1]).slice(0, 5);
     if (topCams.length > 0) {
       const camHandlers = topCams.map(([cam]) => () => this.searchPageLinkGenerator(null,
         [...criteriaPrefix, cam === 'Unknown' ? ['Camera', 'is not set'] : ['Camera', 'equals', cam], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
         'all', 'large_regular'));
-      row1.appendChild(this.buildCalendarStatsBars('Cameras', topCams, topCams[0][1], camHandlers));
+      row.appendChild(this.buildCalendarStatsBars('Cameras', topCams, topCams[0][1], camHandlers));
     } else {
-      row1.appendChild(mkPlaceholder());
+      row.appendChild(mkPlaceholder());
     }
 
     if (ratings.slice(1).some(c => c > 0)) {
@@ -3705,10 +3689,10 @@ class SearchUI {
           [...criteriaPrefix, ['Rating', 'equals', String(r)], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
           'all', 'large_regular'));
       });
-      row1.appendChild(this.buildCalendarStatsBars('Ratings', ratingRows,
+      row.appendChild(this.buildCalendarStatsBars('Ratings', ratingRows,
         Math.max(...ratingRows.map(([, c]) => c)), ratingHandlers));
     } else {
-      row1.appendChild(mkPlaceholder());
+      row.appendChild(mkPlaceholder());
     }
 
     const coverSec = document.createElement('div');
@@ -3743,97 +3727,128 @@ class SearchUI {
       }
     });
     coverSec.appendChild(coverSvg);
-    row1.appendChild(coverSec);
+    row.appendChild(coverSec);
 
-    statsDiv.appendChild(row1);
+    return row;
+  }
 
-    // Row 3: photo size | video length | storage (only when at least one has content)
-    if (mpRows.length > 0 || vidRows.length > 0 || totalSize > 0) {
-      const row2 = document.createElement('div');
-      row2.className = 'calendar_stats_row';
+  _buildYearStatsFileSizesRow(criteriaPrefix, mpBuckets, mpCounts, vidBuckets, vidCounts, photoSize, videoSize, photos, videos) {
+    const E = SearchUI._svgEl;
+    const totalSize = photoSize + videoSize;
 
-      if (mpRows.length > 0) {
-        row2.appendChild(this.buildCalendarStatsBars('Photo Size', mpRows,
-          Math.max(...mpRows.map(([, c]) => c)), mpHandlers));
-      } else {
-        row2.appendChild(mkPlaceholder());
-      }
-
-      if (vidRows.length > 0) {
-        row2.appendChild(this.buildCalendarStatsBars('Video Length', vidRows,
-          Math.max(...vidRows.map(([, c]) => c)), vidHandlers, 'var(--calendar-bar-video)'));
-      } else {
-        row2.appendChild(mkPlaceholder());
-      }
-
-      const storageCol = document.createElement('div');
-      storageCol.className = 'calendar_stats_section';
-      if (totalSize > 0) {
-        const storItems = [];
-        if (photoSize > 0) storItems.push(['Photos', photoSize, ['Type', 'is not a', 'video']]);
-        if (videoSize > 0) storItems.push(['Videos', videoSize, ['Type', 'is a', 'video']]);
-        const maxStor = Math.max(...storItems.map(([, v]) => v));
-
-        const storTitle = document.createElement('div');
-        storTitle.className = 'calendar_stats_title';
-        storTitle.style.paddingLeft = `${(93 / 225 * 100).toFixed(2)}%`;
-        storTitle.textContent = 'Storage';
-        storageCol.appendChild(storTitle);
-
-        const storSvgH = storItems.length * 16 + 4;
-        const storSvg = E('svg', { width: '100%', height: storSvgH, viewBox: `0 0 225 ${storSvgH}` });
-        const storColors = ['var(--calendar-bar-photo)', 'var(--calendar-bar-video)'];
-        storItems.forEach(([label, size, typeFilter], i) => {
-          const y = i * 16 + 4;
-          const bw = Math.round((size / maxStor) * 85);
-          const lt = E('text', { x: 90, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
-          lt.textContent = label; storSvg.appendChild(lt);
-          storSvg.appendChild(E('rect', { x: 93, y, width: 85, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
-          storSvg.appendChild(E('rect', { x: 93, y, width: bw, height: 10, fill: storColors[i], rx: 2 }));
-          const vt = E('text', { x: 183, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
-          vt.textContent = fmtBytes(size); storSvg.appendChild(vt);
-          const hit = E('rect', { x: 0, y, width: 225, height: 14, fill: 'transparent', style: 'cursor: pointer' });
-          const tt = E('title'); tt.textContent = `${label}: ${fmtBytes(size)}`; hit.appendChild(tt);
-          const criteria = [...criteriaPrefix, typeFilter, ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]];
-          hit.addEventListener('click', () => this.searchPageLinkGenerator(null, criteria, 'all', 'large_regular'));
-          storSvg.appendChild(hit);
-        });
-        storageCol.appendChild(storSvg);
-
-        const photoAvg = photos > 0 ? photoSize / photos : 0;
-        const videoAvg = videos > 0 ? videoSize / videos : 0;
-        const avgItems = [];
-        if (photoAvg > 0) avgItems.push(['Photo', photoAvg, 'var(--calendar-bar-photo)']);
-        if (videoAvg > 0) avgItems.push(['Video', videoAvg, 'var(--calendar-bar-video)']);
-        if (avgItems.length > 0) {
-          const maxAvg = Math.max(...avgItems.map(([, v]) => v));
-          const avgTitle = document.createElement('div');
-          avgTitle.className = 'calendar_stats_title';
-          avgTitle.style.paddingLeft = `${(93 / 225 * 100).toFixed(2)}%`;
-          avgTitle.textContent = 'Avg Size';
-          storageCol.appendChild(avgTitle);
-
-          const avgSvgH = avgItems.length * 16 + 4;
-          const avgSvg = E('svg', { width: '100%', height: avgSvgH, viewBox: `0 0 225 ${avgSvgH}` });
-          avgItems.forEach(([label, avg, color], i) => {
-            const y = i * 16 + 4;
-            const bw = Math.round((avg / maxAvg) * 85);
-            const lt = E('text', { x: 90, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
-            lt.textContent = label; avgSvg.appendChild(lt);
-            avgSvg.appendChild(E('rect', { x: 93, y, width: 85, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
-            avgSvg.appendChild(E('rect', { x: 93, y, width: bw, height: 10, fill: color, rx: 2 }));
-            const vt = E('text', { x: 183, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
-            vt.textContent = fmtBytes(avg); avgSvg.appendChild(vt);
-          });
-          storageCol.appendChild(avgSvg);
-        }
-      }
-      row2.appendChild(storageCol);
-
-      statsDiv.appendChild(row2);
+    const mpRows = [], mpHandlers = [];
+    for (let i = 0; i < mpBuckets.length; i++) {
+      if (mpCounts[i] === 0) continue;
+      const [label, lo, hi] = mpBuckets[i];
+      mpRows.push([label, mpCounts[i]]);
+      mpHandlers.push(() => {
+        const criteria = [...criteriaPrefix];
+        if (lo !== null) criteria.push(['Megapixels', 'is at least', String(lo)]);
+        if (hi !== null) criteria.push(['Megapixels', 'is at most', String(hi - 0.1)]);
+        criteria.push(['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]);
+        this.searchPageLinkGenerator(null, criteria, 'all', 'large_regular');
+      });
     }
 
-    return statsDiv;
+    const vidRows = [], vidHandlers = [];
+    for (let i = 0; i < vidBuckets.length; i++) {
+      if (vidCounts[i] === 0) continue;
+      const [label, lo, hi] = vidBuckets[i];
+      vidRows.push([label, vidCounts[i]]);
+      vidHandlers.push(() => {
+        const criteria = [...criteriaPrefix];
+        if (lo !== null) criteria.push(['Video Length', 'is at least', String(lo)]);
+        if (hi !== null) criteria.push(['Video Length', 'is at most', String(hi - 1)]);
+        criteria.push(['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]);
+        this.searchPageLinkGenerator(null, criteria, 'all', 'large_regular');
+      });
+    }
+
+    if (mpRows.length === 0 && vidRows.length === 0 && totalSize === 0) return null;
+
+    const mkPlaceholder = () => { const ph = document.createElement('div'); ph.className = 'calendar_stats_section'; return ph; };
+    const row = document.createElement('div');
+    row.className = 'calendar_stats_row';
+
+    if (mpRows.length > 0) {
+      row.appendChild(this.buildCalendarStatsBars('Photo Size', mpRows,
+        Math.max(...mpRows.map(([, c]) => c)), mpHandlers));
+    } else {
+      row.appendChild(mkPlaceholder());
+    }
+
+    if (vidRows.length > 0) {
+      row.appendChild(this.buildCalendarStatsBars('Video Length', vidRows,
+        Math.max(...vidRows.map(([, c]) => c)), vidHandlers, 'var(--calendar-bar-video)'));
+    } else {
+      row.appendChild(mkPlaceholder());
+    }
+
+    const storageCol = document.createElement('div');
+    storageCol.className = 'calendar_stats_section';
+    if (totalSize > 0) {
+      const storItems = [];
+      if (photoSize > 0) storItems.push(['Photos', photoSize, ['Type', 'is not a', 'video']]);
+      if (videoSize > 0) storItems.push(['Videos', videoSize, ['Type', 'is a', 'video']]);
+      const maxStor = Math.max(...storItems.map(([, v]) => v));
+
+      const storTitle = document.createElement('div');
+      storTitle.className = 'calendar_stats_title';
+      storTitle.style.paddingLeft = `${(93 / 225 * 100).toFixed(2)}%`;
+      storTitle.textContent = 'Storage';
+      storageCol.appendChild(storTitle);
+
+      const storSvgH = storItems.length * 16 + 4;
+      const storSvg = E('svg', { width: '100%', height: storSvgH, viewBox: `0 0 225 ${storSvgH}` });
+      const storColors = ['var(--calendar-bar-photo)', 'var(--calendar-bar-video)'];
+      storItems.forEach(([label, size, typeFilter], i) => {
+        const y = i * 16 + 4;
+        const bw = Math.round((size / maxStor) * 85);
+        const lt = E('text', { x: 90, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+        lt.textContent = label; storSvg.appendChild(lt);
+        storSvg.appendChild(E('rect', { x: 93, y, width: 85, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
+        storSvg.appendChild(E('rect', { x: 93, y, width: bw, height: 10, fill: storColors[i], rx: 2 }));
+        const vt = E('text', { x: 183, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+        vt.textContent = SearchUI._fmtBytes(size); storSvg.appendChild(vt);
+        const hit = E('rect', { x: 0, y, width: 225, height: 14, fill: 'transparent', style: 'cursor: pointer' });
+        const tt = E('title'); tt.textContent = `${label}: ${SearchUI._fmtBytes(size)}`; hit.appendChild(tt);
+        const criteria = [...criteriaPrefix, typeFilter, ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]];
+        hit.addEventListener('click', () => this.searchPageLinkGenerator(null, criteria, 'all', 'large_regular'));
+        storSvg.appendChild(hit);
+      });
+      storageCol.appendChild(storSvg);
+
+      const photoAvg = photos > 0 ? photoSize / photos : 0;
+      const videoAvg = videos > 0 ? videoSize / videos : 0;
+      const avgItems = [];
+      if (photoAvg > 0) avgItems.push(['Photo', photoAvg, 'var(--calendar-bar-photo)']);
+      if (videoAvg > 0) avgItems.push(['Video', videoAvg, 'var(--calendar-bar-video)']);
+      if (avgItems.length > 0) {
+        const maxAvg = Math.max(...avgItems.map(([, v]) => v));
+        const avgTitle = document.createElement('div');
+        avgTitle.className = 'calendar_stats_title';
+        avgTitle.style.paddingLeft = `${(93 / 225 * 100).toFixed(2)}%`;
+        avgTitle.textContent = 'Avg Size';
+        storageCol.appendChild(avgTitle);
+
+        const avgSvgH = avgItems.length * 16 + 4;
+        const avgSvg = E('svg', { width: '100%', height: avgSvgH, viewBox: `0 0 225 ${avgSvgH}` });
+        avgItems.forEach(([label, avg, color], i) => {
+          const y = i * 16 + 4;
+          const bw = Math.round((avg / maxAvg) * 85);
+          const lt = E('text', { x: 90, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+          lt.textContent = label; avgSvg.appendChild(lt);
+          avgSvg.appendChild(E('rect', { x: 93, y, width: 85, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
+          avgSvg.appendChild(E('rect', { x: 93, y, width: bw, height: 10, fill: color, rx: 2 }));
+          const vt = E('text', { x: 183, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+          vt.textContent = SearchUI._fmtBytes(avg); avgSvg.appendChild(vt);
+        });
+        storageCol.appendChild(avgSvg);
+      }
+    }
+    row.appendChild(storageCol);
+
+    return row;
   }
 
   doShowCalendar(container = null, preserveExistingCriteria = false) {
