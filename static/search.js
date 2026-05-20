@@ -3584,7 +3584,7 @@ class SearchUI {
         const tt = E('title'); tt.textContent = `${MNAMES[i]}: ${(monthlyPhotos[i] + monthlyVideos[i]).toLocaleString()} item${(monthlyPhotos[i] + monthlyVideos[i]) !== 1 ? 's' : ''}`; hit.appendChild(tt);
         hit.addEventListener('click', () => this.searchPageLinkGenerator(null,
           [...criteriaPrefix, ['Date', 'was taken on month', month2], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
-          'all', 'large_regular'));
+          'all', 'default'));
         barSvg.appendChild(hit);
       }
     }
@@ -3643,7 +3643,7 @@ class SearchUI {
       const evtRows = topEvents.map(([id, count]) => [this.state.events[id]?.title ?? id, count]);
       const evtHandlers = topEvents.map(([id]) => () => this.searchPageLinkGenerator(null,
         [...criteriaPrefix, ['Event ID', 'equals', id], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
-        'all', 'large_regular'));
+        'all', 'default'));
       row.appendChild(this.buildCalendarStatsBars('Top Events', evtRows, evtRows[0][1], evtHandlers));
     } else {
       row.appendChild(mkPlaceholder());
@@ -3653,7 +3653,7 @@ class SearchUI {
       const peopleRows = topPeople.map(([tagId, count]) => [this.state.tags[tagId].full_title.split('/').pop(), count]);
       const peopleHandlers = topPeople.map(([tagId]) => () => this.searchPageLinkGenerator(null,
         [...criteriaPrefix, ['Tag ID', 'equals', tagId], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
-        'all', 'large_regular'));
+        'all', 'default'));
       row.appendChild(this.buildCalendarStatsBars('Top People', peopleRows, peopleRows[0][1], peopleHandlers));
     } else {
       row.appendChild(mkPlaceholder());
@@ -3663,7 +3663,7 @@ class SearchUI {
       const activitiesRows = topActivities.map(([tagId, count]) => [this.state.tags[tagId].full_title.split('/').pop(), count]);
       const activitiesHandlers = topActivities.map(([tagId]) => () => this.searchPageLinkGenerator(null,
         [...criteriaPrefix, ['Tag ID', 'equals', tagId], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
-        'all', 'large_regular'));
+        'all', 'default'));
       row.appendChild(this.buildCalendarStatsBars('Top Activities', activitiesRows, activitiesRows[0][1], activitiesHandlers));
     } else {
       row.appendChild(mkPlaceholder());
@@ -3682,7 +3682,7 @@ class SearchUI {
     if (topCams.length > 0) {
       const camHandlers = topCams.map(([cam]) => () => this.searchPageLinkGenerator(null,
         [...criteriaPrefix, cam === 'Unknown' ? ['Camera', 'is not set'] : ['Camera', 'equals', cam], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
-        'all', 'large_regular'));
+        'all', 'default'));
       row.appendChild(this.buildCalendarStatsBars('Cameras', topCams, topCams[0][1], camHandlers));
     } else {
       row.appendChild(mkPlaceholder());
@@ -3695,7 +3695,7 @@ class SearchUI {
         ratingRows.push(['★'.repeat(r) + '☆'.repeat(5 - r), c]);
         ratingHandlers.push(() => this.searchPageLinkGenerator(null,
           [...criteriaPrefix, ['Rating', 'equals', String(r)], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
-          'all', 'large_regular'));
+          'all', 'default'));
       });
       row.appendChild(this.buildCalendarStatsBars('Ratings', ratingRows,
         Math.max(...ratingRows.map(([, c]) => c)), ratingHandlers));
@@ -3730,7 +3730,7 @@ class SearchUI {
       if (count > 0) {
         const hit = E('rect', { x: 0, y, width: 225, height: 14, fill: 'transparent', style: 'cursor: pointer' });
         const criteria = [...criteriaPrefix, ...extraCriteria, ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]];
-        hit.addEventListener('click', () => this.searchPageLinkGenerator(null, criteria, 'all', 'large_regular'));
+        hit.addEventListener('click', () => this.searchPageLinkGenerator(null, criteria, 'all', 'default'));
         coverSvg.appendChild(hit);
       }
     });
@@ -3754,7 +3754,7 @@ class SearchUI {
         if (lo !== null) criteria.push(['Megapixels', 'is at least', String(lo)]);
         if (hi !== null) criteria.push(['Megapixels', 'is at most', String(hi - 0.1)]);
         criteria.push(['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]);
-        this.searchPageLinkGenerator(null, criteria, 'all', 'large_regular');
+        this.searchPageLinkGenerator(null, criteria, 'all', 'default');
       });
     }
 
@@ -3768,7 +3768,7 @@ class SearchUI {
         if (lo !== null) criteria.push(['Video Length', 'is at least', String(lo)]);
         if (hi !== null) criteria.push(['Video Length', 'is at most', String(hi - 1)]);
         criteria.push(['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]);
-        this.searchPageLinkGenerator(null, criteria, 'all', 'large_regular');
+        this.searchPageLinkGenerator(null, criteria, 'all', 'default');
       });
     }
 
@@ -3821,7 +3821,7 @@ class SearchUI {
         const hit = E('rect', { x: 0, y, width: 225, height: 14, fill: 'transparent', style: 'cursor: pointer' });
         const tt = E('title'); tt.textContent = `${label}: ${SearchUI._fmtBytes(size)}`; hit.appendChild(tt);
         const criteria = [...criteriaPrefix, typeFilter, ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]];
-        hit.addEventListener('click', () => this.searchPageLinkGenerator(null, criteria, 'all', 'large_regular'));
+        hit.addEventListener('click', () => this.searchPageLinkGenerator(null, criteria, 'all', 'default'));
         storSvg.appendChild(hit);
       });
       storageCol.appendChild(storSvg);
@@ -3937,14 +3937,14 @@ class SearchUI {
             [...existingCriteria,
               ['Date', 'was taken on date', minDate],
               ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
-            'all', 'large_regular', true);
+            'all', 'default', true);
         }
       } else {
         this.searchPageLinkGenerator(null,
           [...existingCriteria,
             ['Date', 'is between', minDate, maxDate],
             ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
-          'all', 'large_regular', true);
+          'all', 'default', true);
       }
       dragStartDate = null;
       dragCurrentDate = null;
