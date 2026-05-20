@@ -3617,7 +3617,72 @@ class SearchUI {
       return ph;
     };
 
-    // Row 1: cameras | ratings | coverage
+    // Row 1: top events | people | activities
+    const pickTopTags = (tagCounts, n) => {
+      const sorted = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
+      const selectedIds = new Set();
+      const ancestorsOfSelected = new Set();
+      const result = [];
+      for (const [tagId, count] of sorted) {
+        if (result.length >= n) break;
+        if (ancestorsOfSelected.has(tagId)) continue;
+        let blocked = false;
+        let cur = this.state.tags[tagId]?.parent_tag_id;
+        while (cur != null) {
+          if (selectedIds.has(cur)) { blocked = true; break; }
+          cur = this.state.tags[cur]?.parent_tag_id;
+        }
+        if (blocked) continue;
+        result.push([tagId, count]);
+        selectedIds.add(tagId);
+        cur = this.state.tags[tagId]?.parent_tag_id;
+        while (cur != null) {
+          ancestorsOfSelected.add(cur);
+          cur = this.state.tags[cur]?.parent_tag_id;
+        }
+      }
+      return result;
+    };
+
+    const topEvents = Object.entries(events).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const topPeople = pickTopTags(peopleTags, 5);
+    const topActivities = pickTopTags(activitiesTags, 5);
+    if (topEvents.length > 0 || topPeople.length > 0 || topActivities.length > 0) {
+      const evtRow = document.createElement('div');
+      evtRow.className = 'calendar_stats_row';
+      if (topEvents.length > 0) {
+        const evtRows = topEvents.map(([id, count]) => [this.state.events[id]?.title ?? id, count]);
+        const evtHandlers = topEvents.map(([id]) => () => this.searchPageLinkGenerator(null,
+          [...criteriaPrefix, ['Event ID', 'equals', id], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+          'all', 'large_regular'));
+        evtRow.appendChild(this.buildCalendarStatsBars('Top Events', evtRows, evtRows[0][1], evtHandlers));
+      } else {
+        evtRow.appendChild(mkPlaceholder());
+      }
+
+      if (topPeople.length > 0) {
+        const peopleRows = topPeople.map(([tagId, count]) => [this.state.tags[tagId].full_title.split('/').pop(), count]);
+        const peopleHandlers = topPeople.map(([tagId]) => () => this.searchPageLinkGenerator(null,
+          [...criteriaPrefix, ['Tag ID', 'equals', tagId], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+          'all', 'large_regular'));
+        evtRow.appendChild(this.buildCalendarStatsBars('Top People', peopleRows, peopleRows[0][1], peopleHandlers));
+      } else {
+        evtRow.appendChild(mkPlaceholder());
+      }
+
+      if (topActivities.length > 0) {
+        const activitiesRows = topActivities.map(([tagId, count]) => [this.state.tags[tagId].full_title.split('/').pop(), count]);
+        const activitiesHandlers = topActivities.map(([tagId]) => () => this.searchPageLinkGenerator(null,
+          [...criteriaPrefix, ['Tag ID', 'equals', tagId], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+          'all', 'large_regular'));
+        evtRow.appendChild(this.buildCalendarStatsBars('Top Activities', activitiesRows, activitiesRows[0][1], activitiesHandlers));
+      } else {
+        evtRow.appendChild(mkPlaceholder());
+      }
+      statsDiv.appendChild(evtRow);
+    }
+
+    // Row 2: cameras | ratings | coverage
     const row1 = document.createElement('div');
     row1.className = 'calendar_stats_row';
 
@@ -3682,7 +3747,7 @@ class SearchUI {
 
     statsDiv.appendChild(row1);
 
-    // Row 2: photo size | video length | storage (only when at least one has content)
+    // Row 3: photo size | video length | storage (only when at least one has content)
     if (mpRows.length > 0 || vidRows.length > 0 || totalSize > 0) {
       const row2 = document.createElement('div');
       row2.className = 'calendar_stats_row';
@@ -3766,70 +3831,6 @@ class SearchUI {
       row2.appendChild(storageCol);
 
       statsDiv.appendChild(row2);
-    }
-
-    const pickTopTags = (tagCounts, n) => {
-      const sorted = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
-      const selectedIds = new Set();
-      const ancestorsOfSelected = new Set();
-      const result = [];
-      for (const [tagId, count] of sorted) {
-        if (result.length >= n) break;
-        if (ancestorsOfSelected.has(tagId)) continue;
-        let blocked = false;
-        let cur = this.state.tags[tagId]?.parent_tag_id;
-        while (cur != null) {
-          if (selectedIds.has(cur)) { blocked = true; break; }
-          cur = this.state.tags[cur]?.parent_tag_id;
-        }
-        if (blocked) continue;
-        result.push([tagId, count]);
-        selectedIds.add(tagId);
-        cur = this.state.tags[tagId]?.parent_tag_id;
-        while (cur != null) {
-          ancestorsOfSelected.add(cur);
-          cur = this.state.tags[cur]?.parent_tag_id;
-        }
-      }
-      return result;
-    };
-
-    const topEvents = Object.entries(events).sort((a, b) => b[1] - a[1]).slice(0, 5);
-    const topPeople = pickTopTags(peopleTags, 5);
-    const topActivities = pickTopTags(activitiesTags, 5);
-    if (topEvents.length > 0 || topPeople.length > 0 || topActivities.length > 0) {
-      const evtRow = document.createElement('div');
-      evtRow.className = 'calendar_stats_row';
-      if (topEvents.length > 0) {
-        const evtRows = topEvents.map(([id, count]) => [this.state.events[id]?.title ?? id, count]);
-        const evtHandlers = topEvents.map(([id]) => () => this.searchPageLinkGenerator(null,
-          [...criteriaPrefix, ['Event ID', 'equals', id], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
-          'all', 'large_regular'));
-        evtRow.appendChild(this.buildCalendarStatsBars('Top Events', evtRows, evtRows[0][1], evtHandlers));
-      } else {
-        evtRow.appendChild(mkPlaceholder());
-      }
-
-      if (topPeople.length > 0) {
-        const peopleRows = topPeople.map(([tagId, count]) => [this.state.tags[tagId].full_title.split('/').pop(), count]);
-        const peopleHandlers = topPeople.map(([tagId]) => () => this.searchPageLinkGenerator(null,
-          [...criteriaPrefix, ['Tag ID', 'equals', tagId], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
-          'all', 'large_regular'));
-        evtRow.appendChild(this.buildCalendarStatsBars('Top People', peopleRows, peopleRows[0][1], peopleHandlers));
-      } else {
-        evtRow.appendChild(mkPlaceholder());
-      }
-
-      if (topActivities.length > 0) {
-        const activitiesRows = topActivities.map(([tagId, count]) => [this.state.tags[tagId].full_title.split('/').pop(), count]);
-        const activitiesHandlers = topActivities.map(([tagId]) => () => this.searchPageLinkGenerator(null,
-          [...criteriaPrefix, ['Tag ID', 'equals', tagId], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
-          'all', 'large_regular'));
-        evtRow.appendChild(this.buildCalendarStatsBars('Top Activities', activitiesRows, activitiesRows[0][1], activitiesHandlers));
-      } else {
-        evtRow.appendChild(mkPlaceholder());
-      }
-      statsDiv.appendChild(evtRow);
     }
 
     return statsDiv;
