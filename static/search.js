@@ -3343,7 +3343,7 @@ class SearchUI {
     svg.setAttribute('width', svgW);
     svg.setAttribute('height', svgH);
     svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
-    svg.setAttribute('aria-label', `Photo heatmap for ${year}`);
+    svg.setAttribute('aria-label', `Media heatmap for ${year}`);
 
     ['', 'M', '', 'W', '', 'F', ''].forEach((lbl, i) => {
       if (!lbl) return;
@@ -3378,7 +3378,10 @@ class SearchUI {
       }
 
       const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const count = dateCounts[dateKey] || 0;
+      const entry = dateCounts[dateKey];
+      const photos = entry?.photos ?? 0;
+      const videos = entry?.videos ?? 0;
+      const total = photos + videos;
 
       const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
       rect.setAttribute('x', DOW_W + col * STEP);
@@ -3386,14 +3389,19 @@ class SearchUI {
       rect.setAttribute('width', CELL);
       rect.setAttribute('height', CELL);
       rect.setAttribute('rx', 2);
-      rect.setAttribute('class', `calendar_cell_${this.getHeatmapLevel(count)}`);
+      rect.setAttribute('class', `calendar_cell_${this.getHeatmapLevel(total)}`);
       rect.setAttribute('data-date', dateKey);
-      if (count > 0) rect.style.cursor = 'pointer';
+      if (total > 0) rect.style.cursor = 'pointer';
 
       const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-      title.textContent = count > 0
-        ? `${dateKey}: ${count} photo${count !== 1 ? 's' : ''}`
-        : `${dateKey}: no photos`;
+      if (total === 0) {
+        title.textContent = `${dateKey}: no photos`;
+      } else {
+        const parts = [];
+        if (photos > 0) parts.push(`${photos} photo${photos !== 1 ? 's' : ''}`);
+        if (videos > 0) parts.push(`${videos} video${videos !== 1 ? 's' : ''}`);
+        title.textContent = `${dateKey}: ${parts.join(', ')}`;
+      }
       rect.appendChild(title);
 
       svg.appendChild(rect);
@@ -3858,7 +3866,9 @@ class SearchUI {
       if (!SearchEngine.MEDIA_TYPES.includes(media.type)) continue;
       if (!media.exposure_time) continue;
       const dateKey = media.exposure_time.split('T')[0];
-      dateCounts[dateKey] = (dateCounts[dateKey] || 0) + 1;
+      if (!dateCounts[dateKey]) dateCounts[dateKey] = { photos: 0, videos: 0 };
+      if (media.type === 'video') dateCounts[dateKey].videos++;
+      else dateCounts[dateKey].photos++;
       const yr = parseInt(dateKey.split('-')[0], 10);
       if (!mediaByYear[yr]) mediaByYear[yr] = [];
       mediaByYear[yr].push(media);
@@ -3922,7 +3932,7 @@ class SearchUI {
         ? this.searchEngine.getSearchQueryParams().map(p => p.split(','))
         : [];
       if (minDate === maxDate) {
-        if ((dateCounts[minDate] || 0) > 0) {
+        if (dateCounts[minDate] && (dateCounts[minDate].photos + dateCounts[minDate].videos) > 0) {
           this.searchPageLinkGenerator(null,
             [...existingCriteria,
               ['Date', 'was taken on date', minDate],
