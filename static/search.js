@@ -4243,6 +4243,132 @@ function doSearchInit() {
   _mediaSearchUI.init();
 }
 
+function initAddressSearch(mapInstance) {
+  const searchContainer = document.getElementById('address-search');
+  const input = document.getElementById('address-input');
+  const btn = document.getElementById('address-search-btn');
+  if (!searchContainer || !input || !btn) return;
+
+  const suggestionsEl = document.createElement('div');
+  suggestionsEl.id = 'address-suggestions';
+  searchContainer.appendChild(suggestionsEl);
+
+  let debounceTimer = null;
+  let activeIndex = -1;
+  let currentResults = [];
+
+  function hideSuggestions() {
+    suggestionsEl.style.display = 'none';
+    activeIndex = -1;
+    currentResults = [];
+  }
+
+  function updateActive() {
+    suggestionsEl.querySelectorAll('.address-suggestion').forEach((item, idx) => {
+      item.classList.toggle('address-suggestion-active', idx === activeIndex);
+    });
+  }
+
+  function selectSuggestion(result) {
+    input.value = result.display_name;
+    mapInstance.setView([parseFloat(result.lat), parseFloat(result.lon)], 14);
+    hideSuggestions();
+  }
+
+  function showSuggestions(results) {
+    suggestionsEl.innerHTML = '';
+    currentResults = results;
+    activeIndex = -1;
+    if (results.length === 0) {
+      hideSuggestions();
+      return;
+    }
+    for (const result of results) {
+      const item = document.createElement('div');
+      item.className = 'address-suggestion';
+      item.textContent = result.display_name;
+      item.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        selectSuggestion(result);
+      });
+      suggestionsEl.appendChild(item);
+    }
+    suggestionsEl.style.display = 'block';
+  }
+
+  function fetchSuggestions(query) {
+    if (!query || query.length < 3 || /^-?\d+\.?\d*[,\s]+-?\d+\.?\d*$/.test(query)) {
+      hideSuggestions();
+      return;
+    }
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(query)}`)
+      .then(r => r.json())
+      .then(showSuggestions)
+      .catch(() => hideSuggestions());
+  }
+
+  function doSearch() {
+    const query = input.value.trim();
+    if (!query) return;
+    hideSuggestions();
+
+    const latLonMatch = query.match(/^(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)$/);
+    if (latLonMatch) {
+      const lat = parseFloat(latLonMatch[1]);
+      const lon = parseFloat(latLonMatch[2]);
+      if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+        mapInstance.setView([lat, lon], 14);
+        return;
+      }
+    }
+
+    btn.disabled = true;
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`)
+      .then(r => r.json())
+      .then(results => {
+        if (results && results.length > 0) {
+          mapInstance.setView([parseFloat(results[0].lat), parseFloat(results[0].lon)], 14);
+        } else {
+          alert(`No results found for: ${query}`);
+        }
+      })
+      .catch(() => alert('Error performing geocode search'))
+      .finally(() => { btn.disabled = false; });
+  }
+
+  input.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => fetchSuggestions(input.value.trim()), 300);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeIndex = Math.min(activeIndex + 1, currentResults.length - 1);
+      updateActive();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeIndex = Math.max(activeIndex - 1, -1);
+      updateActive();
+    } else if (e.key === 'Enter') {
+      e.stopPropagation();
+      if (activeIndex >= 0 && currentResults[activeIndex]) {
+        selectSuggestion(currentResults[activeIndex]);
+      } else {
+        doSearch();
+      }
+    } else if (e.key === 'Escape') {
+      hideSuggestions();
+    }
+  });
+
+  btn.addEventListener('click', doSearch);
+
+  document.addEventListener('click', (e) => {
+    if (!searchContainer.contains(e.target)) hideSuggestions();
+  });
+}
+
 function doMapInit() {
   const POPUP_WIDTH = 350;
   const AUTOPAN_PADDING = [30, 30];
@@ -4265,6 +4391,7 @@ function doMapInit() {
     const mapUI = new MapUI(state, searchEngine, searchUI);
 
     mapUI.initMap(map, markers, POPUP_WIDTH, AUTOPAN_PADDING);
+    initAddressSearch(map);
   } catch (error) {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('error').style.display = 'block';
