@@ -106,6 +106,7 @@ def write_if_changed(dest, content):
         if os.path.exists(dest) and filecmp.cmp(tmp_path, dest, shallow=False):
             os.unlink(tmp_path)
         else:
+            logging.info("Writing event metadata %s", dest)
             os.replace(tmp_path, dest)
     except BaseException:
         if os.path.exists(tmp_path):
@@ -117,8 +118,9 @@ def write_event_metadata(options, events):
         if not row['comment']:
             continue
 
+        comment = row['comment'].replace('\r\n', '\n').replace('\n', '\r\n')
         write_if_changed(os.path.join(options.input_media_path, row['path'], 'comment.txt'),
-                         row['comment'])
+                         comment)
 
 def do_fetch_media(options):
     conn = sqlite3.connect(options.input_database)
