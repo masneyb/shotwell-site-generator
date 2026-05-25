@@ -5,13 +5,14 @@
 # Rearranges media on the filesystem to match the way it's organized in Shotwell.
 
 import argparse
+import filecmp
 import logging
 import os
-import pathlib
 import re
 import sqlite3
 import subprocess
 import sys
+import tempfile
 
 def fetch_events_from_media_table(conn, table_name, events):
     qry = "SELECT EventTable.id, EventTable.name, EventTable.comment, " + \
@@ -95,13 +96,29 @@ def process_media_table(options, conn, table_name, events):
             os.makedirs(basedir)
         subprocess.run(['mv', row['filename'], new_path], check=True)
 
+def write_if_changed(dest, content):
+    dest_dir = os.path.dirname(dest)
+    os.makedirs(dest_dir, exist_ok=True)
+    fd, tmp_path = tempfile.mkstemp(dir=dest_dir, prefix='.comment.', suffix='.tmp')
+    try:
+        with os.fdopen(fd, 'w', encoding='UTF-8') as fhandle:
+            fhandle.write(content)
+        if os.path.exists(dest) and filecmp.cmp(tmp_path, dest, shallow=False):
+            os.unlink(tmp_path)
+        else:
+            os.replace(tmp_path, dest)
+    except BaseException:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+        raise
+
 def write_event_metadata(options, events):
     for row in events.values():
         if not row['comment']:
             continue
 
-        pathlib.Path(os.path.join(options.input_media_path, row['path'], 'comment.txt')) \
-            .write_text(row['comment'], encoding='UTF-8')
+        write_if_changed(os.path.join(options.input_media_path, row['path'], 'comment.txt'),
+                         row['comment'])
 
 def do_fetch_media(options):
     conn = sqlite3.connect(options.input_database)
