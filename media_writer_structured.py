@@ -6,11 +6,32 @@
 
 import csv
 import datetime
+import filecmp
+import io
 import json
+import logging
 import os
+import tempfile
 import geojson
 import humanize
 from media_writer_common import CommonWriter
+
+def write_if_changed(dest, content):
+    dest_dir = os.path.dirname(dest)
+    os.makedirs(dest_dir, exist_ok=True)
+    fd, tmp_path = tempfile.mkstemp(dir=dest_dir, prefix='.media.', suffix='.tmp')
+    try:
+        with os.fdopen(fd, 'w', encoding='UTF-8') as fhandle:
+            fhandle.write(content)
+        if os.path.exists(dest) and filecmp.cmp(tmp_path, dest, shallow=False):
+            os.unlink(tmp_path)
+        else:
+            logging.info("Writing %s", dest)
+            os.replace(tmp_path, dest)
+    except BaseException:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+        raise
 
 def write_column(media, colname, _event_names, _tag_names):
     return media[colname] if colname in media else ''
@@ -253,37 +274,41 @@ class Structured(CommonWriter):
 
         event_csv_files = {}
 
-        # Write out the toplevel CSV file
-        with open(os.path.join(self.dest_directory, "media.csv"), "w", encoding="UTF-8") as outfile:
-            csv_writer = csv.writer(outfile)
-            csv_writer.writerow(header_row)
+        # Build the toplevel CSV file
+        outfile = io.StringIO()
+        csv_writer = csv.writer(outfile)
+        csv_writer.writerow(header_row)
 
-            for media in ret['media']:
-                row = []
-                for col in self.csv_cols:
-                    row.append(col[1](media, col[0], event_names, tag_names))
+        for media in ret['media']:
+            row = []
+            for col in self.csv_cols:
+                row.append(col[1](media, col[0], event_names, tag_names))
 
-                csv_writer.writerow(row)
+            csv_writer.writerow(row)
 
-                base_dir = os.path.dirname(media["link"])
-                if base_dir.startswith("transformed/"):
-                    base_dir = base_dir.replace("transformed/", "original/")
+            base_dir = os.path.dirname(media["link"])
+            if base_dir.startswith("transformed/"):
+                base_dir = base_dir.replace("transformed/", "original/")
 
-                if base_dir not in event_csv_files:
-                    event_csv_files[base_dir] = []
+            if base_dir not in event_csv_files:
+                event_csv_files[base_dir] = []
 
-                event_csv_files[base_dir].append(row)
+            event_csv_files[base_dir].append(row)
+
+        write_if_changed(os.path.join(self.dest_directory, "media.csv"), outfile.getvalue())
 
         # Now write out all of the per event CSV files
         for base_dir, rows in event_csv_files.items():
-            with open(os.path.join(self.dest_directory, base_dir, "media.csv"), "w",
-                      encoding="UTF-8") as outfile:
-                csv_writer = csv.writer(outfile)
-                csv_writer.writerow(header_row)
+            outfile = io.StringIO()
+            csv_writer = csv.writer(outfile)
+            csv_writer.writerow(header_row)
 
-                rows.reverse()
-                for row in rows:
-                    csv_writer.writerow(row)
+            rows.reverse()
+            for row in rows:
+                csv_writer.writerow(row)
+
+            write_if_changed(os.path.join(self.dest_directory, base_dir, "media.csv"),
+                             outfile.getvalue())
 
     def __write_geojson_file(self, ret, event_names, tag_names):
         features = []
