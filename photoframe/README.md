@@ -23,10 +23,11 @@ The screen is automatically powered off at night and comes back on in the mornin
 
 ## Base OS Install
 
-I used the 2024-03-15 64-bit release of Raspberry Pi OS from
+I used the 2026-04-21 64-bit release of Raspberry Pi OS (Debian Trixie,
+labwc/Wayland) from
 https://downloads.raspberrypi.org/raspios_arm64/images/.
 
-    sudo apt install -y libnss3-tools python3-lgpio unattended-upgrades unclutter
+    sudo apt install -y libnss3-tools python3-lgpio util-linux-extra wlopm
 
 Additional parameters to add to /boot/config.txt:
 
@@ -38,33 +39,37 @@ Additional parameters to add to /boot/config.txt:
     dtparam=pwr_led_trigger=none
     dtparam=pwr_led_activelow=off
 
+I have an external RTC hooked up over i2c:
+
+    dtparam=i2c_arm=on
+    dtoverlay=i2c-rtc,ds3231
+
+Append this to the bottom of /etc/xdg/labwc/autostart:
+
+    systemctl --user import-environment WAYLAND_DISPLAY XDG_RUNTIME_DIR
+    systemctl --user start photos-on.service
+
 ## Scripts to start/stop Chromium browser
 
 - Script to start the Chromium browser in kiosk mode. Be sure to update your URL in the
   start-photos.sh script.
-  - [/etc/systemd/system/photos-off.service](etc/systemd/system/photos-off.service)
-  - [/etc/systemd/system/photos-off.timer](etc/systemd/system/photos-off.timer)
-  - [/etc/systemd/system/photos-on.service](etc/systemd/system/photos-on.service)
-  - [/etc/systemd/system/photos-on.timer](etc/systemd/system/photos-on.timer)
+  - [/etc/systemd/user/photos-off.service](etc/systemd/user/photos-off.service)
+  - [/etc/systemd/user/photos-off.timer](etc/systemd/user/photos-off.timer)
+  - [/etc/systemd/user/photos-on.service](etc/systemd/user/photos-on.service)
+  - [/etc/systemd/user/photos-on.timer](etc/systemd/user/photos-on.timer)
   - [/usr/local/bin/start-photos.sh](usr/local/bin/start-photos.sh)
   - [/usr/local/bin/stop-photos.sh](usr/local/bin/stop-photos.sh)
 
 - I added a button to the back of the case that allows manually toggling the power on the screen
   and starting/stopping the Chromium browser.
-  - [/etc/systemd/system/photos-button.service](etc/systemd/system/photos-button.service)
+  - [/etc/systemd/user/photos-button.service](etc/systemd/user/photos-button.service)
   - [/usr/local/bin/power_button.py](usr/local/bin/power_button.py)
   - [/usr/local/bin/toggle-state.sh](usr/local/bin/toggle-state.sh)
 
-- Configure the pi user to automatically start the photo site on startup.
-  - [/home/pi/.config/autostart/photos.desktop](home/pi/.config/autostart/photos.desktop)
-
-
 Enable the systemd units:
 
-    sudo systemctl daemon-reload
-    sudo systemctl enable --now photos-off.timer
-    sudo systemctl enable --now photos-on.timer
-    sudo systemctl enable --now photos-button.service
+    sudo systemctl --global enable photos-button.service photos-on.timer photos-off.timer
+    systemctl --user daemon-reload
 
 Use `raspi-config` to configure the system to automatically log in as the
 `pi` username.

@@ -1,16 +1,14 @@
 [Unit]
 Description=GPIO Power Button
-After=network.target
+After=graphical-session.target
+PartOf=graphical-session.target
 
 [Service]
-User=pi
 ExecStart=/usr/local/bin/power_button.py
 Environment=PYTHONUNBUFFERED=1
-Environment=DISPLAY=:0
-Environment=XAUTHORITY=/home/pi/.Xauthority
-WorkingDirectory=/home/pi
+Environment=WAYLAND_DISPLAY=wayland-0
 KillMode=process
 Restart=on-failure
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=graphical-session.target

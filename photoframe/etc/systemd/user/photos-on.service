@@ -1,0 +1,10 @@
+[Unit]
+Description=Power on photos
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+ExecStart=/usr/local/bin/start-photos.sh
+Environment=WAYLAND_DISPLAY=wayland-0
+KillMode=process
+Restart=on-failure

@@ -4,8 +4,10 @@
 
 if [ -d /sys/class/backlight/rpi_backlight ] ; then
 	DISABLED=$(cat /sys/class/backlight/rpi_backlight/bl_power)
+elif wlopm 2>/dev/null | grep -q ' off' ; then
+	DISABLED=1
 else
-	DISABLED=$(xset q | grep "Monitor is Off" | wc -l)
+	DISABLED=0
 fi
 
 if [ "${DISABLED}" = "1" ] ; then
