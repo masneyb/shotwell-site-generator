@@ -27,9 +27,9 @@ I used the 2026-04-21 64-bit release of Raspberry Pi OS (Debian Trixie,
 labwc/Wayland) from
 https://downloads.raspberrypi.org/raspios_arm64/images/.
 
-    sudo apt install -y libnss3-tools python3-lgpio util-linux-extra wlopm
+    sudo apt install -y libnss3-tools python3-lgpio util-linux-extra wlopm wlrctl
 
-Additional parameters to add to /boot/config.txt:
+Additional parameters to add to /boot/firmware/config.txt:
 
     # Disable Activity LED
     dtparam=act_led_trigger=none
