@@ -1948,7 +1948,8 @@ class SearchUI {
     filmstripEle.style.display = descrEle.style.display !== 'none' ? 'flex' : 'none';
 
     if (activeThumb && filmstripEle.style.display !== 'none') {
-      requestAnimationFrame(() => activeThumb.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'instant' }));
+      requestAnimationFrame(() => activeThumb.scrollIntoView(
+        { inline: 'center', block: 'nearest', behavior: 'instant' }));
     }
   }
 
@@ -2754,7 +2755,8 @@ class SearchUI {
     }
 
     if (!isTagMetadataMode && entity.camera) {
-      extStats.push(this.createSearchLink(entity.camera, 'Camera', 'equals', entity.camera, extraOnClick, navigateToUrl));
+      extStats.push(this.createSearchLink(entity.camera, 'Camera', 'equals',
+        entity.camera, extraOnClick, navigateToUrl));
     }
 
     if (!isTagMetadataMode && entity.exif) {
@@ -3433,6 +3435,12 @@ class SearchUI {
     return el;
   }
 
+  static _svgText(attrs) {
+    return SearchUI._svgEl('text', {
+      'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif', ...attrs,
+    });
+  }
+
   static _fmtBytes(b) {
     return b >= 1e12 ? `${(b / 1e12).toFixed(1)} TB`
       : b >= 1e9 ? `${(b / 1e9).toFixed(1)} GB`
@@ -3441,6 +3449,7 @@ class SearchUI {
   }
 
   buildCalendarStatsBars(title, entries, maxVal, clickHandlers = null, barColor = 'var(--calendar-bar-photo)') {
+    const T = SearchUI._svgText;
     const E = SearchUI._svgEl;
     const sec = document.createElement('div');
     sec.className = 'calendar_stats_section';
@@ -3454,13 +3463,13 @@ class SearchUI {
     entries.forEach(([label, count], i) => {
       const y = i * 16 + 4;
       const lbl = label.length > 20 ? label.slice(0, 19) + '…' : label;
-      const lt = E('text', { x: 112, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      const lt = T({ x: 112, y: y + 9, 'text-anchor': 'end' });
       lt.textContent = lbl;
       svg.appendChild(lt);
       svg.appendChild(E('rect', { x: 115, y, width: 65, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
       const bw = maxVal > 0 ? Math.round((count / maxVal) * 65) : 0;
       if (bw > 0) svg.appendChild(E('rect', { x: 115, y, width: bw, height: 10, fill: barColor, rx: 2 }));
-      const ct = E('text', { x: 185, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      const ct = T({ x: 185, y: y + 9 });
       ct.textContent = count.toLocaleString();
       svg.appendChild(ct);
       const handler = clickHandlers ? clickHandlers[i] : null;
@@ -3536,17 +3545,21 @@ class SearchUI {
     }
 
     const E = SearchUI._svgEl;
+    const T = SearchUI._svgText;
     const statsDiv = document.createElement('div');
     statsDiv.className = 'calendar_year_stats';
 
     // Monthly bar chart
     const W = 707, ML = 32, MR = 5, MT = 16, MB = 16, CH = 55;
     const chartW = W - ML - MR;
-    const barSvg = E('svg', { width: W, height: MT + CH + MB, viewBox: `0 0 ${W} ${MT + CH + MB}`, role: 'img', 'aria-label': `Monthly breakdown for ${year}` });
+    const barSvg = E('svg', {
+      width: W, height: MT + CH + MB, viewBox: `0 0 ${W} ${MT + CH + MB}`,
+      role: 'img', 'aria-label': `Monthly breakdown for ${year}`,
+    });
 
     const addLegend = (lx, color, text) => {
       barSvg.appendChild(E('rect', { x: lx, y: 2, width: 8, height: 8, fill: color }));
-      const t = E('text', { x: lx + 11, y: 10, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      const t = T({ x: lx + 11, y: 10 });
       t.textContent = text; barSvg.appendChild(t);
     };
     addLegend(ML, 'var(--calendar-bar-photo)', `Photos (${photos.toLocaleString()})`);
@@ -3555,8 +3568,11 @@ class SearchUI {
     const maxM = Math.max(1, ...monthlyPhotos.map((p, i) => p + monthlyVideos[i]));
     for (const v of [maxM, Math.round(maxM / 2)]) {
       const gy = MT + CH - (v / maxM) * CH;
-      barSvg.appendChild(E('line', { x1: ML, y1: gy, x2: ML + chartW, y2: gy, stroke: 'currentColor', 'stroke-opacity': '0.2', 'stroke-width': '1' }));
-      const gt = E('text', { x: ML - 3, y: gy + 3, 'text-anchor': 'end', 'font-size': '8', fill: 'currentColor', 'font-family': 'sans-serif' });
+      barSvg.appendChild(E('line', {
+        x1: ML, y1: gy, x2: ML + chartW, y2: gy,
+        stroke: 'currentColor', 'stroke-opacity': '0.2', 'stroke-width': '1',
+      }));
+      const gt = T({ x: ML - 3, y: gy + 3, 'text-anchor': 'end', 'font-size': '8' });
       gt.textContent = v.toLocaleString(); barSvg.appendChild(gt);
     }
 
@@ -3568,22 +3584,31 @@ class SearchUI {
       const vh = (monthlyVideos[i] / maxM) * CH;
       if (monthlyVideos[i] > 0) {
         const r = E('rect', { x: bx, y: MT + CH - ph - vh, width: bw, height: vh, fill: 'var(--calendar-bar-video)' });
-        const t = E('title'); t.textContent = `${MNAMES[i]}: ${monthlyVideos[i].toLocaleString()} video${monthlyVideos[i] !== 1 ? 's' : ''}`;
+        const t = E('title');
+        t.textContent = `${MNAMES[i]}: ${monthlyVideos[i].toLocaleString()} video${monthlyVideos[i] !== 1 ? 's' : ''}`;
         r.appendChild(t); barSvg.appendChild(r);
       }
       if (monthlyPhotos[i] > 0) {
         const r = E('rect', { x: bx, y: MT + CH - ph, width: bw, height: ph, fill: 'var(--calendar-bar-photo)' });
-        const t = E('title'); t.textContent = `${MNAMES[i]}: ${monthlyPhotos[i].toLocaleString()} photo${monthlyPhotos[i] !== 1 ? 's' : ''}`;
+        const t = E('title');
+        t.textContent = `${MNAMES[i]}: ${monthlyPhotos[i].toLocaleString()} photo${monthlyPhotos[i] !== 1 ? 's' : ''}`;
         r.appendChild(t); barSvg.appendChild(r);
       }
-      const lbl = E('text', { x: bx + bw / 2, y: MT + CH + 12, 'text-anchor': 'middle', 'font-size': '8', fill: 'currentColor', 'font-family': 'sans-serif' });
+      const lbl = T({ x: bx + bw / 2, y: MT + CH + 12, 'text-anchor': 'middle', 'font-size': '8' });
       lbl.textContent = MNAMES[i]; barSvg.appendChild(lbl);
       if ((monthlyPhotos[i] + monthlyVideos[i]) > 0) {
         const month2 = String(i + 1).padStart(2, '0');
-        const hit = E('rect', { x: ML + i * (chartW / 12), y: MT, width: chartW / 12, height: CH + MB, fill: 'transparent', style: 'cursor: pointer' });
-        const tt = E('title'); tt.textContent = `${MNAMES[i]}: ${(monthlyPhotos[i] + monthlyVideos[i]).toLocaleString()} item${(monthlyPhotos[i] + monthlyVideos[i]) !== 1 ? 's' : ''}`; hit.appendChild(tt);
+        const hit = E('rect', {
+          x: ML + i * (chartW / 12), y: MT, width: chartW / 12, height: CH + MB,
+          fill: 'transparent', style: 'cursor: pointer',
+        });
+        const total2 = monthlyPhotos[i] + monthlyVideos[i];
+        const tt = E('title');
+        tt.textContent = `${MNAMES[i]}: ${total2.toLocaleString()} item${total2 !== 1 ? 's' : ''}`;
+        hit.appendChild(tt);
         hit.addEventListener('click', () => this.searchPageLinkGenerator(null,
-          [...criteriaPrefix, ['Date', 'was taken on month', month2], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+          [...criteriaPrefix, ['Date', 'was taken on month', month2],
+            ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
           'all', 'default'));
         barSvg.appendChild(hit);
       }
@@ -3635,7 +3660,11 @@ class SearchUI {
     const topActivities = this._pickTopTags(activitiesTags, 5);
     if (topEvents.length === 0 && topPeople.length === 0 && topActivities.length === 0) return null;
 
-    const mkPlaceholder = () => { const ph = document.createElement('div'); ph.className = 'calendar_stats_section'; return ph; };
+    const mkPlaceholder = () => {
+      const ph = document.createElement('div');
+      ph.className = 'calendar_stats_section';
+      return ph;
+    };
     const row = document.createElement('div');
     row.className = 'calendar_stats_row';
 
@@ -3660,11 +3689,13 @@ class SearchUI {
     }
 
     if (topActivities.length > 0) {
-      const activitiesRows = topActivities.map(([tagId, count]) => [this.state.tags[tagId].full_title.split('/').pop(), count]);
+      const activitiesRows = topActivities.map(([tagId, count]) =>
+        [this.state.tags[tagId].full_title.split('/').pop(), count]);
       const activitiesHandlers = topActivities.map(([tagId]) => () => this.searchPageLinkGenerator(null,
         [...criteriaPrefix, ['Tag ID', 'equals', tagId], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
         'all', 'default'));
-      row.appendChild(this.buildCalendarStatsBars('Top Activities', activitiesRows, activitiesRows[0][1], activitiesHandlers));
+      row.appendChild(this.buildCalendarStatsBars(
+        'Top Activities', activitiesRows, activitiesRows[0][1], activitiesHandlers));
     } else {
       row.appendChild(mkPlaceholder());
     }
@@ -3672,16 +3703,23 @@ class SearchUI {
     return row;
   }
 
-  _buildYearStatsCamerasRow(criteriaPrefix, cameras, ratings, withGPS, withTitle, withComment, withMotionPhoto, photos, total) {
+  _buildYearStatsCamerasRow(criteriaPrefix, cameras, ratings, withGPS, withTitle,
+    withComment, withMotionPhoto, photos, total) {
     const E = SearchUI._svgEl;
-    const mkPlaceholder = () => { const ph = document.createElement('div'); ph.className = 'calendar_stats_section'; return ph; };
+    const T = SearchUI._svgText;
+    const mkPlaceholder = () => {
+      const ph = document.createElement('div');
+      ph.className = 'calendar_stats_section';
+      return ph;
+    };
     const row = document.createElement('div');
     row.className = 'calendar_stats_row';
 
     const topCams = Object.entries(cameras).sort((a, b) => b[1] - a[1]).slice(0, 5);
     if (topCams.length > 0) {
       const camHandlers = topCams.map(([cam]) => () => this.searchPageLinkGenerator(null,
-        [...criteriaPrefix, cam === 'Unknown' ? ['Camera', 'is not set'] : ['Camera', 'equals', cam], ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+        [...criteriaPrefix, cam === 'Unknown' ? ['Camera', 'is not set'] : ['Camera', 'equals', cam],
+          ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
         'all', 'default'));
       row.appendChild(this.buildCalendarStatsBars('Cameras', topCams, topCams[0][1], camHandlers));
     } else {
@@ -3721,11 +3759,15 @@ class SearchUI {
     coverItems.forEach(([label, count, denom, extraCriteria], i) => {
       const y = i * 16 + 4;
       const pct = denom > 0 ? count / denom : 0;
-      const lt = E('text', { x: 90, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      const lt = T({ x: 90, y: y + 9, 'text-anchor': 'end' });
       lt.textContent = label; coverSvg.appendChild(lt);
       coverSvg.appendChild(E('rect', { x: 93, y, width: 85, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
-      if (count > 0) coverSvg.appendChild(E('rect', { x: 93, y, width: Math.round(pct * 85), height: 10, fill: 'var(--calendar-bar-photo)', rx: 2 }));
-      const pt = E('text', { x: 183, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+      if (count > 0) {
+        coverSvg.appendChild(E('rect', {
+          x: 93, y, width: Math.round(pct * 85), height: 10, fill: 'var(--calendar-bar-photo)', rx: 2,
+        }));
+      }
+      const pt = T({ x: 183, y: y + 9 });
       pt.textContent = `${Math.round(pct * 100)}%`; coverSvg.appendChild(pt);
       if (count > 0) {
         const hit = E('rect', { x: 0, y, width: 225, height: 14, fill: 'transparent', style: 'cursor: pointer' });
@@ -3740,8 +3782,10 @@ class SearchUI {
     return row;
   }
 
-  _buildYearStatsFileSizesRow(criteriaPrefix, mpBuckets, mpCounts, vidBuckets, vidCounts, photoSize, videoSize, photos, videos) {
+  _buildYearStatsFileSizesRow(criteriaPrefix, mpBuckets, mpCounts, vidBuckets, vidCounts,
+    photoSize, videoSize, photos, videos) {
     const E = SearchUI._svgEl;
+    const T = SearchUI._svgText;
     const totalSize = photoSize + videoSize;
 
     const mpRows = [], mpHandlers = [];
@@ -3774,7 +3818,11 @@ class SearchUI {
 
     if (mpRows.length === 0 && vidRows.length === 0 && totalSize === 0) return null;
 
-    const mkPlaceholder = () => { const ph = document.createElement('div'); ph.className = 'calendar_stats_section'; return ph; };
+    const mkPlaceholder = () => {
+      const ph = document.createElement('div');
+      ph.className = 'calendar_stats_section';
+      return ph;
+    };
     const row = document.createElement('div');
     row.className = 'calendar_stats_row';
 
@@ -3812,11 +3860,11 @@ class SearchUI {
       storItems.forEach(([label, size, typeFilter], i) => {
         const y = i * 16 + 4;
         const bw = Math.round((size / maxStor) * 85);
-        const lt = E('text', { x: 90, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+        const lt = T({ x: 90, y: y + 9, 'text-anchor': 'end' });
         lt.textContent = label; storSvg.appendChild(lt);
         storSvg.appendChild(E('rect', { x: 93, y, width: 85, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
         storSvg.appendChild(E('rect', { x: 93, y, width: bw, height: 10, fill: storColors[i], rx: 2 }));
-        const vt = E('text', { x: 183, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+        const vt = T({ x: 183, y: y + 9 });
         vt.textContent = SearchUI._fmtBytes(size); storSvg.appendChild(vt);
         const hit = E('rect', { x: 0, y, width: 225, height: 14, fill: 'transparent', style: 'cursor: pointer' });
         const tt = E('title'); tt.textContent = `${label}: ${SearchUI._fmtBytes(size)}`; hit.appendChild(tt);
@@ -3844,11 +3892,11 @@ class SearchUI {
         avgItems.forEach(([label, avg, color], i) => {
           const y = i * 16 + 4;
           const bw = Math.round((avg / maxAvg) * 85);
-          const lt = E('text', { x: 90, y: y + 9, 'text-anchor': 'end', 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+          const lt = T({ x: 90, y: y + 9, 'text-anchor': 'end' });
           lt.textContent = label; avgSvg.appendChild(lt);
           avgSvg.appendChild(E('rect', { x: 93, y, width: 85, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
           avgSvg.appendChild(E('rect', { x: 93, y, width: bw, height: 10, fill: color, rx: 2 }));
-          const vt = E('text', { x: 183, y: y + 9, 'font-size': '9', fill: 'currentColor', 'font-family': 'sans-serif' });
+          const vt = T({ x: 183, y: y + 9 });
           vt.textContent = SearchUI._fmtBytes(avg); avgSvg.appendChild(vt);
         });
         storageCol.appendChild(avgSvg);
