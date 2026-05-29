@@ -3895,7 +3895,6 @@ class SearchUI {
 
     let dragStartDate = null;
     let dragCurrentDate = null;
-    let isDragging = false;
 
     const getDateAtPoint = (x, y) => {
       const el = document.elementFromPoint(x, y);
@@ -3910,7 +3909,6 @@ class SearchUI {
       if (!date) return;
       dragStartDate = date;
       dragCurrentDate = date;
-      isDragging = false;
       calendarEle.setPointerCapture(e.pointerId);
       e.preventDefault();
     });
@@ -3919,7 +3917,6 @@ class SearchUI {
       if (!dragStartDate) return;
       const date = getDateAtPoint(e.clientX, e.clientY);
       if (!date || date === dragCurrentDate) return;
-      isDragging = true;
       dragCurrentDate = date;
       this.highlightCalendarRange(calendarEle, dragStartDate, date);
     });
@@ -3948,14 +3945,12 @@ class SearchUI {
       }
       dragStartDate = null;
       dragCurrentDate = null;
-      isDragging = false;
       this.clearCalendarHighlight(calendarEle);
     });
 
     calendarEle.addEventListener('pointercancel', () => {
       dragStartDate = null;
       dragCurrentDate = null;
-      isDragging = false;
       this.clearCalendarHighlight(calendarEle);
     });
 
