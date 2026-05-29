@@ -3436,8 +3436,8 @@ class SearchUI {
   static _fmtBytes(b) {
     return b >= 1e12 ? `${(b / 1e12).toFixed(1)} TB`
       : b >= 1e9 ? `${(b / 1e9).toFixed(1)} GB`
-      : b >= 1e6 ? `${(b / 1e6).toFixed(1)} MB`
-      : `${Math.round(b / 1e3)} KB`;
+        : b >= 1e6 ? `${(b / 1e6).toFixed(1)} MB`
+          : `${Math.round(b / 1e3)} KB`;
   }
 
   buildCalendarStatsBars(title, entries, maxVal, clickHandlers = null, barColor = 'var(--calendar-bar-photo)') {
