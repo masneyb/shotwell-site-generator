@@ -23,6 +23,7 @@ def write_if_changed(dest, content):
     try:
         with os.fdopen(fd, 'w', encoding='UTF-8') as fhandle:
             fhandle.write(content)
+        os.chmod(tmp_path, 0o644)
         if os.path.exists(dest) and filecmp.cmp(tmp_path, dest, shallow=False):
             os.unlink(tmp_path)
         else:
