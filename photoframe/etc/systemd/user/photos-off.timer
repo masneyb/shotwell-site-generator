@@ -6,4 +6,4 @@ OnCalendar=*-*-* 20:00:00
 Persistent=true
 
 [Install]
-WantedBy=graphical-session.target
+WantedBy=default.target
