@@ -3370,7 +3370,7 @@ class SearchUI {
       const month = date.getMonth();
       const day = date.getDate();
 
-      if (month !== prevMonth) {
+      if (row === 0 && month !== prevMonth) {
         const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         t.setAttribute('x', DOW_W + col * STEP);
         t.setAttribute('y', MONTH_H - 4);
