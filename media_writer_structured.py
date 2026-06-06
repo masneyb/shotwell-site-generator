@@ -69,7 +69,8 @@ class Structured(CommonWriter):
                 shown_media.append(item)
 
         shown_events.sort(key=lambda event: event["date"], reverse=True)
-        shown_media.sort(key=lambda media: media["exposure_time"], reverse=True)
+        shown_media.sort(key=lambda media: (media["exposure_time"], media["media_id"]),
+                         reverse=True)
 
         tags = self.__get_tags()
         years = self.__get_years()
