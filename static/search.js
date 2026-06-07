@@ -3936,8 +3936,9 @@ class SearchUI {
     const calendarEle = document.createElement('div');
     calendarEle.className = 'calendar_heatmap';
     for (let y = maxYear; y >= minYear; y--) {
+      if (!mediaByYear[y] || mediaByYear[y].length === 0) continue;
       const yearDiv = this.buildYearHeatmap(y, dateCounts);
-      yearDiv.appendChild(this.buildYearStats(y, mediaByYear[y] || [], preserveExistingCriteria));
+      yearDiv.appendChild(this.buildYearStats(y, mediaByYear[y], preserveExistingCriteria));
       calendarEle.appendChild(yearDiv);
     }
 
