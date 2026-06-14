@@ -183,7 +183,7 @@ class Thumbnailer:
         cmd = [self.ffmpeg_command, "-y", "-hide_banner", "-loglevel", "warning",
                "-i", original_video, "-map_metadata", "0", "-c:v", "libx264", "-preset", "slow",
                "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k",
-               "-movflags", "use_metadata_tags", transformed_video]
+               "-movflags", "+faststart+use_metadata_tags", transformed_video]
         return self.__run_cmd(cmd, transformed_video)
 
     def create_multiple_resolutions(self, original_video, base_filename):
@@ -207,7 +207,7 @@ class Thumbnailer:
                    "-i", original_video, "-vf", f"scale={width}:{height},fps=fps=30",
                    "-map_metadata", "0", "-c:v", "libx264", "-preset", "slow",
                    "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k",
-                   "-movflags", "use_metadata_tags", filename]
+                   "-movflags", "+faststart+use_metadata_tags", filename]
 
             self.__run_cmd(cmd, filename)
             ret.append((name, filename))
