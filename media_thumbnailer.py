@@ -48,21 +48,6 @@ class Thumbnailer:
         logging.debug("Executing %s", " ".join(cmd))
         return subprocess.run(cmd, check=False, capture_output=capture_output)
 
-    def _run_cmd_to_tmp_file(self, cmd, dest_filename):
-        # Write the output to a temporary file first and only move it into place once the
-        # command succeeds. This way an interrupted run does not leave a partially
-        # generated file (such as a half-written video) behind under the real filename.
-        # The output filename is always the last argument of the command.
-        tmp_filename = dest_filename + ".tmp"
-        result = self._do_run_command(cmd[:-1] + [tmp_filename], False)
-        if result.returncode != 0:
-            if os.path.exists(tmp_filename):
-                os.remove(tmp_filename)
-            return False
-
-        os.replace(tmp_filename, dest_filename)
-        return True
-
     def _load_video_metadata_cache(self):
         if not os.path.exists(self.video_metadata_cache_file):
             return {}
@@ -107,9 +92,7 @@ class Thumbnailer:
                             dest_filename, title)
             cmd = [self.imagemagick_command, "-size", self.thumbnail_size, "xc:lightgray",
                    dest_filename]
-            if not self._run_cmd_to_tmp_file(cmd, dest_filename):
-                logging.error("Command failed, not writing %s: %s", dest_filename, " ".join(cmd))
-                return
+            self._do_run_command(cmd, False)
             pathlib.Path(tn_idx_file).write_text(tn_idx_contents, encoding="UTF-8")
             return
 
@@ -125,9 +108,7 @@ class Thumbnailer:
         cmd = ["montage", *file_ops, "-geometry", "%s+0+0" % (geometry),
                "-background", "white", "-tile", tile_size, "-frame", str(COMPOSITE_FRAME_SIZE),
                dest_filename]
-        if not self._run_cmd_to_tmp_file(cmd, dest_filename):
-            logging.error("Command failed, not writing %s: %s", dest_filename, " ".join(cmd))
-            return
+        self._do_run_command(cmd, False)
 
         pathlib.Path(tn_idx_file).write_text(tn_idx_contents, encoding="UTF-8")
 
@@ -259,9 +240,7 @@ class Thumbnailer:
             return transformed_image
 
         logging.info("Transforming original image: %s", " ".join(cmd))
-        if not self._run_cmd_to_tmp_file(cmd, transformed_image):
-            logging.error("Command failed, not writing %s: %s", transformed_image, " ".join(cmd))
-            return transformed_image
+        self._do_run_command(cmd, False)
 
         pathlib.Path(idx_file).write_text(idx_contents, encoding="UTF-8")
 
@@ -386,9 +365,7 @@ class Thumbnailer:
 
         resize_cmd += [resized_image]
 
-        if not self._run_cmd_to_tmp_file(resize_cmd, resized_image):
-            logging.error("Command failed, not writing %s: %s", resized_image,
-                          " ".join(resize_cmd))
+        self._do_run_command(resize_cmd, False)
 
     def _get_motion_photo_offset(self, photo_metadata):
         # Support the two types of Motion Photos from the Pixel phones:
@@ -654,10 +631,7 @@ class Thumbnailer:
                 return None
 
             logging.info("Creating animated GIF for %s", src_filename)
-            if not self._run_cmd_to_tmp_file(cmd, gif_dest_filename):
-                logging.error("Command failed, not writing %s: %s", gif_dest_filename,
-                              " ".join(cmd))
-                return None
+            self._do_run_command(cmd, False)
 
         return (mp4_short_path, f"motion_photo/{path_part}/{gif_short_path}")
 
