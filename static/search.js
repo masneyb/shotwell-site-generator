@@ -2436,20 +2436,17 @@ class SearchUI {
     }
     document.querySelector(`#${selectedId}`)?.classList.add('view_button_selected');
 
-    // The grouping dropdown is only relevant for the media browse view.
+    // The grouping dropdown is always available so it can be changed regardless of
+    // which view or search criteria are active. It only renders as part of the
+    // selected (blue) split button when the media browse view is active.
     const group = document.querySelector('#browse_button_group');
     const caret = document.querySelector('#browse_caret');
     const menu = document.querySelector('#browse_menu');
-    if (selectedId === 'browse_link') {
-      caret.classList.remove('hidden');
-      group.classList.add('has_caret');
-      for (const item of menu.querySelectorAll('.dropdown_item')) {
-        item.classList.toggle('dropdown_item_selected', item.dataset.group === groupBy);
-      }
-    } else {
-      caret.classList.add('hidden');
-      group.classList.remove('has_caret');
-      menu.classList.add('hidden');
+    group.classList.add('has_caret');
+    caret.classList.remove('hidden');
+    caret.classList.toggle('view_button_caret_selected', selectedId === 'browse_link');
+    for (const item of menu.querySelectorAll('.dropdown_item')) {
+      item.classList.toggle('dropdown_item_selected', item.dataset.group === groupBy);
     }
   }
 
@@ -3327,7 +3324,11 @@ class SearchUI {
       item.onclick = (event) => {
         browseMenu.classList.add('hidden');
         browseCaret.setAttribute('aria-expanded', 'false');
-        this.searchPageLinkGenerator(event, [], 'all', null, false, item.dataset.group);
+        // Keep the current search criteria and match policy so the chosen grouping
+        // applies to the active search rather than resetting to all media.
+        const currentCriteria = this.searchEngine.getSearchQueryParams().map((p) => p.split(','));
+        const matchPolicy = getQueryParameter('match', 'all');
+        this.searchPageLinkGenerator(event, currentCriteria, matchPolicy, null, false, item.dataset.group);
         return this.stopEvent(event);
       };
     }

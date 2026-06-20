@@ -182,10 +182,25 @@ a {
   font-size: 95%;
   line-height: 1;
   cursor: pointer;
-  border: 1px solid var(--color-button-selected-bg);
-  border-left-color: var(--color-button-selected-text);
+  border: 1px solid var(--color-button-border);
+  border-left: none;
   border-top-right-radius: 16px;
   border-bottom-right-radius: 16px;
+  background-color: transparent;
+  color: inherit;
+}
+
+@media (hover: hover) {
+  .view_button_caret:hover {
+    background-color: var(--color-button-hover);
+  }
+}
+
+/* When the media browse view is active, the caret joins the selected (blue)
+   Browse button as a single split button. */
+.view_button_caret.view_button_caret_selected {
+  border: 1px solid var(--color-button-selected-bg);
+  border-left-color: var(--color-button-selected-text);
   background-color: var(--color-button-selected-bg);
   color: var(--color-button-selected-text);
 }
