@@ -434,7 +434,7 @@ a {
 .media_metadata .media_stat {
   display: inline-flex;
   align-items: center;
-  padding: 0px 2px;
+  padding: 1px 4px;
   border-radius: 999px;
   white-space: nowrap;
   background-color: var(--color-stat-chip-bg);
