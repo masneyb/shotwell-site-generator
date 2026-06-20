@@ -4176,6 +4176,20 @@ class MapUI {
             autoPan: true,
             autoPanPadding: autoPanPadding
           });
+
+          // Hovering a single (non-clustered) marker shows the small thumbnail as a
+          // quick preview popup. Clusters show a count and aren't bound here.
+          const hoverThumb = props.thumbnail?.medium ?? props.reg_thumbnail ?? null;
+          if (hoverThumb) {
+            layer.bindTooltip(`<img class="marker-hover-thumb" src="${hoverThumb}" alt=""/>`, {
+              direction: 'top',
+              offset: [0, -(MapUI.MARKER_SIZE / 2)],
+              opacity: 1,
+              className: 'marker-hover-tooltip'
+            });
+            // Avoid the hover preview overlapping the full popup once it's opened.
+            layer.on('popupopen', () => layer.closeTooltip());
+          }
         }
       });
 

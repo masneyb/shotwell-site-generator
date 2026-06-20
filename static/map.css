@@ -100,6 +100,22 @@ html, body {
   color: #0066cc;
 }
 
+/* Hover preview shown when the mouse is over a single (non-clustered) marker. */
+.marker-hover-tooltip {
+  padding: 3px;
+  background: #fff;
+  border: none;
+  border-radius: 4px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+.marker-hover-tooltip .marker-hover-thumb {
+  display: block;
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 3px;
+}
+
 #loading {
   position: absolute;
   top: 50%;
