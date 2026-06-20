@@ -266,7 +266,17 @@ a {
   font-weight: bold;
 }
 
-.summary_stats, .date_range {
+.summary_stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  font-size: 80%;
+  padding: 4px 10px 2px;
+}
+
+.date_range {
   display: block;
   font-size: 80%;
   padding-top: 1px;
@@ -480,10 +490,16 @@ a {
   text-decoration: none;
 }
 
+/* Summary stats under the page title, shown as centered pill chips. */
 .stat {
+  display: inline-flex;
+  align-items: center;
   white-space: nowrap;
-  padding-left: var(--padding-stat-horizontal);
-  padding-right: var(--padding-stat-horizontal);
+  padding: 3px 11px;
+  border-radius: 999px;
+  background-color: var(--color-stat-chip-bg);
+  color: var(--color-stat-chip-text);
+  border: 1px solid var(--color-stat-chip-border);
 }
 
 .media_stat {
