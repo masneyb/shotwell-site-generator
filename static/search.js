@@ -4110,6 +4110,8 @@ class SearchUI {
 }
 
 class MapUI {
+  static MARKER_SIZE = 48;
+
   constructor(state, searchEngine, searchUI) {
     this.state = state;
     this.searchEngine = searchEngine;
@@ -4158,7 +4160,21 @@ class MapUI {
 
       const geoJsonLayer = L.geoJSON(geojson, {
         pointToLayer: (feature, latlng) => {
-          return L.marker(latlng);
+          const props = feature.properties || {};
+          const thumbUrl = props.thumbnail?.small ?? props.reg_thumbnail ?? null;
+          const inner = thumbUrl ?
+            `<div class="photo-marker-inner"><img src="${thumbUrl}" alt=""/></div>` :
+            '<div class="photo-marker-inner"></div>';
+          const size = MapUI.MARKER_SIZE;
+          return L.marker(latlng, {
+            icon: L.divIcon({
+              className: 'photo-marker',
+              html: inner,
+              iconSize: [size, size],
+              iconAnchor: [size / 2, size / 2],
+              popupAnchor: [0, -size / 2],
+            }),
+          });
         },
         onEachFeature: (feature, layer) => {
           const props = feature.properties || {};
@@ -4527,7 +4543,18 @@ function doMapInit() {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    const markers = L.markerClusterGroup({ zoomToBoundsOnClick: false });
+    const markers = L.markerClusterGroup({
+      zoomToBoundsOnClick: false,
+      iconCreateFunction: (cluster) => {
+        const size = MapUI.MARKER_SIZE;
+        return L.divIcon({
+          className: 'cluster-marker',
+          html: `<div class="cluster-marker-inner">${cluster.getChildCount()}</div>`,
+          iconSize: [size, size],
+          iconAnchor: [size / 2, size / 2],
+        });
+      },
+    });
 
     // When a cluster point is clicked, wait a brief moment and then zoom in
     // gradually rather than jumping instantly to the new bounds. Markers that
