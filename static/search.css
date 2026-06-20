@@ -395,13 +395,31 @@ a {
   display: block;
 }
 
-.media_title, .media_comment, .media_metadata {
+/* Title, comment and metadata chips flow together as centered inline content so the
+   stats pack onto the same lines as a wrapped title and minimize vertical space.
+   (Flexbox can't do this: a wrapped title becomes a too-wide flex item that fills
+   its line and pushes the chips down.) */
+.media_descr {
   display: block;
-  padding-left: var(--padding-media-title);
+  text-align: center;
+  padding: 2px var(--padding-media-title) 0px;
 }
 
-.media_comment {
-  font-style: italic;
+/* Inline (not block/flex) so the chips join the title/comment text flow instead of
+   dropping onto their own row underneath. */
+.media_descr .media_metadata,
+.media_descr .media_metadata .media_stats_row {
+  display: inline;
+}
+
+.media_metadata {
+  font-size: 78%;
+}
+
+.media_title, .media_comment {
+  display: inline;
+  overflow-wrap: anywhere;
+  margin-right: 0.35em;
 }
 
 .media_title {
@@ -409,31 +427,15 @@ a {
 }
 
 .media_comment {
+  font-style: italic;
   font-size: 80%;
-}
-
-.media_metadata {
-  font-size: 78%;
-  padding-top: 5px;
-  padding-left: var(--padding-media-title);
-  padding-right: var(--padding-media-title);
-  margin-bottom: 2px;
-}
-
-.media_metadata,
-.media_metadata .media_stats_row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 5px;
 }
 
 .media_metadata .media_stat {
   display: inline-flex;
   align-items: center;
-  padding: 1px 3px;
+  padding: 0px 2px;
   border-radius: 999px;
-  line-height: 1.4;
   white-space: nowrap;
   background-color: var(--color-stat-chip-bg);
   color: var(--color-stat-chip-text);
@@ -452,9 +454,9 @@ a {
 .media_metadata .more_less {
   display: inline-flex;
   align-items: center;
+  vertical-align: middle;
   padding: 1px 6px;
   border-radius: 999px;
-  line-height: 1.4;
   font-style: normal;
   text-decoration: none;
   white-space: nowrap;
@@ -726,6 +728,7 @@ input.button {
 }
 
 .media_thumb img {
+  display: block;
   max-width: 100%;
   max-height: 100%;
   border-radius: 8px;

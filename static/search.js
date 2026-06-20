@@ -2825,12 +2825,14 @@ class SearchUI {
     const shortStatsEle = this.createStatsSpan(stats);
     const extStatsEle = this.createStatsSpan(extStats);
 
+    // 'inline' (rather than 'block') keeps the chips flowing inline within the centered
+    // .media_descr text flow when toggling between the brief and expanded chip lists.
     shortStatsEle.appendChild(document.createTextNode(' '));
-    shortStatsEle.appendChild(this.createMoreLessAnchor('More', shortStatsEle, extStatsEle, 'block'));
+    shortStatsEle.appendChild(this.createMoreLessAnchor('More', shortStatsEle, extStatsEle, 'inline'));
     ret.append(shortStatsEle);
 
     extStatsEle.appendChild(document.createTextNode(' '));
-    extStatsEle.appendChild(this.createMoreLessAnchor('Less', shortStatsEle, extStatsEle, 'block'));
+    extStatsEle.appendChild(this.createMoreLessAnchor('Less', shortStatsEle, extStatsEle, 'inline'));
     extStatsEle.style.display = 'none';
     ret.appendChild(extStatsEle);
 
@@ -2920,29 +2922,36 @@ class SearchUI {
          SearchUI.TAG_METADATA_SIZES.includes(iconSize) ||
          SearchUI.BRIEF_METADATA_SIZES.includes(iconSize)) &&
         !this.showLargeIconWithNoDescr(iconSize, media.type)) {
+      // Group the title, comment and metadata into a single centered block so they
+      // flow together and make more efficient use of the space under the thumbnail.
+      const descr = document.createElement('span');
+      descr.className = 'media_descr';
+
       if (media.title) {
         const name = `title${media.type}${media.id}`;
         const title = document.createElement('span');
         title.className = 'media_title';
         if (media.title_prefix) {
-          title.appendChild(this.getExpandableString(name, media.title_prefix + media.title, 'block'));
+          title.appendChild(this.getExpandableString(name, media.title_prefix + media.title, 'inline'));
         } else {
-          title.appendChild(this.getExpandableString(name, media.title, 'block'));
+          title.appendChild(this.getExpandableString(name, media.title, 'inline'));
         }
-        mediaEle.appendChild(title);
+        descr.appendChild(title);
       }
 
       if (media.comment) {
         const name = `comment${media.type}${media.id}`;
         const comment = document.createElement('span');
         comment.className = 'media_comment';
-        comment.appendChild(this.getExpandableString(name, media.comment, 'block'));
-        mediaEle.appendChild(comment);
+        comment.appendChild(this.getExpandableString(name, media.comment, 'inline'));
+        descr.appendChild(comment);
       }
 
       const metadata = this.createMediaStatsHtml(media, false, null, false, iconSize);
       metadata.className = 'media_metadata';
-      mediaEle.appendChild(metadata);
+      descr.appendChild(metadata);
+
+      mediaEle.appendChild(descr);
     }
 
     return mediaEle;
