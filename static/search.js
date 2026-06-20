@@ -2668,6 +2668,7 @@ class SearchUI {
 
   createStatsSpan(stats) {
     const ret = document.createElement('span');
+    ret.className = 'media_stats_row';
     stats.forEach((stat, i) => {
       if (i > 0) {
         ret.appendChild(document.createTextNode(' '));
