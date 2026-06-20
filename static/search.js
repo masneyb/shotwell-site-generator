@@ -4436,7 +4436,32 @@ function doMapInit() {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    const markers = L.markerClusterGroup();
+    const markers = L.markerClusterGroup({ zoomToBoundsOnClick: false });
+
+    // When a cluster point is clicked, wait a brief moment and then zoom in
+    // gradually rather than jumping instantly to the new bounds. Markers that
+    // sit on top of each other can't be separated by zooming, so fall back to
+    // the plugin's spiderfy behavior (which the default click handler would
+    // normally provide) so each pin's popup stays clickable.
+    markers.on('clusterclick', (e) => {
+      const cluster = e.layer;
+
+      let bottomCluster = cluster;
+      while (bottomCluster._childClusters.length === 1) {
+        bottomCluster = bottomCluster._childClusters[0];
+      }
+
+      if (bottomCluster._zoom === markers._maxZoom &&
+          bottomCluster._childCount === cluster._childCount) {
+        cluster.spiderfy();
+        return;
+      }
+
+      const bounds = cluster.getBounds();
+      setTimeout(() => {
+        map.flyToBounds(bounds, { padding: [20, 20], duration: 2.0 });
+      }, 200);
+    });
 
     const state = new SearchState();
     const searchEngine = new SearchEngine(state);
