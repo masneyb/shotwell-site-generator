@@ -2411,7 +2411,7 @@ class SearchUI {
       return SearchUI.ICON_SIZES.SMALL_MEDIUM_LARGE;
     }
 
-    return SearchUI.ICON_SIZES.REGULAR;
+    return SearchUI.ICON_SIZES.LARGE_NO_META;
   }
 
   updateSelectedView(preferredView) {
@@ -2546,7 +2546,22 @@ class SearchUI {
     return this.state.preferredPageIconSize;
   }
 
+  isLargeOrRegularIconSize(iconSize) {
+    return typeof iconSize === 'string' &&
+      (iconSize.startsWith('large') || iconSize.startsWith('regular'));
+  }
+
+  isAggregateMediaType(mediaType) {
+    return [SearchUI.MEDIA_TYPE_STRINGS.EVENTS, SearchUI.MEDIA_TYPE_STRINGS.YEARS,
+      SearchUI.MEDIA_TYPE_STRINGS.TAGS].includes(mediaType);
+  }
+
   showLargeIconWithNoDescr(iconSize, mediaType) {
+    // Tags, events and years always show their metadata at large/regular icon sizes.
+    if (this.isAggregateMediaType(mediaType) && this.isLargeOrRegularIconSize(iconSize)) {
+      return false;
+    }
+
     if (iconSize === 'large_no_meta') {
       return true;
     }
@@ -2555,7 +2570,7 @@ class SearchUI {
       return false;
     }
 
-    if (['events', 'tags', 'years'].includes(mediaType)) {
+    if (this.isAggregateMediaType(mediaType)) {
       return false;
     }
 
@@ -2918,10 +2933,16 @@ class SearchUI {
       mediaEle.style.width = `${this.getMediaRegularWidth(media)}px`;
     }
 
-    if ((SearchUI.FULL_METADATA_SIZES.includes(iconSize) ||
-         SearchUI.TAG_METADATA_SIZES.includes(iconSize) ||
-         SearchUI.BRIEF_METADATA_SIZES.includes(iconSize)) &&
-        !this.showLargeIconWithNoDescr(iconSize, media.type)) {
+    // Tags, events and years always show their metadata at large/regular icon sizes,
+    // even for the "no metadata" layouts that hide it for regular media.
+    const alwaysShowAggregateMeta =
+      this.isAggregateMediaType(media.type) && this.isLargeOrRegularIconSize(iconSize);
+
+    if (alwaysShowAggregateMeta ||
+        ((SearchUI.FULL_METADATA_SIZES.includes(iconSize) ||
+          SearchUI.TAG_METADATA_SIZES.includes(iconSize) ||
+          SearchUI.BRIEF_METADATA_SIZES.includes(iconSize)) &&
+         !this.showLargeIconWithNoDescr(iconSize, media.type))) {
       // Group the title, comment and metadata into a single centered block so they
       // flow together and make more efficient use of the space under the thumbnail.
       const descr = document.createElement('span');
