@@ -1206,50 +1206,6 @@ class SearchEngine {
     return views.find((ent) => ent.title !== null);
   }
 
-  processGpsGroups(allItems, maxDistanceKm) {
-    const groups = [];
-    for (const [index, media] of allItems.entries()) {
-      if (!('lat' in media)) {
-        media.groupIndex = Number.MAX_SAFE_INTEGER;
-        media.groupName = 'No Coordinate';
-        continue;
-      }
-
-      let bestGroup;
-      let bestGroupDist;
-      for (const group of groups) {
-        const groupLat = group.totalLat / group.mediaIndexes.length;
-        const groupLon = group.totalLon / group.mediaIndexes.length;
-        const thisDist = this.haversineDistance([media.lat, media.lon], [groupLat, groupLon]);
-        if (thisDist <= maxDistanceKm && (bestGroupDist === undefined || thisDist < bestGroupDist)) {
-          bestGroup = group;
-          bestGroupDist = thisDist;
-        }
-      }
-
-      if (bestGroup != undefined) {
-        bestGroup.totalLat += media.lat;
-        bestGroup.totalLon += media.lon;
-        bestGroup.mediaIndexes.push(index);
-      } else {
-        groups.push({ totalLat: media.lat, totalLon: media.lon, mediaIndexes: [index] });
-      }
-    }
-
-    groups.sort((a, b) => b.mediaIndexes.length - a.mediaIndexes.length);
-
-    for (const [groupIndex, group] of groups.entries()) {
-      const avgLat = group.totalLat / group.mediaIndexes.length;
-      const avgLon = group.totalLon / group.mediaIndexes.length;
-      const groupName = `GPS ${avgLat.toFixed(6)}, ${avgLon.toFixed(6)}`;
-
-      for (const index of group.mediaIndexes) {
-        allItems[index].groupIndex = groupIndex;
-        allItems[index].groupName = groupName;
-      }
-    }
-  }
-
   processCameraGroups(allItems) {
     const cameraSet = {};
     for (const [index, media] of allItems.entries()) {
@@ -1333,16 +1289,6 @@ class SearchEngine {
       });
     } else if (groupBy === 'camera') {
       this.processCameraGroups(allItems);
-    } else if (groupBy === 'gps1km') {
-      this.processGpsGroups(allItems, 1);
-    } else if (groupBy === 'gps5km') {
-      this.processGpsGroups(allItems, 5);
-    } else if (groupBy === 'gps10km') {
-      this.processGpsGroups(allItems, 10);
-    } else if (groupBy === 'gps50km') {
-      this.processGpsGroups(allItems, 50);
-    } else if (groupBy === 'gps100km') {
-      this.processGpsGroups(allItems, 100);
     } else {
       this.setZeroGroupIndexAndName(allItems, (_media) => { return null; });
     }
@@ -3369,7 +3315,7 @@ class SearchUI {
       this.doPerformSearch();
     });
 
-    // Grouping dropdown (None / Day / Week / Month / Year / Camera / GPS).
+    // Grouping dropdown (None / Day / Week / Month / Year / Camera).
     const browseCaret = document.querySelector('#browse_caret');
     const browseMenu = document.querySelector('#browse_menu');
     this.setupClickHandler('#browse_caret', () => {
