@@ -149,7 +149,7 @@ a {
 }
 
 @media (hover: hover) {
-  .view_button:hover {
+  .view_button:not(.view_button_selected):hover {
     background-color: var(--color-button-hover);
   }
 }
