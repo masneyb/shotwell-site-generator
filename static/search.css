@@ -209,6 +209,24 @@ a {
   display: none;
 }
 
+/* On phones, shrink the nav buttons so Media / Map / Events / ... fit on a single row. */
+@media (max-width: 600px) {
+  .main_views {
+    gap: 2px;
+    padding: 6px 2px;
+  }
+
+  .view_button {
+    padding: 4px 6px;
+    font-size: 73%;
+  }
+
+  .view_button_caret {
+    padding: 0 4px;
+    font-size: 73%;
+  }
+}
+
 .dropdown_menu {
   position: absolute;
   top: 100%;
