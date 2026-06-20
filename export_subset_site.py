@@ -16,7 +16,9 @@ import logging
 import os
 import shutil
 import sys
+import geojson
 from media_writer_common import CommonWriter
+from media_writer_structured import Structured
 
 # Top level support files that are copied verbatim from the source site (if present).
 SUPPORT_FILES = ["index.html", "map.html", "map.css", "search.css", "search.js",
@@ -316,6 +318,43 @@ def copy_support_files(site_dir, dest_dir):
     else:
         logging.warning("icons/ directory not found in source site")
 
+    # The dist/ directory holds bundled assets and is optional, so copy it over
+    # in full when present without warning if it is absent.
+    dist_src = os.path.join(site_dir, "dist")
+    if os.path.isdir(dist_src):
+        shutil.copytree(dist_src, os.path.join(dest_dir, "dist"), dirs_exist_ok=True)
+
+
+def write_geojson_file(dest_dir, output):
+    # Mirror media_writer_structured.__write_geojson_file so the subset's
+    # media.geojson matches the format the full site generator produces. The
+    # column logic is reused verbatim from Structured.csv_cols, and the names
+    # come from the already-rebuilt (post tag-filtering) events and tags, so the
+    # geojson never references media or tags that were dropped from the subset.
+    event_names = {event["id"]: event["title"] for event in output.get("events", [])}
+    tag_names = {tag["id"]: tag["title"] for tag in output.get("tags", [])}
+
+    features = []
+    for media in output["media"]:
+        if "lat" not in media:
+            continue
+
+        row = {}
+        for col in Structured.csv_cols:
+            if col[0] in ("lat", "lon"):
+                continue
+
+            value = col[1](media, col[0], event_names, tag_names)
+            if value != "":
+                row[col[0]] = value
+
+        point = geojson.Point((media["lon"], media["lat"]))
+        features.append(geojson.Feature(geometry=point, properties=row))
+
+    feature_collection = geojson.FeatureCollection(features)
+    with open(os.path.join(dest_dir, "media.geojson"), "w", encoding="UTF-8") as fhandle:
+        geojson.dump(feature_collection, fhandle)
+
 
 def write_media_files(dest_dir, output):
     with open(os.path.join(dest_dir, "media.json"), "w", encoding="UTF-8") as outfile:
@@ -410,6 +449,9 @@ def process(options):
 
     logging.info("Writing media.json and media.js")
     write_media_files(options.dest_directory, output)
+
+    logging.info("Writing media.geojson")
+    write_geojson_file(options.dest_directory, output)
 
     logging.info("Finished. Self-contained site written to %s", options.dest_directory)
     return 0
