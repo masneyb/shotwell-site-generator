@@ -11,7 +11,7 @@
     <meta name="description" content="Photo gallery and search interface">
     <meta name="theme-color" content="#202124" media="(prefers-color-scheme: dark)">
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; connect-src 'self'; manifest-src 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; connect-src 'self'; manifest-src 'self'; frame-src 'self';">
     <title>Search</title>
     <link rel="icon" type="image/png" sizes="512x512" href="icons/app-icon-512x512-any.png"/>
     <link rel="icon" type="image/png" sizes="192x192" href="icons/app-icon-192x192-any.png"/>
@@ -29,86 +29,109 @@
     <header>
       <h1 id="title" class="page_title">Search</h1>
       <div class="summary_stats"></div>
-      <div class="header_links hidden">
-        <a class="header_link" href="#" id="today_link">Today</a>
-        <a class="header_link" href="#" id="nearby_link">Nearby</a>
-        <a class="header_link" href="#" id="animations_link"></a>
-        <a class="header_link" href="#" id="slideshow_link">Slideshow</a>
-        <a class="header_link" href="#" id="csv_link">CSV</a>
-        <a class="header_link" href="#" id="map_link">Map</a>
-      </div>
+
       <nav class="main_views" aria-label="Main navigation">
-        <span>
-          <a href="#" id="date_link"><span class="main_view">Date</span></a>
+        <span id="browse_button_group" class="view_button_group">
+          <a href="#" id="browse_link" class="view_button">Media</a>
+          <button type="button" id="browse_caret" class="view_button_caret hidden"
+                  aria-label="Choose grouping" aria-haspopup="true"
+                  aria-expanded="false">&#x25BE;</button>
+          <div id="browse_menu" class="dropdown_menu hidden" role="menu">
+            <a href="#" class="dropdown_item" data-group="none" role="menuitem">None</a>
+            <a href="#" class="dropdown_item" data-group="day" role="menuitem">Day</a>
+            <a href="#" class="dropdown_item" data-group="week" role="menuitem">Week</a>
+            <a href="#" class="dropdown_item" data-group="month" role="menuitem">Month</a>
+            <a href="#" class="dropdown_item" data-group="year" role="menuitem">Year</a>
+            <a href="#" class="dropdown_item" data-group="camera" role="menuitem">Camera</a>
+            <a href="#" class="dropdown_item" data-group="gps1km" role="menuitem">GPS 1 km</a>
+            <a href="#" class="dropdown_item" data-group="gps5km" role="menuitem">GPS 5 km</a>
+            <a href="#" class="dropdown_item" data-group="gps10km" role="menuitem">GPS 10 km</a>
+            <a href="#" class="dropdown_item" data-group="gps50km" role="menuitem">GPS 50 km</a>
+            <a href="#" class="dropdown_item" data-group="gps100km" role="menuitem">GPS 100 km</a>
+          </div>
         </span>
-        <span>
-          <a href="#" id="event_link"><span id="events_link" class="main_view">Event</span></a>
-        </span>
-        <span>
-          <a href="#" id="year_link"><span id="years_link" class="main_view">Year</span></a>
-        </span>
-        <span>
-          <a href="#" id="tag_link"><span id="tags_link" class="main_view">Tag</span></a>
-        </span>
-        <span>
-          <a href="#" id="calendar_link"><span id="calendar_view" class="main_view">Calendar</span></a>
-        </span>
+        <a href="#" id="map_link" class="view_button">Map</a>
+        <a href="#" id="event_link" class="view_button">Events</a>
+        <a href="#" id="year_link" class="view_button">Years</a>
+        <a href="#" id="tag_link" class="view_button">Tags</a>
+        <a href="#" id="stats_link" class="view_button">Stats</a>
         <span id="extra_header"></span>
+        <a href="#" id="advanced_search_link" class="view_button">Filter</a>
       </nav>
+
       <div id="tag_parents" class="hidden"></div>
       <div id="event_comment" class="hidden"></div>
     </header>
 
-    <span id="search_criterias" class="hidden"></span>
+    <dialog id="advanced_search_dialog" aria-label="Advanced search">
+      <div class="dialog_header">
+        <span class="dialog_title">Advanced Search</span>
+        <a href="#" id="advanced_search_close" class="dialog_close" aria-label="Close">&#x2715;</a>
+      </div>
 
-    <span id="search_controls" class="hidden">
-      <input type="button" id="add_search_row" value="+" aria-label="Add search row">
-      <select id="match">
-        <option value="any">Match Any</option>
-        <option value="all">Match All</option>
-        <option value="none">Match None</option>
-      </select>
-      <select id="group">
-        <option value="none">No grouping</option>
-        <option value="day">Group by day</option>
-        <option value="month">Group by month</option>
-        <option value="year">Group by year</option>
-        <option value="camera">Group by camera</option>
-        <option value="gps1km">Group by GPS 1 km</option>
-        <option value="gps5km">Group by GPS 5 km</option>
-        <option value="gps10km">Group by GPS 10 km</option>
-        <option value="gps50km">Group by GPS 50 km</option>
-        <option value="gps100km">Group by GPS 100 km</option>
-      </select>
-      <select id="sort">
-        <option value="default">Default Sort</option>
-        <option value="takenZA">Sort taken Z-A</option>
-        <option value="takenAZ">Sort taken A-Z</option>
-        <option value="createdZA">Sort added Z-A</option>
-        <option value="createdAZ">Sort added A-Z</option>
-        <option value="random">Sort random</option>
-      </select>
-      <select id="icons">
-        <option value="default">Default Icons</option>
-        <option value="small">Small Icons</option>
-        <option value="medium">Medium Icons</option>
-        <option value="small_medium">Small/Medium Icons</option>
-        <option value="small_medium_large">Small/Medium/Large Icons</option>
-        <option value="medium_large">Medium/Large Icons</option>
-        <option value="large">Large Icons</option>
-        <option value="large_tag_meta">Large Icons (Tag Metadata)</option>
-        <option value="large_full_meta">Large Icons (Full Metadata)</option>
-        <option value="large_no_meta">Large Icons (No Metadata)</option>
-        <option value="regular">Regular Icons</option>
-        <option value="regular_tag_meta">Regular Icons (Tag Metadata)</option>
-        <option value="regular_full_meta">Regular Icons (Full Metadata)</option>
-        <option value="regular_no_meta">Regular Icons (No Metadata)</option>
-        <option value="large_regular">Large/Regular Icons</option>
-      </select>
-      <input class="button" type="button" id="clear_search_criteria" value="Clear">
-    </span>
+      <div class="dialog_quick_links">
+        <a class="header_link" href="#" id="today_link">Today</a>
+        <a class="header_link" href="#" id="nearby_link">Nearby</a>
+        <a class="header_link" href="#" id="animations_link"></a>
+        <a class="header_link" href="#" id="csv_link">CSV</a>
+      </div>
+
+      <span id="search_criterias"></span>
+
+      <div id="search_controls">
+        <input type="button" id="add_search_row" value="+" aria-label="Add search row">
+        <select id="match" aria-label="Match policy">
+          <option value="any">Match Any</option>
+          <option value="all">Match All</option>
+          <option value="none">Match None</option>
+        </select>
+        <select id="group" aria-label="Group by">
+          <option value="none">No grouping</option>
+          <option value="day">Group by day</option>
+          <option value="week">Group by week</option>
+          <option value="month">Group by month</option>
+          <option value="year">Group by year</option>
+          <option value="camera">Group by camera</option>
+          <option value="gps1km">Group by GPS 1 km</option>
+          <option value="gps5km">Group by GPS 5 km</option>
+          <option value="gps10km">Group by GPS 10 km</option>
+          <option value="gps50km">Group by GPS 50 km</option>
+          <option value="gps100km">Group by GPS 100 km</option>
+        </select>
+        <select id="sort" aria-label="Sort order">
+          <option value="default">Default Sort</option>
+          <option value="takenZA">Sort taken Z-A</option>
+          <option value="takenAZ">Sort taken A-Z</option>
+          <option value="createdZA">Sort added Z-A</option>
+          <option value="createdAZ">Sort added A-Z</option>
+          <option value="random">Sort random</option>
+        </select>
+        <select id="icons" aria-label="Icon size">
+          <option value="default">Default Icons</option>
+          <option value="small">Small Icons</option>
+          <option value="medium">Medium Icons</option>
+          <option value="small_medium">Small/Medium Icons</option>
+          <option value="small_medium_large">Small/Medium/Large Icons</option>
+          <option value="medium_large">Medium/Large Icons</option>
+          <option value="large">Large Icons</option>
+          <option value="large_tag_meta">Large Icons (Tag Metadata)</option>
+          <option value="large_full_meta">Large Icons (Full Metadata)</option>
+          <option value="large_no_meta">Large Icons (No Metadata)</option>
+          <option value="regular">Regular Icons</option>
+          <option value="regular_tag_meta">Regular Icons (Tag Metadata)</option>
+          <option value="regular_full_meta">Regular Icons (Full Metadata)</option>
+          <option value="regular_no_meta">Regular Icons (No Metadata)</option>
+          <option value="large_regular">Large/Regular Icons</option>
+        </select>
+      </div>
+
+      <div class="dialog_actions">
+        <input class="button" type="button" id="clear_search_criteria" value="Clear">
+      </div>
+    </dialog>
 
     <main id="all_media"><div class='status'>Loading</div></main>
+    <iframe id="map_frame" class="hidden" title="Photo map"></iframe>
     <div id="search_results_calendar"></div>
 
     <footer class="generated_at">Site generated from

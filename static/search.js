@@ -1172,7 +1172,7 @@ class SearchEngine {
     const views = [
       {
         title: eventTitle,
-        cssSelector: 'events_link',
+        cssSelector: 'event_link',
         defaultSort: eventDefaultSort,
         currentYearView: null,
         searchTag: null,
@@ -1180,7 +1180,7 @@ class SearchEngine {
       },
       {
         title: yearTitle,
-        cssSelector: 'years_link',
+        cssSelector: 'year_link',
         defaultSort: yearDefaultSort,
         currentYearView: yearView,
         searchTag: null,
@@ -1188,7 +1188,7 @@ class SearchEngine {
       },
       {
         title: tagTitle,
-        cssSelector: 'tags_link',
+        cssSelector: 'tag_link',
         defaultSort: 'takenZA',
         currentYearView: null,
         searchTag: tagView,
@@ -1303,6 +1303,25 @@ class SearchEngine {
         }
         const parts = media.exposure_time_pretty.split(' ');
         return parts.length === 1 ? parts[0] : `${parts[1]} ${parts[3]}`;
+      });
+    } else if (groupBy === 'week') {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      this.setZeroGroupIndexAndName(allItems, (media) => {
+        if (!media.exposure_time_pretty) {
+          return null;
+        }
+        const parts = media.exposure_time_pretty.split(' ');
+        if (parts.length === 1) {
+          return parts[0];
+        }
+        const date = new Date(media.exposure_time);
+        if (Number.isNaN(date.getTime())) {
+          return null;
+        }
+        // Start of the week (Sunday).
+        const weekStart = new Date(date.getFullYear(), date.getMonth(), date.getDate() - date.getDay());
+        return `Week of ${months[weekStart.getMonth()]} ${weekStart.getDate()}, ${weekStart.getFullYear()}`;
       });
     } else if (groupBy === 'day') {
       this.setZeroGroupIndexAndName(allItems, (media) => {
@@ -2108,11 +2127,6 @@ class SearchUI {
 
   hideResultsInfo() {
     document.querySelector('.summary_stats').replaceChildren();
-    for (const search of ['.header_links']) {
-      for (const ele of document.querySelectorAll(search)) {
-        ele.style.display = 'none';
-      }
-    }
   }
 
   updateSearchCriteria() {
@@ -2330,7 +2344,8 @@ class SearchUI {
     this.doPerformSearch();
   }
 
-  searchPageLinkGenerator(event, criterias, matchPolicy = 'all', overrideIconSize = null, navigateToUrl = false) {
+  searchPageLinkGenerator(event, criterias, matchPolicy = 'all', overrideIconSize = null,
+    navigateToUrl = false, overrideGroupBy = null) {
     const parts = [];
     for (const criteria of criterias) {
       // field,op,value
@@ -2338,7 +2353,7 @@ class SearchUI {
     }
 
     const iconSize = overrideIconSize !== null ?  overrideIconSize : getQueryParameter('icons', 'default');
-    const groupBy = getQueryParameter('group', 'none');
+    const groupBy = overrideGroupBy !== null ? overrideGroupBy : getQueryParameter('group', 'none');
     const sortBy = getQueryParameter('sort', 'default');
     const search = this.searchEngine.generateSearchUrl(parts, matchPolicy, iconSize, groupBy, sortBy);
 
@@ -2453,6 +2468,45 @@ class SearchUI {
     return SearchUI.ICON_SIZES.REGULAR;
   }
 
+  updateSelectedView(preferredView) {
+    const allViewIds = ['browse_link', 'map_link', 'event_link',
+      'year_link', 'tag_link', 'stats_link'];
+    for (const id of allViewIds) {
+      document.querySelector(`#${id}`)?.classList.remove('view_button_selected');
+    }
+
+    const groupBy = getQueryParameter('group', 'none');
+
+    let selectedId;
+    if (getQueryParameter('view', null) === 'map') {
+      selectedId = 'map_link';
+    } else if (getQueryParameter('view', null) === 'calendar') {
+      selectedId = 'stats_link';
+    } else if (preferredView.cssSelector !== null) {
+      selectedId = preferredView.cssSelector;
+    } else {
+      // The default media browse view, grouped or ungrouped.
+      selectedId = 'browse_link';
+    }
+    document.querySelector(`#${selectedId}`)?.classList.add('view_button_selected');
+
+    // The grouping dropdown is only relevant for the media browse view.
+    const group = document.querySelector('#browse_button_group');
+    const caret = document.querySelector('#browse_caret');
+    const menu = document.querySelector('#browse_menu');
+    if (selectedId === 'browse_link') {
+      caret.classList.remove('hidden');
+      group.classList.add('has_caret');
+      for (const item of menu.querySelectorAll('.dropdown_item')) {
+        item.classList.toggle('dropdown_item_selected', item.dataset.group === groupBy);
+      }
+    } else {
+      caret.classList.add('hidden');
+      group.classList.remove('has_caret');
+      menu.classList.add('hidden');
+    }
+  }
+
   setPageTitleAndIconSize(preferredView) {
     document.title = preferredView.title;
     const ele = document.querySelector('#title');
@@ -2460,23 +2514,7 @@ class SearchUI {
       ele.innerText = document.title;
     }
 
-    if (preferredView.cssSelector !== null) {
-      document.querySelector(`#${preferredView.cssSelector}`).classList.add('main_view_selected');
-    }
-    for (const tagName of ['years_link', 'events_link', 'tags_link']) {
-      if (tagName !== preferredView.cssSelector) {
-        document.querySelector(`#${tagName}`).classList.remove('main_view_selected');
-      }
-    }
-
-    const calendarLinkEle = document.querySelector('#calendar_link');
-    if (calendarLinkEle) {
-      if (getQueryParameter('view', null) === 'calendar') {
-        calendarLinkEle.classList.add('main_view_selected');
-      } else {
-        calendarLinkEle.classList.remove('main_view_selected');
-      }
-    }
+    this.updateSelectedView(preferredView);
 
     this.state.preferredPageIconSize = this.getPageIconSize();
     this.setIconWriter();
@@ -3111,17 +3149,36 @@ class SearchUI {
     return this.createAllStatsSpan(stats);
   }
 
+  showMapView(allMediaEle) {
+    this.clearPreviousMedia(allMediaEle);
+
+    const params = new URLSearchParams(window.location.search);
+    params.delete('view');
+    const src = `map.html?${params.toString()}`;
+    const mapFrame = document.querySelector('#map_frame');
+    if (mapFrame.getAttribute('src') !== src) {
+      mapFrame.setAttribute('src', src);
+    }
+    mapFrame.classList.remove('hidden');
+
+    if (this.state.allMedia != null && this.state.allMedia.length > 0) {
+      document.querySelector('.summary_stats').replaceChildren(this.createAllStatsHtml());
+    }
+  }
+
   showMedia() {
     const allMediaEle = document.querySelector('#all_media');
+
+    if (getQueryParameter('view', null) === 'map') {
+      this.showMapView(allMediaEle);
+      return;
+    }
+    document.querySelector('#map_frame').classList.add('hidden');
 
     this.clearPreviousMedia(allMediaEle);
     if (this.state.allMedia == null) {
       return;
     }
-
-    const isCalendarView = getQueryParameter('view', null) === 'calendar';
-    document.querySelector('#search_controls').style.display = isCalendarView ? 'none' : 'block';
-    document.querySelector('#search_criterias').style.display = isCalendarView ? 'none' : 'block';
 
     if (this.state.allMedia.length === 0) {
       updateOverallStatusMessage('No results found');
@@ -3143,21 +3200,6 @@ class SearchUI {
         }
       }
 
-      for (const ele of document.querySelectorAll('.header_links')) {
-        ele.style.display = 'block';
-      }
-
-      document.querySelector('#csv_link').onclick = (event) => {
-        this.csvWriter.downloadCsv(event);
-        return this.stopEvent(event);
-      };
-
-      document.querySelector('#map_link').onclick = (event) => {
-        const mapUrl = `map.html${window.location.search}`;
-        window.location.href = mapUrl;
-        return this.stopEvent(event);
-      };
-
       document.querySelector('.summary_stats').replaceChildren(this.createAllStatsHtml());
     }, 0);
   }
@@ -3174,16 +3216,11 @@ class SearchUI {
 
     if (extraHeader) {
       const extraHeaderEle = document.querySelector('#extra_header');
-      const outerSpan = document.createElement('span');
       const anchor = document.createElement('a');
       anchor.href = extraHeader.link;
-      const innerSpan = document.createElement('span');
-      innerSpan.className = 'main_view';
-      innerSpan.innerText = extraHeader.description;
-
-      anchor.appendChild(innerSpan);
-      outerSpan.appendChild(anchor);
-      extraHeaderEle.replaceChildren(outerSpan);
+      anchor.className = 'view_button';
+      anchor.innerText = extraHeader.description;
+      extraHeaderEle.replaceChildren(anchor);
     }
 
     this.setPageTitleAndIconSize(preferredView);
@@ -3203,7 +3240,7 @@ class SearchUI {
   }
 
   windowScrolled() {
-    if (getQueryParameter('view', null) === 'calendar') return;
+    if (['calendar', 'map'].includes(getQueryParameter('view', null))) return;
     if (this.loadMoreMedia()) {
       this.doShowMedia(this.state.currentPageNumber + 1);
     }
@@ -3298,16 +3335,27 @@ class SearchUI {
 
     this.initFullscreenControls();
 
-    this.setupClickHandler('#today_link', (event) => {
-      const criteria = [
-        ['Date', 'was taken on month/day', this.searchEngine.getCurrentMonthDay()],
-        ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]];
-      this.searchPageLinkGenerator(event, criteria, 'all', 'large_regular');
+    // Primary views. The Grid button resets to the ungrouped media browse view;
+    // its dropdown caret switches grouping.
+    this.setupClickHandler('#browse_link', (event) =>
+      this.searchPageLinkGenerator(event, [], 'all', null, false, 'none'));
+    this.setupClickHandler('#map_link', () => {
+      const params = new URLSearchParams(window.location.search);
+      // The Events/Years/Tags listing views filter to composite entities that have
+      // nothing to show on the map, so drop those criteria and show all media instead.
+      const aggregateTypes = [SearchUI.MEDIA_TYPE_STRINGS.EVENTS,
+        SearchUI.MEDIA_TYPE_STRINGS.YEARS, SearchUI.MEDIA_TYPE_STRINGS.TAGS];
+      const isAggregate = params.getAll('search').some((criteria) => {
+        const parts = criteria.split(',');
+        return parts[0] === 'Type' && parts[1] === 'is a' && aggregateTypes.includes(parts[2]);
+      });
+      if (isAggregate) {
+        params.delete('search');
+      }
+      params.set('view', 'map');
+      window.history.pushState({}, '', `index.html?${params.toString()}#`);
+      this.doPerformSearch();
     });
-    this.setupClickHandler('#nearby_link', () => this.nearbyClicked());
-    this.setupClickHandler('#animations_link', () => this.toggleAnimations());
-    this.setupClickHandler('#slideshow_link', () => this.slideshowClicked());
-    this.setupClickHandler('#date_link', (event) => this.searchPageLinkGenerator(event, []));
     this.setupClickHandler('#event_link', (event) =>
       this.searchPageLinkGenerator(event, [['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.EVENTS]]));
     this.setupClickHandler('#year_link', (event) =>
@@ -3315,10 +3363,53 @@ class SearchUI {
     this.setupClickHandler('#tag_link', (event) =>
       this.searchPageLinkGenerator(event,
         [['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.TAGS], ['Tag Parent ID', 'is not set']]));
-    this.setupClickHandler('#calendar_link', () => {
+    this.setupClickHandler('#stats_link', () => {
       window.history.pushState({}, '', 'index.html?view=calendar#');
       this.doPerformSearch();
     });
+
+    // Grouping dropdown (None / Day / Week / Month / Year / Camera / GPS).
+    const browseCaret = document.querySelector('#browse_caret');
+    const browseMenu = document.querySelector('#browse_menu');
+    this.setupClickHandler('#browse_caret', () => {
+      browseMenu.classList.toggle('hidden');
+      browseCaret.setAttribute('aria-expanded',
+        browseMenu.classList.contains('hidden') ? 'false' : 'true');
+    });
+    for (const item of browseMenu.querySelectorAll('.dropdown_item')) {
+      item.onclick = (event) => {
+        browseMenu.classList.add('hidden');
+        browseCaret.setAttribute('aria-expanded', 'false');
+        this.searchPageLinkGenerator(event, [], 'all', null, false, item.dataset.group);
+        return this.stopEvent(event);
+      };
+    }
+    // Close the dropdown when clicking anywhere outside of it.
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('#browse_button_group')) {
+        browseMenu.classList.add('hidden');
+        browseCaret.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Advanced search dialog (and the result actions that live inside it).
+    const dialog = document.querySelector('#advanced_search_dialog');
+    this.setupClickHandler('#advanced_search_link', () => dialog.showModal());
+    this.setupClickHandler('#animations_link', () => this.toggleAnimations());
+    this.setupClickHandler('#advanced_search_close', () => dialog.close());
+    this.setupClickHandler('#today_link', (event) => {
+      dialog.close();
+      const criteria = [
+        ['Date', 'was taken on month/day', this.searchEngine.getCurrentMonthDay()],
+        ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]];
+      this.searchPageLinkGenerator(event, criteria, 'all', 'large_regular');
+    });
+    this.setupClickHandler('#nearby_link', () => {
+      dialog.close();
+      this.nearbyClicked();
+    });
+    this.setupClickHandler('#csv_link', (event) => this.csvWriter.downloadCsv(event));
+
     this.setupClickHandler('#add_search_row', () => this.addSearchInputRow());
     this.setupClickHandler('#clear_search_criteria', () => this.clearSearchCriteria());
     this.setupChangeHandler('#match', () => this.updateSearchCriteria());
