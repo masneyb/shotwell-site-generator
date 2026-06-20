@@ -447,8 +447,16 @@ a {
   text-decoration: none;
 }
 
+/* When a stat chip is a link (date, camera, tag, rating, ...), fill it on hover
+   like the More button. The inner <a> inherits the chip's color. */
+.media_metadata .media_stat:has(a):hover {
+  color: var(--color-button-selected-text);
+  background-color: var(--color-button-selected-bg);
+  border-color: var(--color-button-selected-bg);
+}
+
 .media_metadata .media_stat a:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .media_metadata .more_less {
