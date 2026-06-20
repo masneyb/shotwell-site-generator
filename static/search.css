@@ -431,7 +431,7 @@ a {
 .media_metadata .media_stat {
   display: inline-flex;
   align-items: center;
-  padding: 1px 4px;
+  padding: 1px 3px;
   border-radius: 999px;
   line-height: 1.4;
   white-space: nowrap;
@@ -452,7 +452,7 @@ a {
 .media_metadata .more_less {
   display: inline-flex;
   align-items: center;
-  padding: 1px 9px;
+  padding: 1px 6px;
   border-radius: 999px;
   line-height: 1.4;
   font-style: normal;
