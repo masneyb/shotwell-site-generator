@@ -68,6 +68,54 @@ def exposure_year(media):
     return str(datetime.datetime.fromisoformat(value).year)
 
 
+def compute_ignored_tag_ids(src_tags, ignore_names):
+    # Resolve the requested tag name(s) to the set of tag ids that should be
+    # dropped. A name matches either a tag's leaf title or its full_title
+    # (case-insensitively), and every descendant of a matched tag is ignored
+    # too so the whole subtree disappears from the new site.
+    if not ignore_names:
+        return set()
+
+    wanted = {name.strip().lower() for name in ignore_names if name.strip()}
+    tag_by_id = {tag["id"]: tag for tag in src_tags}
+
+    directly_ignored = set()
+    matched_names = set()
+    for tag in src_tags:
+        names = {str(tag[key]).lower() for key in ("title", "full_title") if key in tag}
+        hits = names & wanted
+        if hits:
+            directly_ignored.add(tag["id"])
+            matched_names |= hits
+
+    unmatched = wanted - matched_names
+    if unmatched:
+        logging.warning("%d ignore-tag name(s) did not match any tag in the site: %s",
+                        len(unmatched), ", ".join(sorted(unmatched)))
+
+    ignored = set()
+    for tag in src_tags:
+        current = tag["id"]
+        seen = set()
+        while current is not None and current in tag_by_id and current not in seen:
+            if current in directly_ignored:
+                ignored.add(tag["id"])
+                break
+            seen.add(current)
+            current = tag_by_id[current].get("parent_tag_id")
+
+    return ignored
+
+
+def strip_ignored_tags(selected_media, ignored_tag_ids):
+    if not ignored_tag_ids:
+        return
+    for media in selected_media:
+        if "tags" in media:
+            media["tags"] = [tag_id for tag_id in media["tags"]
+                             if tag_id not in ignored_tag_ids]
+
+
 class SubsetBuilder:
     def __init__(self, date_helper):
         self.date_helper = date_helper
@@ -338,6 +386,11 @@ def process(options):
         logging.error("No media matched. Nothing to do.")
         return 1
 
+    ignored_tag_ids = compute_ignored_tag_ids(source.get("tags", []), options.ignore_tag)
+    if ignored_tag_ids:
+        logging.info("Ignoring %d tag(s) on the new site", len(ignored_tag_ids))
+        strip_ignored_tags(selected_media, ignored_tag_ids)
+
     builder = SubsetBuilder(CommonWriter(None, None, None,
                                          options.years_prior_are_approximate, None, None))
     output = build_output(source, selected_media, builder, options.title)
@@ -374,6 +427,10 @@ if __name__ == "__main__":
                            help="Destination directory for the new self-contained site")
     ARGPARSER.add_argument("--title", required=True,
                            help="Title shown at the top of the generated media.json")
+    ARGPARSER.add_argument("--ignore-tag", action="append", default=[], metavar="TAG",
+                           help="Tag name (leaf title or full title) to omit from the "
+                                "new site, along with any of its descendant tags. May be "
+                                "given multiple times.")
     ARGPARSER.add_argument("--years-prior-are-approximate", default="2000")
     ARGPARSER.add_argument("--debug", action="store_true", default=False)
     ARGS = ARGPARSER.parse_args(sys.argv[1:])
