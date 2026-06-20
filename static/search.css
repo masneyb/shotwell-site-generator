@@ -16,6 +16,7 @@
 
   /* Z-index layers */
   --z-base: 1;
+  --z-sticky-title: 2;
   --z-background: 10000;
   --z-container: 10001;
   --z-description: 10002;
@@ -47,6 +48,10 @@
     color: var(--color-text-light);
   }
 
+  .media_group_title {
+    background-color: var(--color-bg-dark);
+  }
+
   #description {
     background-color: var(--color-description-bg);
     color: var(--color-description-text);
@@ -62,6 +67,10 @@
   body {
     background: var(--color-bg-light);
     color: var(--color-text-dark);
+  }
+
+  .media_group_title {
+    background-color: var(--color-bg-light);
   }
 }
 
@@ -154,7 +163,11 @@ a {
   font-size: 110%;
   font-weight: bold;
   padding-left: 10px;
+  padding-top: 2px;
   padding-bottom: 2px;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky-title);
 }
 
 .media, .media_no_descr, .media_small, .media_medium, .media_dyn, .media_small_container, .media_small_container_2h, .media_medium_container, .media_medium_container_2h {
