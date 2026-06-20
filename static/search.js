@@ -1336,8 +1336,16 @@ class SearchEngine {
     let maxDate;
     let maxDatePretty;
 
+    // The default Date view has no real criteria (just the always-true no-op). Only show
+    // media there; events, tags, and years would otherwise be listed at the very bottom.
+    const isDefaultView = allCriteria.length === 1 && allCriteria[0].field.title === null;
+
     const ret = [];
     for (const media of allItems) {
+      if (isDefaultView && ['events', 'tags', 'years'].includes(media.type)) {
+        continue;
+      }
+
       let numFound = 0;
       for (const criteria of allCriteria) {
         if (criteria.op.matches(criteria.field, criteria.op, criteria.searchValues, media)) {
@@ -3129,7 +3137,10 @@ class SearchUI {
         this.doShowCalendar();
       } else {
         this.doShowMedia(1);
-        this.doShowCalendar(document.querySelector('#search_results_calendar'), true);
+        // Don't show the calendar at the bottom of the default Date view (no search criteria).
+        if (this.searchEngine.getSearchQueryParams().length !== 0) {
+          this.doShowCalendar(document.querySelector('#search_results_calendar'), true);
+        }
       }
 
       for (const ele of document.querySelectorAll('.header_links')) {
