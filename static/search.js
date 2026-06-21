@@ -2935,16 +2935,19 @@ class SearchUI {
       mediaEle.style.width = `${this.getMediaRegularWidth(media)}px`;
     }
 
-    // Tags, events and years always show their metadata at large/regular icon sizes,
-    // even for the "no metadata" layouts that hide it for regular media.
-    const alwaysShowAggregateMeta =
+    const showFullDescr =
+      (SearchUI.FULL_METADATA_SIZES.includes(iconSize) ||
+       SearchUI.TAG_METADATA_SIZES.includes(iconSize) ||
+       SearchUI.BRIEF_METADATA_SIZES.includes(iconSize)) &&
+      !this.showLargeIconWithNoDescr(iconSize, media.type);
+
+    // Tags, events and years always show at least their title at large/regular icon
+    // sizes, even for the "no metadata" layouts that hide the description for regular
+    // media. In that "no metadata" case only the title is shown, not the other stats.
+    const showAggregateTitleOnly = !showFullDescr &&
       this.isAggregateMediaType(media.type) && this.isLargeOrRegularIconSize(iconSize);
 
-    if (alwaysShowAggregateMeta ||
-        ((SearchUI.FULL_METADATA_SIZES.includes(iconSize) ||
-          SearchUI.TAG_METADATA_SIZES.includes(iconSize) ||
-          SearchUI.BRIEF_METADATA_SIZES.includes(iconSize)) &&
-         !this.showLargeIconWithNoDescr(iconSize, media.type))) {
+    if (showFullDescr || showAggregateTitleOnly) {
       // Group the title, comment and metadata into a single centered block so they
       // flow together and make more efficient use of the space under the thumbnail.
       const descr = document.createElement('span');
@@ -2962,17 +2965,19 @@ class SearchUI {
         descr.appendChild(title);
       }
 
-      if (media.comment) {
-        const name = `comment${media.type}${media.id}`;
-        const comment = document.createElement('span');
-        comment.className = 'media_comment';
-        comment.appendChild(this.getExpandableString(name, media.comment, 'inline'));
-        descr.appendChild(comment);
-      }
+      if (showFullDescr) {
+        if (media.comment) {
+          const name = `comment${media.type}${media.id}`;
+          const comment = document.createElement('span');
+          comment.className = 'media_comment';
+          comment.appendChild(this.getExpandableString(name, media.comment, 'inline'));
+          descr.appendChild(comment);
+        }
 
-      const metadata = this.createMediaStatsHtml(media, false, null, false, iconSize);
-      metadata.className = 'media_metadata';
-      descr.appendChild(metadata);
+        const metadata = this.createMediaStatsHtml(media, false, null, false, iconSize);
+        metadata.className = 'media_metadata';
+        descr.appendChild(metadata);
+      }
 
       mediaEle.appendChild(descr);
     }
