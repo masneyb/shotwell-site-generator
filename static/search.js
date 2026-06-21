@@ -1517,6 +1517,16 @@ class SearchUI {
     SearchUI.ICON_SIZES.REGULAR
   ];
 
+  // Page icon sizes where tags, events and years show their full metadata. Note that
+  // LARGE_REGULAR is resolved to LARGE or REGULAR in getPageIconSize() before it is
+  // stored in state.preferredPageIconSize, so it is matched here via LARGE/REGULAR.
+  static AGGREGATE_METADATA_SIZES = [
+    SearchUI.ICON_SIZES.LARGE,
+    SearchUI.ICON_SIZES.REGULAR,
+    SearchUI.ICON_SIZES.LARGE_FULL_META,
+    SearchUI.ICON_SIZES.REGULAR_FULL_META
+  ];
+
   static LARGE_ICON_SIZES = [
     SearchUI.ICON_SIZES.LARGE,
     SearchUI.ICON_SIZES.LARGE_FULL_META,
@@ -2558,6 +2568,14 @@ class SearchUI {
       SearchUI.MEDIA_TYPE_STRINGS.TAGS].includes(mediaType);
   }
 
+  showAggregateMetadata() {
+    // Tags, events and years only show their full metadata for the large/regular and
+    // full-metadata page sizes. For the mixed combination sizes (small_medium,
+    // medium_large, small_medium_large) and the other smaller layouts their icon may be
+    // enlarged, but the page is otherwise compact, so only their title is shown.
+    return SearchUI.AGGREGATE_METADATA_SIZES.includes(this.state.preferredPageIconSize);
+  }
+
   showLargeIconWithNoDescr(iconSize, mediaType) {
     // Tags, events and years always show their metadata at large/regular icon sizes.
     if (this.isAggregateMediaType(mediaType) && this.isLargeOrRegularIconSize(iconSize)) {
@@ -2935,17 +2953,24 @@ class SearchUI {
       mediaEle.style.width = `${this.getMediaRegularWidth(media)}px`;
     }
 
-    const showFullDescr =
-      (SearchUI.FULL_METADATA_SIZES.includes(iconSize) ||
-       SearchUI.TAG_METADATA_SIZES.includes(iconSize) ||
-       SearchUI.BRIEF_METADATA_SIZES.includes(iconSize)) &&
-      !this.showLargeIconWithNoDescr(iconSize, media.type);
+    const isAggregate = this.isAggregateMediaType(media.type);
+
+    // Tags, events and years gate their full metadata on the page size (see
+    // showAggregateMetadata) rather than the per-media resolved icon size, so that they
+    // do not show their metadata in the mixed combination sizes where their icon happens
+    // to be enlarged. Regular media continues to use the resolved icon size.
+    const showFullDescr = isAggregate
+      ? this.showAggregateMetadata()
+      : (SearchUI.FULL_METADATA_SIZES.includes(iconSize) ||
+         SearchUI.TAG_METADATA_SIZES.includes(iconSize) ||
+         SearchUI.BRIEF_METADATA_SIZES.includes(iconSize)) &&
+        !this.showLargeIconWithNoDescr(iconSize, media.type);
 
     // Tags, events and years always show at least their title at large/regular icon
     // sizes, even for the "no metadata" layouts that hide the description for regular
     // media. In that "no metadata" case only the title is shown, not the other stats.
     const showAggregateTitleOnly = !showFullDescr &&
-      this.isAggregateMediaType(media.type) && this.isLargeOrRegularIconSize(iconSize);
+      isAggregate && this.isLargeOrRegularIconSize(iconSize);
 
     if (showFullDescr || showAggregateTitleOnly) {
       // Group the title, comment and metadata into a single centered block so they
