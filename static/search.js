@@ -3148,6 +3148,7 @@ class SearchUI {
 
   showMapView(allMediaEle) {
     this.clearPreviousMedia(allMediaEle);
+    document.body.classList.add('map_view');
 
     const params = new URLSearchParams(window.location.search);
     params.delete('view');
@@ -3171,6 +3172,7 @@ class SearchUI {
       return;
     }
     document.querySelector('#map_frame').classList.add('hidden');
+    document.body.classList.remove('map_view');
 
     this.clearPreviousMedia(allMediaEle);
     if (this.state.allMedia == null) {

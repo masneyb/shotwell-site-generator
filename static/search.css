@@ -465,6 +465,28 @@ a {
   display: none;
 }
 
+/* In map view, keep the header pinned at the top and let the map iframe fill
+   the remaining viewport height. Without this the iframe is a full 100vh tall
+   below the in-flow header, so the page scrolls and the header gets pushed off
+   the top as soon as the map is interacted with. */
+body.map_view {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+body.map_view header {
+  flex: 0 0 auto;
+}
+
+body.map_view #map_frame {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+}
+
 .media_group {
   display: block;
   padding-top: 5px;
