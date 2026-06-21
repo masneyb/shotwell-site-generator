@@ -2076,6 +2076,7 @@ class SearchUI {
   }
 
   updateSearchCriteria() {
+    document.querySelector('#advanced_search_dialog').close();
     updateOverallStatusMessage('Searching');
     this.hideResultsInfo();
 
@@ -2286,6 +2287,7 @@ class SearchUI {
   }
 
   clearSearchCriteria() {
+    document.querySelector('#advanced_search_dialog').close();
     window.history.pushState({}, '', 'index.html?#');
     this.doPerformSearch();
   }
@@ -3208,6 +3210,7 @@ class SearchUI {
   }
 
   toggleAnimations() {
+    document.querySelector('#advanced_search_dialog').close();
     this.state.alwaysShowAnimations = !this.state.alwaysShowAnimations;
     this.updateAnimationsText();
     this.showMedia();
