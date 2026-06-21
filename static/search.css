@@ -297,45 +297,77 @@ a {
 }
 
 #advanced_search_dialog {
-  width: 520px;
+  width: 540px;
   max-width: 92vw;
   padding: 0;
-  border: 1px solid var(--color-button-border);
-  border-radius: 10px;
+  border: none;
+  border-radius: 14px;
   color: inherit;
   background: var(--color-dialog-bg);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
 }
 
 #advanced_search_dialog::backdrop {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
 }
 
 .dialog_header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 14px 18px;
   border-bottom: 1px solid var(--color-button-border);
+  background: var(--color-button-hover);
 }
 
 .dialog_title {
   font-weight: bold;
-  font-size: 110%;
+  font-size: 115%;
+  letter-spacing: 0.2px;
 }
 
 .dialog_close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
   text-decoration: none;
-  font-size: 120%;
+  font-size: 100%;
   line-height: 1;
-  padding: 0 4px;
   cursor: pointer;
+  color: inherit;
+}
+
+.dialog_close:hover {
+  background-color: var(--color-button-selected-bg);
+  color: var(--color-button-selected-text);
 }
 
 .dialog_quick_links {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  padding: 12px 16px 0;
+  gap: 8px;
+  padding: 16px 18px 6px;
+}
+
+.dialog_quick_links .header_link {
+  padding: 6px 14px;
+  border: 1px solid var(--color-button-border);
+  border-radius: 16px;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .dialog_quick_links .header_link:hover {
+    background-color: var(--color-button-hover);
+    border-color: var(--color-button-selected-bg);
+  }
 }
 
 #search_controls {
@@ -343,19 +375,83 @@ a {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px;
+  padding: 14px 18px 18px;
+  margin-top: 12px;
+  border-top: 1px solid var(--color-button-border);
+}
+
+/* Push the Clear button to the far right, onto the same row as the icon size dropdown. */
+#clear_search_criteria {
+  margin: 0 0 0 auto;
 }
 
 #search_criterias {
-  display: block;
-  padding: 8px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 18px 0;
 }
 
-.dialog_actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 0 16px 16px;
+/* Form controls inside the advanced search dialog */
+#advanced_search_dialog select,
+#advanced_search_dialog input:not([type="button"]) {
+  padding: 6px 10px;
+  border: 1px solid var(--color-button-border);
+  border-radius: 8px;
+  background: var(--color-dialog-bg);
+  color: inherit;
+  font-family: inherit;
+  font-size: 95%;
+}
+
+#advanced_search_dialog select:focus,
+#advanced_search_dialog input:not([type="button"]):focus {
+  outline: none;
+  border-color: var(--color-button-selected-bg);
+  box-shadow: 0 0 0 2px var(--color-button-hover);
+}
+
+#advanced_search_dialog input[type="button"] {
+  padding: 6px 16px;
+  border: 1px solid var(--color-button-border);
+  border-radius: 16px;
+  background: var(--color-dialog-bg);
+  color: inherit;
+  font-family: inherit;
+  font-size: 95%;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  #advanced_search_dialog input[type="button"]:hover {
+    background-color: var(--color-button-hover);
+  }
+}
+
+/* Round +/X buttons for adding and removing search rows */
+#advanced_search_dialog input[type="button"]#add_search_row,
+#advanced_search_dialog input[type="button"].search_delete_row {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  font-weight: bold;
+  line-height: 1;
+  text-align: center;
+}
+
+@media (hover: hover) {
+  #advanced_search_dialog input[type="button"].search_delete_row:hover {
+    background-color: #d93025;
+    border-color: #d93025;
+    color: #fff;
+  }
+
+  #advanced_search_dialog input[type="button"]#add_search_row:hover {
+    background-color: var(--color-button-selected-bg);
+    border-color: var(--color-button-selected-bg);
+    color: var(--color-button-selected-text);
+  }
 }
 
 #map_frame {
@@ -540,9 +636,18 @@ a {
   padding-top: 10px;
 }
 
-.search_criterias, .search_criteria, #search_controls {
-  display: block;
-  padding-bottom: 5px;
+.search_criteria {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.search_criteria .search_values {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
 }
 
 .status {
