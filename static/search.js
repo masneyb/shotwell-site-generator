@@ -1608,7 +1608,8 @@ class SearchUI {
 
   getFullscreenImageUrl(index) {
     const media = this.state.allMedia[index];
-    if (SearchEngine.MEDIA_TYPES.includes(media.type)) {
+    if (SearchEngine.MEDIA_TYPES.includes(media.type) &&
+        window.innerWidth > SearchUI.SCREEN_BREAKPOINT_SMALL) {
       return media.link;
     }
 
