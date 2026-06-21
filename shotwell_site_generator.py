@@ -94,9 +94,6 @@ def process_photos(options):
     writer.write()
 
     logging.info("Copying other support files")
-    write_redirect(os.path.join(os.path.join(options.dest_directory, "static-site"),
-                                "index.html"),
-                   "media/index.html")
     subprocess.run(["uglifyjs", "--compress", "--mangle",
                     "--source-map", "url='search.min.js.map'",
                     "-o", os.path.join(options.dest_directory, "search.min.js"),
