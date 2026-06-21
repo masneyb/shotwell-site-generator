@@ -4574,7 +4574,7 @@ function doMapInit() {
         const size = MapUI.MARKER_SIZE;
         return L.divIcon({
           className: 'cluster-marker',
-          html: `<div class="cluster-marker-inner">${cluster.getChildCount()}</div>`,
+          html: `<div class="cluster-marker-inner">${cluster.getChildCount().toLocaleString()}</div>`,
           iconSize: [size, size],
           iconAnchor: [size / 2, size / 2],
         });
