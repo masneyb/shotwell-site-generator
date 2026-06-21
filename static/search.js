@@ -1461,16 +1461,6 @@ class SearchEngine {
       this.state.processedMedia = this.doUpdateItems(resp);
       this.state.extraHeader = resp.extra_header;
       this.state.mainTitle = resp.title;
-
-      let ele = document.querySelector('#generated_timestamp');
-      if (ele) {
-        ele.innerText = `at ${resp.generated_at}`;
-      }
-
-      ele = document.querySelector('#app_version');
-      if (ele) {
-        ele.innerText = resp.version_label;
-      }
     }
 
     const allCriteria = this.getSearchCriteria();
