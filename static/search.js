@@ -2419,7 +2419,7 @@ class SearchUI {
 
   updateSelectedView(preferredView) {
     const allViewIds = ['browse_link', 'map_link', 'event_link',
-      'year_link', 'tag_link', 'stats_link'];
+      'year_link', 'tag_link', 'stats_link', 'extra_header_link'];
     for (const id of allViewIds) {
       document.querySelector(`#${id}`)?.classList.remove('view_button_selected');
     }
@@ -2429,6 +2429,8 @@ class SearchUI {
     let selectedId;
     if (getQueryParameter('view', null) === 'map') {
       selectedId = 'map_link';
+    } else if (getQueryParameter('view', null) === 'extra') {
+      selectedId = 'extra_header_link';
     } else if (getQueryParameter('view', null) === 'calendar') {
       selectedId = 'stats_link';
     } else if (preferredView.cssSelector !== null) {
@@ -3146,18 +3148,17 @@ class SearchUI {
     return this.createAllStatsSpan(stats);
   }
 
-  showMapView(allMediaEle) {
+  // Show an inline page (the map, or an extra-header page) inside the shared
+  // content frame instead of navigating away from the search page.
+  showFrameView(src, allMediaEle) {
     this.clearPreviousMedia(allMediaEle);
-    document.body.classList.add('map_view');
+    document.body.classList.add('frame_view');
 
-    const params = new URLSearchParams(window.location.search);
-    params.delete('view');
-    const src = `map.html?${params.toString()}`;
-    const mapFrame = document.querySelector('#map_frame');
-    if (mapFrame.getAttribute('src') !== src) {
-      mapFrame.setAttribute('src', src);
+    const contentFrame = document.querySelector('#content_frame');
+    if (contentFrame.getAttribute('src') !== src) {
+      contentFrame.setAttribute('src', src);
     }
-    mapFrame.classList.remove('hidden');
+    contentFrame.classList.remove('hidden');
 
     if (this.state.allMedia != null && this.state.allMedia.length > 0) {
       document.querySelector('.summary_stats').replaceChildren(this.createAllStatsHtml());
@@ -3167,12 +3168,19 @@ class SearchUI {
   showMedia() {
     const allMediaEle = document.querySelector('#all_media');
 
-    if (getQueryParameter('view', null) === 'map') {
-      this.showMapView(allMediaEle);
+    const view = getQueryParameter('view', null);
+    if (view === 'map') {
+      const params = new URLSearchParams(window.location.search);
+      params.delete('view');
+      this.showFrameView(`map.html?${params.toString()}`, allMediaEle);
       return;
     }
-    document.querySelector('#map_frame').classList.add('hidden');
-    document.body.classList.remove('map_view');
+    if (view === 'extra' && this.state.extraHeader) {
+      this.showFrameView(this.state.extraHeader.link, allMediaEle);
+      return;
+    }
+    document.querySelector('#content_frame').classList.add('hidden');
+    document.body.classList.remove('frame_view');
 
     this.clearPreviousMedia(allMediaEle);
     if (this.state.allMedia == null) {
@@ -3217,8 +3225,18 @@ class SearchUI {
       const extraHeaderEle = document.querySelector('#extra_header');
       const anchor = document.createElement('a');
       anchor.href = extraHeader.link;
+      anchor.id = 'extra_header_link';
       anchor.className = 'view_button';
       anchor.innerText = extraHeader.description;
+      // Show the extra-header page inline in the content frame rather than
+      // navigating away from the search page.
+      anchor.onclick = (event) => {
+        const params = new URLSearchParams(window.location.search);
+        params.set('view', 'extra');
+        window.history.pushState({}, '', `index.html?${params.toString()}#`);
+        this.doPerformSearch();
+        return this.stopEvent(event);
+      };
       extraHeaderEle.replaceChildren(anchor);
     }
 

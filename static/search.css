@@ -454,22 +454,23 @@ a {
   }
 }
 
-#map_frame {
+#content_frame {
   display: block;
   width: 100%;
   height: 100vh;
   border: none;
 }
 
-#map_frame.hidden {
+#content_frame.hidden {
   display: none;
 }
 
-/* In map view, keep the header pinned at the top and let the map iframe fill
-   the remaining viewport height. Without this the iframe is a full 100vh tall
-   below the in-flow header, so the page scrolls and the header gets pushed off
-   the top as soon as the map is interacted with. */
-body.map_view {
+/* When an inline page (the map or an extra-header page) is shown in the content
+   frame, keep the header pinned at the top and let the iframe fill the remaining
+   viewport height. Without this the iframe is a full 100vh tall below the in-flow
+   header, so the page scrolls and the header gets pushed off the top as soon as
+   the iframe is interacted with. */
+body.frame_view {
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
@@ -477,11 +478,11 @@ body.map_view {
   flex-direction: column;
 }
 
-body.map_view header {
+body.frame_view header {
   flex: 0 0 auto;
 }
 
-body.map_view #map_frame {
+body.frame_view #content_frame {
   flex: 1 1 auto;
   height: auto;
   min-height: 0;
