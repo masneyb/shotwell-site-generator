@@ -4565,6 +4565,12 @@ function doMapInit() {
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
+      // OpenStreetMap's tile usage policy requires a Referer header. When this
+      // page is served from a site with a strict Referrer-Policy (e.g. a
+      // password-protected HTTPS site), the browser strips the Referer on the
+      // cross-origin tile requests and OSM blocks them. Forcing the per-image
+      // referrerPolicy sends the origin as the Referer so the tiles load.
+      referrerPolicy: 'origin-when-cross-origin',
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
