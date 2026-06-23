@@ -380,9 +380,60 @@ a {
   border-top: 1px solid var(--color-button-border);
 }
 
-/* Push the Clear button to the far right, onto the same row as the icon size dropdown. */
+/* Push the Clear button to the far right, onto the same row as the icon size controls. */
 #clear_search_criteria {
   margin: 0 0 0 auto;
+}
+
+/* Icon size controls: a "vary by rating" toggle plus a size slider and an
+   optional metadata slider. */
+#icon_size_controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+#icon_size_controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 95%;
+  white-space: nowrap;
+}
+
+.icon_size_value {
+  min-width: 7.5em;
+  font-weight: bold;
+}
+
+#icon_size_controls label.icon_size_disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+#advanced_search_dialog #icon_size_controls input[type="range"]:disabled {
+  cursor: not-allowed;
+}
+
+/* The checkbox and range sliders should not inherit the boxed text-input look. */
+#advanced_search_dialog #icon_size_controls input[type="checkbox"] {
+  width: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+#advanced_search_dialog #icon_size_controls input[type="range"] {
+  width: 120px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
 }
 
 #search_criterias {

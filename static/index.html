@@ -96,23 +96,21 @@
           <option value="createdAZ">Sort added A-Z</option>
           <option value="random">Sort random</option>
         </select>
-        <select id="icons" aria-label="Icon size">
-          <option value="default">Default Icons</option>
-          <option value="small">Small Icons</option>
-          <option value="medium">Medium Icons</option>
-          <option value="small_medium">Small/Medium Icons</option>
-          <option value="small_medium_large">Small/Medium/Large Icons</option>
-          <option value="medium_large">Medium/Large Icons</option>
-          <option value="large">Large Icons</option>
-          <option value="large_tag_meta">Large Icons (Tag Metadata)</option>
-          <option value="large_full_meta">Large Icons (Full Metadata)</option>
-          <option value="large_no_meta">Large Icons (No Metadata)</option>
-          <option value="regular">Regular Icons</option>
-          <option value="regular_tag_meta">Regular Icons (Tag Metadata)</option>
-          <option value="regular_full_meta">Regular Icons (Full Metadata)</option>
-          <option value="regular_no_meta">Regular Icons (No Metadata)</option>
-          <option value="large_regular">Large/Regular Icons</option>
-        </select>
+        <div id="icon_size_controls">
+          <label class="icon_size_check">
+            <input type="checkbox" id="vary_by_rating"> Vary size by rating
+          </label>
+          <label class="icon_size_slider">
+            <span class="icon_size_name">Size</span>
+            <input type="range" id="icon_size" min="0" max="3" step="1" value="3" aria-label="Icon size">
+            <span class="icon_size_value" id="icon_size_value"></span>
+          </label>
+          <label class="icon_size_slider" id="icon_meta_control">
+            <span class="icon_size_name">Metadata</span>
+            <input type="range" id="icon_meta" min="0" max="3" step="1" value="0" aria-label="Icon metadata level">
+            <span class="icon_size_value" id="icon_meta_value"></span>
+          </label>
+        </div>
         <input class="button" type="button" id="clear_search_criteria" value="Clear">
       </div>
     </dialog>

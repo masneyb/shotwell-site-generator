@@ -1524,6 +1524,36 @@ class SearchUI {
     SearchUI.ICON_SIZES.LARGE_NO_META
   ];
 
+  // The icon size controls (a "vary by rating" toggle plus a size slider and an
+  // optional metadata slider) map to the single `icons` query parameter. The
+  // ordered arrays below define the slider stops for each category.
+
+  // Uniform sizes: the same icon size is used for every photo.
+  static UNIFORM_SIZE_STEPS = [
+    SearchUI.ICON_SIZES.SMALL,
+    SearchUI.ICON_SIZES.MEDIUM,
+    SearchUI.ICON_SIZES.REGULAR,
+    SearchUI.ICON_SIZES.LARGE
+  ];
+
+  static UNIFORM_SIZE_LABELS = ['Small', 'Medium', 'Regular', 'Large'];
+
+  // Rating based sizes: the icon size varies with each photo's rating.
+  static RATING_SIZE_STEPS = [
+    SearchUI.ICON_SIZES.SMALL_MEDIUM,
+    SearchUI.ICON_SIZES.SMALL_MEDIUM_LARGE,
+    SearchUI.ICON_SIZES.MEDIUM_LARGE
+  ];
+
+  static RATING_SIZE_LABELS = ['Small / Medium', 'Small / Med / Large', 'Medium / Large'];
+
+  // The metadata slider only applies to the Regular and Large uniform sizes. The
+  // suffix is appended to the base size to form the `icons` value (an empty suffix
+  // is the "brief" variant, e.g. plain `regular` / `large`).
+  static METADATA_SIZE_BASES = [SearchUI.ICON_SIZES.REGULAR, SearchUI.ICON_SIZES.LARGE];
+  static METADATA_SUFFIXES = ['_no_meta', '_tag_meta', '', '_full_meta'];
+  static METADATA_LABELS = ['None', 'Tag', 'Brief', 'Full'];
+
   static FILE_SIZE_UNITS = {
     GB: 1024 * 1024 * 1024,
     MB: 1024 * 1024,
@@ -2098,7 +2128,7 @@ class SearchUI {
 
       const matchPolicy = document.querySelector('#match').value;
       const sortBy = document.querySelector('#sort').value;
-      const iconSize = document.querySelector('#icons').value;
+      const iconSize = this.getIconSizeFromControls();
       const groupBy = document.querySelector('#group').value;
       const url = `index.html?${searchArgs.join('&')}&match=${matchPolicy}&sort=${sortBy}` +
         `&icons=${iconSize}&group=${groupBy}#`;
@@ -2277,7 +2307,7 @@ class SearchUI {
     document.querySelector('#sort').value = sortBy;
 
     const iconSize = getQueryParameter('icons', 'default');
-    document.querySelector('#icons').value = iconSize;
+    this.setIconSizeControls(iconSize);
 
     const groupBy = getQueryParameter('group', 'none');
     document.querySelector('#group').value = groupBy;
@@ -2338,6 +2368,115 @@ class SearchUI {
     } else {
       this.state.mediaWriter = new SingleIconSizeWriter();
     }
+  }
+
+  // Sets the size slider's range to match the currently selected category and
+  // clamps the value if the new range is smaller.
+  configureIconSizeSlider() {
+    const varyByRating = document.querySelector('#vary_by_rating').checked;
+    const sizeEle = document.querySelector('#icon_size');
+    const steps = varyByRating ? SearchUI.RATING_SIZE_STEPS : SearchUI.UNIFORM_SIZE_STEPS;
+    sizeEle.max = String(steps.length - 1);
+    if (parseInt(sizeEle.value, 10) > steps.length - 1) {
+      sizeEle.value = sizeEle.max;
+    }
+  }
+
+  // Updates the text next to each slider and shows the metadata slider only for
+  // the uniform Regular and Large sizes, which are the only ones with variants.
+  updateIconSizeLabels() {
+    const varyByRating = document.querySelector('#vary_by_rating').checked;
+    const sizeIdx = parseInt(document.querySelector('#icon_size').value, 10);
+    const sizeLabels = varyByRating ? SearchUI.RATING_SIZE_LABELS : SearchUI.UNIFORM_SIZE_LABELS;
+    document.querySelector('#icon_size_value').innerText = sizeLabels[sizeIdx] || '';
+
+    // Metadata variants only apply to the uniform Regular and Large sizes, so the
+    // slider is disabled (but kept visible) for rating mode and the smaller sizes.
+    const base = varyByRating ? null : SearchUI.UNIFORM_SIZE_STEPS[sizeIdx];
+    const metaApplies = SearchUI.METADATA_SIZE_BASES.includes(base);
+    const metaEle = document.querySelector('#icon_meta');
+    metaEle.disabled = !metaApplies;
+    document.querySelector('#icon_meta_control').classList.toggle('icon_size_disabled', !metaApplies);
+    const metaIdx = parseInt(metaEle.value, 10);
+    document.querySelector('#icon_meta_value').innerText = SearchUI.METADATA_LABELS[metaIdx] || '';
+  }
+
+  // Builds the `icons` query parameter value from the current control state.
+  getIconSizeFromControls() {
+    const sizeIdx = parseInt(document.querySelector('#icon_size').value, 10);
+    if (document.querySelector('#vary_by_rating').checked) {
+      return SearchUI.RATING_SIZE_STEPS[sizeIdx];
+    }
+
+    const base = SearchUI.UNIFORM_SIZE_STEPS[sizeIdx];
+    if (SearchUI.METADATA_SIZE_BASES.includes(base)) {
+      const metaIdx = parseInt(document.querySelector('#icon_meta').value, 10);
+      return base + SearchUI.METADATA_SUFFIXES[metaIdx];
+    }
+    return base;
+  }
+
+  // Positions the controls to reflect an `icons` value. The responsive values
+  // (`default`, `large_regular`, or anything unrecognized) don't map to a fixed
+  // slider position, so they're resolved to the concrete size shown on the
+  // current screen.
+  setIconSizeControls(iconSize) {
+    const directlyMappable =
+      SearchUI.RATING_SIZE_STEPS.includes(iconSize) ||
+      iconSize === SearchUI.ICON_SIZES.SMALL ||
+      iconSize === SearchUI.ICON_SIZES.MEDIUM ||
+      (this.isLargeOrRegularIconSize(iconSize) &&
+        iconSize !== SearchUI.ICON_SIZES.LARGE_REGULAR);
+    const resolved = directlyMappable ? iconSize : this.getPageIconSize();
+
+    const varyEle = document.querySelector('#vary_by_rating');
+    const sizeEle = document.querySelector('#icon_size');
+    const metaEle = document.querySelector('#icon_meta');
+
+    const ratingIdx = SearchUI.RATING_SIZE_STEPS.indexOf(resolved);
+    if (ratingIdx >= 0) {
+      varyEle.checked = true;
+      this.configureIconSizeSlider();
+      sizeEle.value = String(ratingIdx);
+    } else {
+      varyEle.checked = false;
+      this.configureIconSizeSlider();
+
+      // Split the resolved value into its base size and metadata suffix.
+      let base = resolved;
+      let metaIdx = SearchUI.METADATA_SUFFIXES.indexOf('');
+      for (const candidate of SearchUI.METADATA_SIZE_BASES) {
+        if (resolved === candidate || resolved.startsWith(`${candidate}_`)) {
+          base = candidate;
+          const found = SearchUI.METADATA_SUFFIXES.indexOf(resolved.slice(candidate.length));
+          metaIdx = found >= 0 ? found : metaIdx;
+          break;
+        }
+      }
+      sizeEle.value = String(Math.max(0, SearchUI.UNIFORM_SIZE_STEPS.indexOf(base)));
+      metaEle.value = String(metaIdx);
+    }
+
+    this.updateIconSizeLabels();
+  }
+
+  initIconSizeControls() {
+    const varyEle = document.querySelector('#vary_by_rating');
+    const sizeEle = document.querySelector('#icon_size');
+    const metaEle = document.querySelector('#icon_meta');
+
+    varyEle.onchange = () => {
+      this.configureIconSizeSlider();
+      // The slider index means something different per category, so start from a
+      // sensible default: a balanced rating mix, or large uniform icons.
+      sizeEle.value = varyEle.checked ? '1' : '3';
+      this.updateIconSizeLabels();
+      this.updateSearchCriteria();
+    };
+    sizeEle.oninput = () => this.updateIconSizeLabels();
+    sizeEle.onchange = () => this.updateSearchCriteria();
+    metaEle.oninput = () => this.updateIconSizeLabels();
+    metaEle.onchange = () => this.updateSearchCriteria();
   }
 
   showEventComment(searchEventId) {
@@ -3437,7 +3576,7 @@ class SearchUI {
     this.setupChangeHandler('#match', () => this.updateSearchCriteria());
     this.setupChangeHandler('#group', () => this.updateSearchCriteria());
     this.setupChangeHandler('#sort', () => this.updateSearchCriteria());
-    this.setupChangeHandler('#icons', () => this.updateSearchCriteria());
+    this.initIconSizeControls();
   }
 
   getHeatmapLevel(count) {
