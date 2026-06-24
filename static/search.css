@@ -380,8 +380,8 @@ a {
   border-top: 1px solid var(--color-button-border);
 }
 
-/* Push the Clear button to the far right, onto the same row as the icon size controls. */
-#clear_search_criteria {
+/* Push the Save/Clear buttons to the far right, onto the same row as the icon size controls. */
+#save_search_criteria {
   margin: 0 0 0 auto;
 }
 

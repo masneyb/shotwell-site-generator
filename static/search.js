@@ -2107,7 +2107,8 @@ class SearchUI {
   }
 
   updateSearchCriteria() {
-    document.querySelector('#advanced_search_dialog').close();
+    // Apply the change in the background while keeping the advanced search dialog
+    // open so the user can make several changes before closing it via Save/Clear.
     updateOverallStatusMessage('Searching');
     this.hideResultsInfo();
 
@@ -3572,6 +3573,7 @@ class SearchUI {
     this.setupClickHandler('#csv_link', (event) => this.csvWriter.downloadCsv(event));
 
     this.setupClickHandler('#add_search_row', () => this.addSearchInputRow());
+    this.setupClickHandler('#save_search_criteria', () => dialog.close());
     this.setupClickHandler('#clear_search_criteria', () => this.clearSearchCriteria());
     this.setupChangeHandler('#match', () => this.updateSearchCriteria());
     this.setupChangeHandler('#group', () => this.updateSearchCriteria());
