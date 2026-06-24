@@ -3387,7 +3387,7 @@ class SearchUI {
 
   updateAnimationsText() {
     document.querySelector('#animations_link').innerText =
-      this.state.alwaysShowAnimations ? 'Stop Animations' : 'Show Animations';
+      this.state.alwaysShowAnimations ? 'No Animations' : 'Animations';
   }
 
   toggleAnimations() {

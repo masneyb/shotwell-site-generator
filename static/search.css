@@ -380,8 +380,8 @@ a {
   border-top: 1px solid var(--color-button-border);
 }
 
-/* Push the Save/Clear buttons to the far right, onto the same row as the icon size controls. */
-#save_search_criteria {
+/* Push the Clear/Save buttons to the far right, onto the same row as the icon size controls. */
+#clear_search_criteria {
   margin: 0 0 0 auto;
 }
 
@@ -443,6 +443,10 @@ a {
   padding: 14px 18px 0;
 }
 
+#advanced_search_dialog {
+  font-size: 80%;
+}
+
 /* Form controls inside the advanced search dialog */
 #advanced_search_dialog select,
 #advanced_search_dialog input:not([type="button"]) {
@@ -452,7 +456,6 @@ a {
   background: var(--color-dialog-bg);
   color: inherit;
   font-family: inherit;
-  font-size: 95%;
 }
 
 #advanced_search_dialog select:focus,
@@ -670,6 +673,7 @@ body.frame_view #content_frame {
   background-color: var(--color-stat-chip-bg);
   color: var(--color-stat-chip-text);
   border: 1px solid var(--color-stat-chip-border);
+  font-size: 80%;
 }
 
 .media_stat {
