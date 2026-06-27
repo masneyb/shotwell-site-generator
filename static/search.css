@@ -225,6 +225,20 @@ a {
     padding: 0 4px;
     font-size: 73%;
   }
+
+  /* Keep the +, Match, Group and Sort controls together on a single row by
+     letting the three dropdowns shrink to share the line instead of wrapping.
+     The icon-size controls drop onto their own row below. */
+  #search_controls #match,
+  #search_controls #group,
+  #search_controls #sort {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  #search_controls #icon_size_controls {
+    flex-basis: 100%;
+  }
 }
 
 .dropdown_menu {
@@ -709,9 +723,22 @@ body.frame_view #content_frame {
 
 .search_criteria {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 6px;
+}
+
+/* Allow the dropdowns and value inputs to shrink so the row stays on one
+   line on narrow/mobile screens instead of wrapping. */
+.search_criteria .search_field,
+.search_criteria .search_op,
+.search_criteria .search_values,
+.search_criteria .search_values input {
+  min-width: 0;
+}
+
+.search_criteria .search_delete_row {
+  flex: none;
 }
 
 .search_criteria .search_values {
