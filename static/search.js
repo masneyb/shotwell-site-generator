@@ -72,6 +72,38 @@ function getFloatQueryParameter(name, defaultValue) {
   return isNaN(value) ? defaultValue : value;
 }
 
+/*
+ * Search criteria are stored in the URL as comma-separated field,op,value strings.
+ * Commas and backslashes inside a value are escaped with a backslash so that values
+ * containing commas survive the round trip through the URL.
+ */
+function joinCriteriaParts(parts) {
+  return parts
+    .map((part) => String(part).replaceAll('\\', '\\\\').replaceAll(',', '\\,'))
+    .join(',');
+}
+
+function splitCriteriaParts(criteria) {
+  const parts = [];
+  let cur = '';
+  let escaped = false;
+  for (const ch of criteria) {
+    if (escaped) {
+      cur += ch;
+      escaped = false;
+    } else if (ch === '\\') {
+      escaped = true;
+    } else if (ch === ',') {
+      parts.push(cur);
+      cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  parts.push(cur);
+  return parts;
+}
+
 class SingleIconSizeWriter {
   constructor() {
     this.currentGroupEle = null;
@@ -212,28 +244,25 @@ class CsvWriter {
   csvEscape(col) {
     if (typeof col === 'string' || col instanceof String) {
       if (col.includes('"') || col.includes(',') || col.includes('\n') || col.includes('\r')) {
-        col = col.replace(/"/g, '""');
-        return `"${encodeURIComponent(col)}"`;
+        return `"${col.replace(/"/g, '""')}"`;
       }
 
-      return encodeURIComponent(col);
+      return col;
     }
 
     return String(col);
   }
 
   writeCsvRow(cols) {
-    return cols.map(col => this.csvEscape(col)).join(',') + '%0A';
+    return cols.map(col => this.csvEscape(col)).join(',') + '\r\n';
   }
 
-  getCsvUriData() {
-    let ret = 'data:text/csv;charset=utf-8,';
-
-    ret += this.writeCsvRow([
+  getCsvContent() {
+    let ret = this.writeCsvRow([
       'media_id', 'title', 'comment', 'link', 'type', 'filesize', 'width', 'height', 'camera',
       'megapixels', 'fps', 'clip_duration', 'clip_duration_secs', 'rating', 'lat', 'lon', 'exif',
       'time_created', 'exposure_time', 'exposure_time_pretty', 'metadata_text', 'reg_thumbnail',
-      'reg_motion_photo', 'event_id', 'event_name', 'tag_id', 'tags']);
+      'reg_motion_photo', 'event_id', 'event_name', 'tag_ids', 'tag_names']);
 
     for (const media of this.state.allMedia) {
       const cols = [
@@ -276,12 +305,17 @@ class CsvWriter {
       return;
     }
 
+    // Use a Blob rather than a data: URI so that large libraries aren't subject
+    // to the browser's data URI size limits.
+    const blob = new Blob([this.getCsvContent()], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = this.getCsvUriData();
+    link.href = url;
     link.download = 'media.csv';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 }
 
@@ -296,7 +330,7 @@ class SearchEngine {
   generateSearchUrl(criterias, matchPolicy, iconSize, groupBy, sortBy) {
     const qs = [];
     for (const criteria of criterias) {
-      qs.push(`search=${encodeURI(criteria)}`);
+      qs.push(`search=${encodeURIComponent(criteria)}`);
     }
     if (matchPolicy !== 'all') {
       qs.push(`match=${matchPolicy}`);
@@ -443,8 +477,10 @@ class SearchEngine {
       {
         descr: 'does not equal',
         matches: (field, op, values, media) => {
-          const match = (input, value) => input == null || input.toLowerCase() !== value.toLowerCase();
-          return this.performGenericOp(field, media, values[0], match);
+          // Negate the positive match so that array fields (e.g. tags) only match
+          // when none of their values are equal, rather than when any value differs.
+          const match = (input, value) => input != null && input.toLowerCase() === value.toLowerCase();
+          return !this.performGenericOp(field, media, values[0], match);
         },
         numValues: 1,
       },
@@ -716,7 +752,9 @@ class SearchEngine {
     ops.push({
       descr: 'not equals',
       matches: (field, op, values, media) => {
-        return this.performGenericOp(field, media, values[0], (input, value) => input == null || input != value);
+        // Negate the positive match so that array fields (e.g. tag IDs) only match
+        // when none of their values are equal, rather than when any value differs.
+        return !this.performGenericOp(field, media, values[0], (input, value) => input != null && input == value);
       },
       placeholder: [placeholderText],
       numValues: 1,
@@ -838,8 +876,8 @@ class SearchEngine {
       {
         descr: 'is not',
         matches: (field, op, values, media) => {
-          const match = (input, value) => input == null || !input.toLowerCase().endsWith(`.${value.toLowerCase()}`);
-          return this.performGenericOp(field, media, values[0], match);
+          const match = (input, value) => input != null && input.toLowerCase().endsWith(`.${value.toLowerCase()}`);
+          return !this.performGenericOp(field, media, values[0], match);
         },
         numValues: 1,
       },
@@ -989,8 +1027,7 @@ class SearchEngine {
     const allCriteria = [];
 
     for (const searchCriteria of this.getSearchQueryParams()) {
-      // FIXME - doesn't support comma in value
-      const parts = searchCriteria.split(',');
+      const parts = splitCriteriaParts(searchCriteria);
       if (parts.length < 2) {
         continue;
       }
@@ -2117,14 +2154,14 @@ class SearchUI {
     window.setTimeout(() => {
       const searchArgs = [];
       for (const critChild of document.querySelector('#search_criterias').children) {
-        const field = critChild.querySelector('.search_field').value;
-        const op = critChild.querySelector('.search_op').value;
-
-        let search = `${field},${op}`;
+        const parts = [
+          critChild.querySelector('.search_field').value,
+          critChild.querySelector('.search_op').value,
+        ];
         for (const valChild of critChild.querySelector('.search_values').children) {
-          search += `,${valChild.value}`;
+          parts.push(valChild.value);
         }
-        searchArgs.push(`search=${encodeURIComponent(search)}`);
+        searchArgs.push(`search=${encodeURIComponent(joinCriteriaParts(parts))}`);
       }
 
       const matchPolicy = document.querySelector('#match').value;
@@ -2196,7 +2233,7 @@ class SearchUI {
           input.pattern = op.inputPattern[i];
         }
 
-        input.onchange = () => { window.blur(); this.updateCritieraIfValuesPopulated(idx); return false; };
+        input.onchange = () => { input.blur(); this.updateCritieraIfValuesPopulated(idx); return false; };
 
         if (i < existingValues.length && existingValues[i][0] === input.type &&
             existingValues[i][1] === input.placeholder) {
@@ -2279,7 +2316,7 @@ class SearchUI {
       const curIdx = this.state.nextSearchInput;
       this.addSearchInputRow();
 
-      const parts = searchCriteria.split(',');
+      const parts = splitCriteriaParts(searchCriteria);
       if (parts.length < 2) {
         continue;
       }
@@ -2329,7 +2366,7 @@ class SearchUI {
     const parts = [];
     for (const criteria of criterias) {
       // field,op,value
-      parts.push(criteria.join(','));
+      parts.push(joinCriteriaParts(criteria));
     }
 
     const iconSize = overrideIconSize !== null ?  overrideIconSize : getQueryParameter('icons', 'default');
@@ -3511,7 +3548,7 @@ class SearchUI {
       const aggregateTypes = [SearchUI.MEDIA_TYPE_STRINGS.EVENTS,
         SearchUI.MEDIA_TYPE_STRINGS.YEARS, SearchUI.MEDIA_TYPE_STRINGS.TAGS];
       const isAggregate = params.getAll('search').some((criteria) => {
-        const parts = criteria.split(',');
+        const parts = splitCriteriaParts(criteria);
         return parts[0] === 'Type' && parts[1] === 'is a' && aggregateTypes.includes(parts[2]);
       });
       if (isAggregate) {
@@ -3547,7 +3584,7 @@ class SearchUI {
         browseCaret.setAttribute('aria-expanded', 'false');
         // Keep the current search criteria and match policy so the chosen grouping
         // applies to the active search rather than resetting to all media.
-        const currentCriteria = this.searchEngine.getSearchQueryParams().map((p) => p.split(','));
+        const currentCriteria = this.searchEngine.getSearchQueryParams().map((p) => splitCriteriaParts(p));
         const matchPolicy = getQueryParameter('match', 'all');
         this.searchPageLinkGenerator(event, currentCriteria, matchPolicy, null, false, item.dataset.group);
         return this.stopEvent(event);
@@ -3768,7 +3805,7 @@ class SearchUI {
     const total = yearMedia.length;
     if (total === 0) return document.createDocumentFragment();
     const criteriaPrefix = preserveExistingCriteria
-      ? this.searchEngine.getSearchQueryParams().map(p => p.split(','))
+      ? this.searchEngine.getSearchQueryParams().map(p => splitCriteriaParts(p))
       : [['Year', 'equals', String(year)]];
 
     let photos = 0, videos = 0, withGPS = 0, withTitle = 0, withComment = 0, withMotionPhoto = 0;
@@ -4254,7 +4291,7 @@ class SearchUI {
       const minDate = dragStartDate <= dragCurrentDate ? dragStartDate : dragCurrentDate;
       const maxDate = dragStartDate <= dragCurrentDate ? dragCurrentDate : dragStartDate;
       const existingCriteria = preserveExistingCriteria
-        ? this.searchEngine.getSearchQueryParams().map(p => p.split(','))
+        ? this.searchEngine.getSearchQueryParams().map(p => splitCriteriaParts(p))
         : [];
       if (minDate === maxDate) {
         if (dateCounts[minDate] && (dateCounts[minDate].photos + dateCounts[minDate].videos) > 0) {
