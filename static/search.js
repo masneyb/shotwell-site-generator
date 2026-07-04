@@ -2351,12 +2351,19 @@ class SearchUI {
   }
 
   nearbyClicked() {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition((position) => {
+    if (!('geolocation' in navigator)) {
+      alert('Geolocation is not supported by your browser');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
         const criteria = [['GPS Coordinate', 'is within', position.coords.latitude, position.coords.longitude, 1]];
         this.searchPageLinkGenerator(null, criteria);
+      },
+      (error) => {
+        alert(`Error getting location: ${error.message}`);
       });
-    }
   }
 
   setIconWriter() {
