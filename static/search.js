@@ -4606,7 +4606,6 @@ function initAddressSearch(mapInstance) {
   suggestionsEl.id = 'address-suggestions';
   searchContainer.appendChild(suggestionsEl);
 
-  let debounceTimer = null;
   let activeIndex = -1;
   let currentResults = [];
 
@@ -4649,17 +4648,12 @@ function initAddressSearch(mapInstance) {
     suggestionsEl.style.display = 'block';
   }
 
-  function fetchSuggestions(query) {
-    if (!query || query.length < 3 || /^-?\d+\.?\d*[,\s]+-?\d+\.?\d*$/.test(query)) {
-      hideSuggestions();
-      return;
-    }
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(query)}`)
-      .then(r => r.json())
-      .then(showSuggestions)
-      .catch(() => hideSuggestions());
-  }
-
+  /*
+   * The geocode request is only sent when the user explicitly searches (Enter or the
+   * search button). Nominatim's usage policy does not allow autocomplete against the
+   * public server, so no requests are made while typing. When the search returns
+   * several results, they're shown in a dropdown so the user can pick one.
+   */
   function doSearch() {
     const query = input.value.trim();
     if (!query) return;
@@ -4676,23 +4670,22 @@ function initAddressSearch(mapInstance) {
     }
 
     btn.disabled = true;
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`)
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(query)}`)
       .then(r => r.json())
       .then(results => {
-        if (results && results.length > 0) {
-          mapInstance.setView([parseFloat(results[0].lat), parseFloat(results[0].lon)], 14);
-        } else {
+        if (!results || results.length === 0) {
           alert(`No results found for: ${query}`);
+        } else if (results.length === 1) {
+          selectSuggestion(results[0]);
+        } else {
+          showSuggestions(results);
         }
       })
       .catch(() => alert('Error performing geocode search'))
       .finally(() => { btn.disabled = false; });
   }
 
-  input.addEventListener('input', () => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => fetchSuggestions(input.value.trim()), 300);
-  });
+  input.addEventListener('input', () => hideSuggestions());
 
   input.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown') {
