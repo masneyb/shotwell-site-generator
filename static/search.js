@@ -3418,7 +3418,7 @@ class SearchUI {
       this.setIconWriter();
       this.showMedia();
     }
-    if (!this.isImageFullscreen) {
+    if (!this.isImageFullscreen()) {
       document.querySelector('#slideshow_videos').value = this.getDefaultVideoSize();
     }
   }
