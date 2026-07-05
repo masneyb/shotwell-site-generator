@@ -124,7 +124,7 @@ class SingleIconSizeWriter {
 }
 
 class CommonMultiIconWriter {
-  createMediaSmallContainer(items, hasPreviousGroup, iconSize) {
+  createMediaSmallContainer(items, iconSize) {
     const ele = document.createElement('span');
     if (items.length <= 2) {
       ele.className = `media_${iconSize}_container_2h`;
@@ -147,13 +147,11 @@ class DoubleIconSizeWriter extends CommonMultiIconWriter {
     this.largeIconSize = largeIconSize;
     this.parentEle = null;
     this.unprocessed = [];
-    this.hasPreviousGroup = false;
   }
 
   add(element, mediaIconSize) {
     if (mediaIconSize === this.largeIconSize) {
       this.parentEle.appendChild(element);
-      this.hasPreviousGroup = true;
     } else {
       this.unprocessed.push(element);
       if (this.unprocessed.length === 4) {
@@ -173,16 +171,13 @@ class DoubleIconSizeWriter extends CommonMultiIconWriter {
 
   flush() {
     if (this.unprocessed.length > 0) {
-      this.parentEle.appendChild(
-        this.createMediaSmallContainer(this.unprocessed, this.hasPreviousGroup, this.smallIconSize));
+      this.parentEle.appendChild(this.createMediaSmallContainer(this.unprocessed, this.smallIconSize));
       this.unprocessed = [];
-      this.hasPreviousGroup = true;
     }
   }
 
   clear() {
     this.unprocessed = [];
-    this.hasPreviousGroup = false;
   }
 }
 
@@ -200,8 +195,7 @@ class TripleIconSizeWriter extends CommonMultiIconWriter {
     if (mediaIconSize === this.smallIconSize) {
       this.unprocessed.push(element);
       if (this.unprocessed.length === 4) {
-        const con =
-          this.createMediaSmallContainer(this.unprocessed, this.dualWriter.hasPreviousGroup, this.smallIconSize);
+        const con = this.createMediaSmallContainer(this.unprocessed, this.smallIconSize);
         this.dualWriter.add(con, this.mediumIconSize);
         this.unprocessed = [];
       }
@@ -225,7 +219,7 @@ class TripleIconSizeWriter extends CommonMultiIconWriter {
       return;
     }
 
-    const con = this.createMediaSmallContainer(this.unprocessed, this.dualWriter.hasPreviousGroup, this.smallIconSize);
+    const con = this.createMediaSmallContainer(this.unprocessed, this.smallIconSize);
     this.dualWriter.add(con, this.mediumIconSize);
     this.unprocessed = [];
     this.dualWriter.flush();
@@ -2233,9 +2227,6 @@ class SearchUI {
         const input = document.createElement('input');
         input.className = `search_value${i}`;
         input.type = 'inputType' in op ? op.inputType[i] : 'text';
-        if ('inputStep' in op) {
-          input.step = op.inputStep[i];
-        }
         const size = 'inputSize' in op ? op.inputSize[i] : 6;
         input.style.width = `${size}em`;
         input.placeholder = 'placeholder' in op && op.placeholder[i] != null ? op.placeholder[i] : '';
@@ -2550,10 +2541,9 @@ class SearchUI {
     if (searchEventId != null && this.state.events[searchEventId]) {
       const comment = this.state.events[searchEventId].comment;
       if (comment && comment.trim()) {
-        const name = `event_comment_${searchEventId}`;
         const commentSpan = document.createElement('span');
         commentSpan.className = 'event_comment';
-        commentSpan.appendChild(this.getExpandableString(name, comment, 'block'));
+        commentSpan.appendChild(this.getExpandableString(comment, 'block'));
         eventCommentEle.appendChild(commentSpan);
         eventCommentEle.style.display = 'block';
       } else {
@@ -2812,7 +2802,7 @@ class SearchUI {
     return anchor;
   }
 
-  getExpandableString(name, value, displayType) {
+  getExpandableString(value, displayType) {
     const trimmedValue = value.trim();
     if (trimmedValue.length < 150 && !trimmedValue.includes('\n')) {
       return document.createTextNode(trimmedValue);
@@ -2907,16 +2897,15 @@ class SearchUI {
     const showBriefMetadata = iconSize !== null && SearchUI.BRIEF_METADATA_SIZES.includes(iconSize);
     const isTagMetadataMode = iconSize && SearchUI.TAG_METADATA_SIZES.includes(iconSize);
 
-    const name = `title${entity.type}${entity.id}`;
     if (onSlideshowPage && entity.title) {
       const val = entity.title_prefix + entity.title;
-      stats.push(this.getExpandableString(name, val, 'inline'));
-      extStats.push(this.getExpandableString(name, val, 'inline'));
+      stats.push(this.getExpandableString(val, 'inline'));
+      extStats.push(this.getExpandableString(val, 'inline'));
     }
 
     if (onSlideshowPage && entity.comment) {
-      stats.push(this.getExpandableString(name, entity.comment, 'inline'));
-      extStats.push(this.getExpandableString(name, entity.comment, 'inline'));
+      stats.push(this.getExpandableString(entity.comment, 'inline'));
+      extStats.push(this.getExpandableString(entity.comment, 'inline'));
     }
 
     if (!isTagMetadataMode && entity.num_photos > 0) {
@@ -3179,23 +3168,21 @@ class SearchUI {
       descr.className = 'media_descr';
 
       if (media.title) {
-        const name = `title${media.type}${media.id}`;
         const title = document.createElement('span');
         title.className = 'media_title';
         if (media.title_prefix) {
-          title.appendChild(this.getExpandableString(name, media.title_prefix + media.title, 'inline'));
+          title.appendChild(this.getExpandableString(media.title_prefix + media.title, 'inline'));
         } else {
-          title.appendChild(this.getExpandableString(name, media.title, 'inline'));
+          title.appendChild(this.getExpandableString(media.title, 'inline'));
         }
         descr.appendChild(title);
       }
 
       if (showFullDescr) {
         if (media.comment) {
-          const name = `comment${media.type}${media.id}`;
           const comment = document.createElement('span');
           comment.className = 'media_comment';
-          comment.appendChild(this.getExpandableString(name, media.comment, 'inline'));
+          comment.appendChild(this.getExpandableString(media.comment, 'inline'));
           descr.appendChild(comment);
         }
 
