@@ -3774,40 +3774,64 @@ class SearchUI {
           : `${Math.round(b / 1e3)} KB`;
   }
 
-  buildCalendarStatsBars(title, entries, maxVal, clickHandlers = null, barColor = 'var(--calendar-bar-photo)') {
+  // Renders a titled list of horizontal bars (title div + svg) shared by the calendar
+  // stats sections. rows: [{label, text, frac, color?, handler?, tooltip?}] where frac
+  // is the 0..1 bar fill. Returns a fragment so callers can group several lists inside
+  // one .calendar_stats_section (see the Storage/Avg Size column).
+  _buildStatsBars(title, rows, { labelEnd = 112, barX = 115, barW = 65 } = {}) {
     const T = SearchUI._svgText;
     const E = SearchUI._svgEl;
-    const sec = document.createElement('div');
-    sec.className = 'calendar_stats_section';
+    const frag = document.createDocumentFragment();
     const titleDiv = document.createElement('div');
     titleDiv.className = 'calendar_stats_title';
-    titleDiv.style.paddingLeft = `${(115 / 225 * 100).toFixed(2)}%`;
+    titleDiv.style.paddingLeft = `${(barX / 225 * 100).toFixed(2)}%`;
     titleDiv.textContent = title;
-    sec.appendChild(titleDiv);
-    const svgH = entries.length * 16 + 4;
+    frag.appendChild(titleDiv);
+    const svgH = rows.length * 16 + 4;
     const svg = E('svg', { width: '100%', height: svgH, viewBox: `0 0 225 ${svgH}` });
-    entries.forEach(([label, count], i) => {
+    rows.forEach((row, i) => {
       const y = i * 16 + 4;
-      const lbl = label.length > 20 ? label.slice(0, 19) + '…' : label;
-      const lt = T({ x: 112, y: y + 9, 'text-anchor': 'end' });
+      const lbl = row.label.length > 20 ? row.label.slice(0, 19) + '…' : row.label;
+      const lt = T({ x: labelEnd, y: y + 9, 'text-anchor': 'end' });
       lt.textContent = lbl;
       svg.appendChild(lt);
-      svg.appendChild(E('rect', { x: 115, y, width: 65, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
-      const bw = maxVal > 0 ? Math.round((count / maxVal) * 65) : 0;
-      if (bw > 0) svg.appendChild(E('rect', { x: 115, y, width: bw, height: 10, fill: barColor, rx: 2 }));
-      const ct = T({ x: 185, y: y + 9 });
-      ct.textContent = count.toLocaleString();
-      svg.appendChild(ct);
-      const handler = clickHandlers ? clickHandlers[i] : null;
-      const hit = E('rect', { x: 0, y, width: 225, height: 14, fill: 'transparent' });
-      if (handler) {
-        hit.style.cursor = 'pointer';
-        hit.addEventListener('click', handler);
+      svg.appendChild(E('rect', { x: barX, y, width: barW, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
+      const bw = Math.round((row.frac || 0) * barW);
+      if (bw > 0) {
+        svg.appendChild(E('rect', {
+          x: barX, y, width: bw, height: 10, fill: row.color ?? 'var(--calendar-bar-photo)', rx: 2,
+        }));
       }
-      const tt = E('title'); tt.textContent = `${label}: ${count.toLocaleString()}`; hit.appendChild(tt);
-      svg.appendChild(hit);
+      const vt = T({ x: barX + barW + 5, y: y + 9 });
+      vt.textContent = row.text;
+      svg.appendChild(vt);
+      if (row.handler || row.tooltip) {
+        const hit = E('rect', { x: 0, y, width: 225, height: 14, fill: 'transparent' });
+        if (row.handler) {
+          hit.style.cursor = 'pointer';
+          hit.addEventListener('click', row.handler);
+        }
+        if (row.tooltip) {
+          const tt = E('title'); tt.textContent = row.tooltip; hit.appendChild(tt);
+        }
+        svg.appendChild(hit);
+      }
     });
-    sec.appendChild(svg);
+    frag.appendChild(svg);
+    return frag;
+  }
+
+  buildCalendarStatsBars(title, entries, maxVal, clickHandlers = null, barColor = 'var(--calendar-bar-photo)') {
+    const sec = document.createElement('div');
+    sec.className = 'calendar_stats_section';
+    sec.appendChild(this._buildStatsBars(title, entries.map(([label, count], i) => ({
+      label,
+      text: count.toLocaleString(),
+      frac: maxVal > 0 ? count / maxVal : 0,
+      color: barColor,
+      handler: clickHandlers ? clickHandlers[i] : null,
+      tooltip: `${label}: ${count.toLocaleString()}`,
+    }))));
     return sec;
   }
 
@@ -4031,8 +4055,6 @@ class SearchUI {
 
   _buildYearStatsCamerasRow(criteriaPrefix, cameras, ratings, withGPS, withTitle,
     withComment, withMotionPhoto, photos, total) {
-    const E = SearchUI._svgEl;
-    const T = SearchUI._svgText;
     const mkPlaceholder = () => {
       const ph = document.createElement('div');
       ph.className = 'calendar_stats_section';
@@ -4067,42 +4089,25 @@ class SearchUI {
       row.appendChild(mkPlaceholder());
     }
 
-    const coverSec = document.createElement('div');
-    coverSec.className = 'calendar_stats_section';
-    const coverTitle = document.createElement('div');
-    coverTitle.className = 'calendar_stats_title';
-    coverTitle.style.paddingLeft = `${(93 / 225 * 100).toFixed(2)}%`;
-    coverTitle.textContent = 'Coverage';
-    coverSec.appendChild(coverTitle);
     const coverItems = [
       ['GPS', withGPS, total, [['GPS Coordinate', 'is set']]],
       ['Titles', withTitle, total, [['Title', 'is set']]],
       ['Comments', withComment, total, [['Comment', 'is set']]],
       ['Motion Photo', withMotionPhoto, photos, [['Type', 'is a', 'motion_photo']]],
     ];
-    const coverSvgH = coverItems.length * 16 + 4;
-    const coverSvg = E('svg', { width: '100%', height: coverSvgH, viewBox: `0 0 225 ${coverSvgH}` });
-    coverItems.forEach(([label, count, denom, extraCriteria], i) => {
-      const y = i * 16 + 4;
+    const coverSec = document.createElement('div');
+    coverSec.className = 'calendar_stats_section';
+    coverSec.appendChild(this._buildStatsBars('Coverage', coverItems.map(([label, count, denom, extraCriteria]) => {
       const pct = denom > 0 ? count / denom : 0;
-      const lt = T({ x: 90, y: y + 9, 'text-anchor': 'end' });
-      lt.textContent = label; coverSvg.appendChild(lt);
-      coverSvg.appendChild(E('rect', { x: 93, y, width: 85, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
-      if (count > 0) {
-        coverSvg.appendChild(E('rect', {
-          x: 93, y, width: Math.round(pct * 85), height: 10, fill: 'var(--calendar-bar-photo)', rx: 2,
-        }));
-      }
-      const pt = T({ x: 183, y: y + 9 });
-      pt.textContent = `${Math.round(pct * 100)}%`; coverSvg.appendChild(pt);
-      if (count > 0) {
-        const hit = E('rect', { x: 0, y, width: 225, height: 14, fill: 'transparent', style: 'cursor: pointer' });
-        const criteria = [...criteriaPrefix, ...extraCriteria, ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]];
-        hit.addEventListener('click', () => this.searchPageLinkGenerator(null, criteria, 'all', 'default'));
-        coverSvg.appendChild(hit);
-      }
-    });
-    coverSec.appendChild(coverSvg);
+      return {
+        label,
+        text: `${Math.round(pct * 100)}%`,
+        frac: pct,
+        handler: count > 0 ? () => this.searchPageLinkGenerator(null,
+          [...criteriaPrefix, ...extraCriteria, ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+          'all', 'default') : null,
+      };
+    }), { labelEnd: 90, barX: 93, barW: 85 }));
     row.appendChild(coverSec);
 
     return row;
@@ -4110,8 +4115,6 @@ class SearchUI {
 
   _buildYearStatsFileSizesRow(criteriaPrefix, mpBuckets, mpCounts, vidBuckets, vidCounts,
     photoSize, videoSize, photos, videos) {
-    const E = SearchUI._svgEl;
-    const T = SearchUI._svgText;
     const totalSize = photoSize + videoSize;
 
     const mpRows = [], mpHandlers = [];
@@ -4170,35 +4173,23 @@ class SearchUI {
     storageCol.className = 'calendar_stats_section';
     if (totalSize > 0) {
       const storItems = [];
-      if (photoSize > 0) storItems.push(['Photos', photoSize, ['Type', 'is not a', 'video']]);
-      if (videoSize > 0) storItems.push(['Videos', videoSize, ['Type', 'is a', 'video']]);
+      if (photoSize > 0) {
+        storItems.push(['Photos', photoSize, ['Type', 'is not a', 'video'], 'var(--calendar-bar-photo)']);
+      }
+      if (videoSize > 0) {
+        storItems.push(['Videos', videoSize, ['Type', 'is a', 'video'], 'var(--calendar-bar-video)']);
+      }
       const maxStor = Math.max(...storItems.map(([, v]) => v));
-
-      const storTitle = document.createElement('div');
-      storTitle.className = 'calendar_stats_title';
-      storTitle.style.paddingLeft = `${(93 / 225 * 100).toFixed(2)}%`;
-      storTitle.textContent = 'Storage';
-      storageCol.appendChild(storTitle);
-
-      const storSvgH = storItems.length * 16 + 4;
-      const storSvg = E('svg', { width: '100%', height: storSvgH, viewBox: `0 0 225 ${storSvgH}` });
-      const storColors = ['var(--calendar-bar-photo)', 'var(--calendar-bar-video)'];
-      storItems.forEach(([label, size, typeFilter], i) => {
-        const y = i * 16 + 4;
-        const bw = Math.round((size / maxStor) * 85);
-        const lt = T({ x: 90, y: y + 9, 'text-anchor': 'end' });
-        lt.textContent = label; storSvg.appendChild(lt);
-        storSvg.appendChild(E('rect', { x: 93, y, width: 85, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
-        storSvg.appendChild(E('rect', { x: 93, y, width: bw, height: 10, fill: storColors[i], rx: 2 }));
-        const vt = T({ x: 183, y: y + 9 });
-        vt.textContent = SearchUI._fmtBytes(size); storSvg.appendChild(vt);
-        const hit = E('rect', { x: 0, y, width: 225, height: 14, fill: 'transparent', style: 'cursor: pointer' });
-        const tt = E('title'); tt.textContent = `${label}: ${SearchUI._fmtBytes(size)}`; hit.appendChild(tt);
-        const criteria = [...criteriaPrefix, typeFilter, ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]];
-        hit.addEventListener('click', () => this.searchPageLinkGenerator(null, criteria, 'all', 'default'));
-        storSvg.appendChild(hit);
-      });
-      storageCol.appendChild(storSvg);
+      storageCol.appendChild(this._buildStatsBars('Storage', storItems.map(([label, size, typeFilter, color]) => ({
+        label,
+        text: SearchUI._fmtBytes(size),
+        frac: size / maxStor,
+        color,
+        tooltip: `${label}: ${SearchUI._fmtBytes(size)}`,
+        handler: () => this.searchPageLinkGenerator(null,
+          [...criteriaPrefix, typeFilter, ['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.MEDIA]],
+          'all', 'default'),
+      })), { labelEnd: 90, barX: 93, barW: 85 }));
 
       const photoAvg = photos > 0 ? photoSize / photos : 0;
       const videoAvg = videos > 0 ? videoSize / videos : 0;
@@ -4207,25 +4198,12 @@ class SearchUI {
       if (videoAvg > 0) avgItems.push(['Video', videoAvg, 'var(--calendar-bar-video)']);
       if (avgItems.length > 0) {
         const maxAvg = Math.max(...avgItems.map(([, v]) => v));
-        const avgTitle = document.createElement('div');
-        avgTitle.className = 'calendar_stats_title';
-        avgTitle.style.paddingLeft = `${(93 / 225 * 100).toFixed(2)}%`;
-        avgTitle.textContent = 'Avg Size';
-        storageCol.appendChild(avgTitle);
-
-        const avgSvgH = avgItems.length * 16 + 4;
-        const avgSvg = E('svg', { width: '100%', height: avgSvgH, viewBox: `0 0 225 ${avgSvgH}` });
-        avgItems.forEach(([label, avg, color], i) => {
-          const y = i * 16 + 4;
-          const bw = Math.round((avg / maxAvg) * 85);
-          const lt = T({ x: 90, y: y + 9, 'text-anchor': 'end' });
-          lt.textContent = label; avgSvg.appendChild(lt);
-          avgSvg.appendChild(E('rect', { x: 93, y, width: 85, height: 10, fill: 'var(--calendar-bar-bg)', rx: 2 }));
-          avgSvg.appendChild(E('rect', { x: 93, y, width: bw, height: 10, fill: color, rx: 2 }));
-          const vt = T({ x: 183, y: y + 9 });
-          vt.textContent = SearchUI._fmtBytes(avg); avgSvg.appendChild(vt);
-        });
-        storageCol.appendChild(avgSvg);
+        storageCol.appendChild(this._buildStatsBars('Avg Size', avgItems.map(([label, avg, color]) => ({
+          label,
+          text: SearchUI._fmtBytes(avg),
+          frac: avg / maxAvg,
+          color,
+        })), { labelEnd: 90, barX: 93, barW: 85 }));
       }
     }
     row.appendChild(storageCol);
