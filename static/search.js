@@ -2188,7 +2188,7 @@ class SearchUI {
     }, 0);
   }
 
-  updateCritieraIfValuesPopulated(idx) {
+  updateCriteriaIfValuesPopulated(idx) {
     const searchEles = document.querySelector(`#search_criteria${idx}`);
     for (const child of searchEles.querySelector('.search_values').children) {
       if (child.value === '' || !child.checkValidity()) {
@@ -2221,7 +2221,7 @@ class SearchUI {
         for (const validValue of field.validValues) {
           select.appendChild(this.createOptionNode(validValue[0], validValue[1]));
         }
-        select.onchange = () => { this.updateCritieraIfValuesPopulated(idx); return false; };
+        select.onchange = () => { this.updateCriteriaIfValuesPopulated(idx); return false; };
         values.appendChild(select);
       } else {
         const input = document.createElement('input');
@@ -2243,7 +2243,7 @@ class SearchUI {
           input.pattern = op.inputPattern[i];
         }
 
-        input.onchange = () => { input.blur(); this.updateCritieraIfValuesPopulated(idx); return false; };
+        input.onchange = () => { input.blur(); this.updateCriteriaIfValuesPopulated(idx); return false; };
 
         if (i < existingValues.length && existingValues[i][0] === input.type &&
             existingValues[i][1] === input.placeholder) {
@@ -2293,14 +2293,14 @@ class SearchUI {
 
     const fieldOnChange = (idx) => () => {
       this.searchFieldChanged(idx);
-      this.updateCritieraIfValuesPopulated(idx);
+      this.updateCriteriaIfValuesPopulated(idx);
       return false;
     };
     row.querySelector('.search_field').onchange = fieldOnChange(this.state.nextSearchInput);
 
     const opOnChange = (idx) => () => {
       this.searchOpChanged(idx);
-      this.updateCritieraIfValuesPopulated(idx);
+      this.updateCriteriaIfValuesPopulated(idx);
       return false;
     };
     row.querySelector('.search_op').onchange = opOnChange(this.state.nextSearchInput);
