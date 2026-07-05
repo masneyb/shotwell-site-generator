@@ -27,8 +27,46 @@
   <link rel="stylesheet" href="map.css"/>
   <link rel="stylesheet" href="search.css"/>
   <script>
-    window.onerror = function (message, source, lineno, colno, error) {
-      alert(`JS error: ${message} at ${source}:${lineno}:${colno}`);
+    window.onerror = function (message, source, lineno, colno) {
+      const text = `JS error: ${message} at ${source}:${lineno}:${colno}`;
+      console.error(text);
+
+      // Don't show error UI on unattended kiosks / photo frames.
+      if (new URLSearchParams(window.location.search).get('kiosk') === '1') {
+        return false;
+      }
+
+      const showBanner = () => {
+        let banner = document.getElementById('js_error_banner');
+        if (!banner) {
+          banner = document.createElement('div');
+          banner.id = 'js_error_banner';
+          banner.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; z-index: 10000; ' +
+            'background: #b00020; color: #fff; padding: 8px 36px 8px 12px; font: 14px sans-serif;';
+
+          const close = document.createElement('button');
+          close.textContent = '✕';
+          close.setAttribute('aria-label', 'Dismiss error');
+          close.style.cssText = 'position: absolute; top: 4px; right: 8px; background: none; ' +
+            'border: none; color: #fff; font-size: 16px; cursor: pointer;';
+          close.onclick = () => banner.remove();
+          banner.appendChild(close);
+
+          const msg = document.createElement('div');
+          msg.id = 'js_error_banner_text';
+          banner.appendChild(msg);
+
+          document.body.appendChild(banner);
+        }
+        document.getElementById('js_error_banner_text').textContent = text;
+      };
+
+      // Errors can fire before the body exists since this runs from the head.
+      if (document.body) {
+        showBanner();
+      } else {
+        window.addEventListener('DOMContentLoaded', showBanner);
+      }
       return false;
     };
   </script>
