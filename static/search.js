@@ -2384,8 +2384,10 @@ class SearchUI {
     const sortBy = getQueryParameter('sort', 'default');
     const search = this.searchEngine.generateSearchUrl(parts, matchPolicy, iconSize, groupBy, sortBy);
 
-    // Check to see if the user control clicked the URL to request it be opened in a new tab.
-    if (event != null && (event.ctrlKey || event.which === 2 || event.which === 3)) {
+    // Check to see if the user ctrl/cmd clicked or middle clicked the URL to request
+    // it be opened in a new tab. Middle clicks arrive as 'auxclick' events; see
+    // setupLinkHandler.
+    if (event != null && (event.ctrlKey || event.metaKey || event.button === 1)) {
       event.preventDefault();
       event.stopPropagation();
       window.open(search, '_blank');
@@ -2575,10 +2577,9 @@ class SearchUI {
         const anchor = document.createElement('a');
         anchor.innerText = tag.title;
         anchor.href = '#';
-        anchor.onclick = (event) => {
+        this.setupLinkHandler(anchor, (event) => {
           this.searchPageLinkGenerator(event, [['Tag ID', 'equals', tag.id]]);
-          return this.stopEvent(event);
-        };
+        });
         span.appendChild(anchor);
 
         tagParentsEle.appendChild(span);
@@ -2690,24 +2691,15 @@ class SearchUI {
         }
       }
 
-      anchor.onclick = (event) => {
-        this.searchPageLinkGenerator(event, search);
-        return this.stopEvent(event);
-      };
+      this.setupLinkHandler(anchor, (event) => this.searchPageLinkGenerator(event, search));
     } else if (media.type === 'years') {
       anchor.href = '#';
       const search = [['Year', 'equals', media.id]];
-      anchor.onclick = (event) => {
-        this.searchPageLinkGenerator(event, search);
-        return this.stopEvent(event);
-      };
+      this.setupLinkHandler(anchor, (event) => this.searchPageLinkGenerator(event, search));
     } else if (media.type === 'tags') {
       anchor.href = '#';
       const search = [['Tag ID', 'equals', media.id]];
-      anchor.onclick = (event) => {
-        this.searchPageLinkGenerator(event, search);
-        return this.stopEvent(event);
-      };
+      this.setupLinkHandler(anchor, (event) => this.searchPageLinkGenerator(event, search));
     } else {
       anchor.href = '#';
       anchor.onclick = (event) => {
@@ -2864,13 +2856,12 @@ class SearchUI {
   createSearchLink(label, field, op, val, extraOnClick, navigateToUrl = false) {
     const anchor = document.createElement('a');
     anchor.href = '#';
-    anchor.onclick = (event) => {
+    this.setupLinkHandler(anchor, (event) => {
       if (extraOnClick) {
         extraOnClick(event);
       }
       this.searchPageLinkGenerator(event, [[field, op, val]], 'all', null, navigateToUrl);
-      return false;
-    };
+    });
     anchor.innerText = label;
     return this.createMediaStat(anchor);
   }
@@ -3477,6 +3468,21 @@ class SearchUI {
     };
   }
 
+  // Modern browsers deliver middle clicks as 'auxclick' rather than 'click', so links
+  // that support opening in a new tab (see searchPageLinkGenerator) need both wired up.
+  setupLinkHandler(eleOrSelector, handler) {
+    const ele = typeof eleOrSelector === 'string' ? document.querySelector(eleOrSelector) : eleOrSelector;
+    const wrapped = (event) => {
+      if (event.type === 'auxclick' && event.button !== 1) {
+        return true;
+      }
+      handler(event);
+      return this.stopEvent(event);
+    };
+    ele.onclick = wrapped;
+    ele.onauxclick = wrapped;
+  }
+
   setupChangeHandler(selector, handler) {
     document.querySelector(selector).onchange = (event) => {
       handler(event);
@@ -3549,7 +3555,7 @@ class SearchUI {
 
     // Primary views. The Grid button resets to the ungrouped media browse view;
     // its dropdown caret switches grouping.
-    this.setupClickHandler('#browse_link', (event) =>
+    this.setupLinkHandler('#browse_link', (event) =>
       this.searchPageLinkGenerator(event, [], 'all', null, false, 'none'));
     this.setupClickHandler('#map_link', () => {
       const params = new URLSearchParams(window.location.search);
@@ -3568,11 +3574,11 @@ class SearchUI {
       window.history.pushState({}, '', `index.html?${params.toString()}#`);
       this.doPerformSearch();
     });
-    this.setupClickHandler('#event_link', (event) =>
+    this.setupLinkHandler('#event_link', (event) =>
       this.searchPageLinkGenerator(event, [['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.EVENTS]]));
-    this.setupClickHandler('#year_link', (event) =>
+    this.setupLinkHandler('#year_link', (event) =>
       this.searchPageLinkGenerator(event, [['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.YEARS]]));
-    this.setupClickHandler('#tag_link', (event) =>
+    this.setupLinkHandler('#tag_link', (event) =>
       this.searchPageLinkGenerator(event,
         [['Type', 'is a', SearchUI.MEDIA_TYPE_STRINGS.TAGS], ['Tag Parent ID', 'is not set']]));
     this.setupClickHandler('#stats_link', () => {
@@ -3589,7 +3595,7 @@ class SearchUI {
         browseMenu.classList.contains('hidden') ? 'false' : 'true');
     });
     for (const item of browseMenu.querySelectorAll('.dropdown_item')) {
-      item.onclick = (event) => {
+      this.setupLinkHandler(item, (event) => {
         browseMenu.classList.add('hidden');
         browseCaret.setAttribute('aria-expanded', 'false');
         // Keep the current search criteria and match policy so the chosen grouping
@@ -3597,8 +3603,7 @@ class SearchUI {
         const currentCriteria = this.searchEngine.getSearchQueryParams().map((p) => splitCriteriaParts(p));
         const matchPolicy = getQueryParameter('match', 'all');
         this.searchPageLinkGenerator(event, currentCriteria, matchPolicy, null, false, item.dataset.group);
-        return this.stopEvent(event);
-      };
+      });
     }
     // Close the dropdown when clicking anywhere outside of it.
     document.addEventListener('click', (event) => {
@@ -3620,7 +3625,7 @@ class SearchUI {
     });
     this.setupClickHandler('#animations_link', () => this.toggleAnimations());
     this.setupClickHandler('#advanced_search_close', () => dialog.close());
-    this.setupClickHandler('#today_link', (event) => {
+    this.setupLinkHandler('#today_link', (event) => {
       dialog.close();
       const criteria = [
         ['Date', 'was taken on month/day', this.searchEngine.getCurrentMonthDay()],
