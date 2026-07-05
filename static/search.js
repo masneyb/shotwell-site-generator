@@ -3097,6 +3097,10 @@ class SearchUI {
     // See the comment above for why the media element can be overridden for the event search.
     media = this.populateMediaAnchorTag(anchor, media, index);
 
+    img.alt = media.title ?? '';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+
     if (this.state.alwaysShowAnimations && media.motion_photo) {
       if (iconSize === 'small') {
         img.src = media.motion_photo.small_gif;
