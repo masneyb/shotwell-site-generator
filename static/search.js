@@ -32,6 +32,7 @@ class SearchState {
   fullScreenPhotoUpdateTimer = null;
   fullScreenReinstateSlideshowSecs = 0;
   fullScreenReinstateSlideshowTimer = null;
+  preloadedNextImage = null;
   wakeLock = null;
 
   // Search engine
@@ -1880,6 +1881,7 @@ class SearchUI {
 
       this.updateSlideshowNavigationIcons(entity);
       this.updateMediaDescriptionText(descrEle);
+      this.preloadNextImage();
     } else {
       const videoEle = document.querySelector('#fullvideo');
       videoEle.pause();
@@ -1890,11 +1892,28 @@ class SearchUI {
       imageEle.onload = () => {
         this.updateSlideshowNavigationIcons(entity);
         this.updateMediaDescriptionText(descrEle);
+        this.preloadNextImage();
       };
       imageEle.style.display = 'block';
       const imageUrl = this.getFullscreenImageUrl(this.state.allMediaFullScreenIndex);
       imageEle.src = imageUrl;
     }
+  }
+
+  preloadNextImage() {
+    const nextIndex = this.getNextImageIndex();
+    if (nextIndex === this.state.allMediaFullScreenIndex) {
+      return;
+    }
+
+    const entity = this.state.allMedia[nextIndex];
+    if (entity == undefined || this.getFullscreenVideoUrl(entity) !== null) {
+      return;
+    }
+
+    // Keep a reference so that the browser doesn't cancel the request.
+    this.state.preloadedNextImage = new Image();
+    this.state.preloadedNextImage.src = this.getFullscreenImageUrl(nextIndex);
   }
 
   showNextImageFullscreen(manuallyInvoked) {
