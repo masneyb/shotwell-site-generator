@@ -342,13 +342,13 @@ class SearchEngine {
     return `index.html?${qs.join('&')}#`;
   }
 
-  shuffleArray(arr) {
+  shuffleArray(arr, seed) {
     if (arr === null) {
       return;
     }
 
     // Don't use Math.random() since we can't provide a starting seed
-    let rand = this.state.randomSeed;
+    let rand = seed;
     for (let i = arr.length - 1; i > 0; i -= 1) {
       const j = rand % i;
       [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -1404,7 +1404,16 @@ class SearchEngine {
     }
 
     if (sortBy === 'random') {
-      this.shuffleArray(ret);
+      // Keep the shuffle seed in the URL so the shuffled view survives reload/back
+      // navigation and shared links reproduce the same order.
+      const params = new URLSearchParams(window.location.search);
+      let seed = parseInt(params.get('seed'), 10);
+      if (Number.isNaN(seed)) {
+        seed = this.state.randomSeed;
+        params.set('seed', seed);
+        window.history.replaceState({}, '', `?${params.toString()}#`);
+      }
+      this.shuffleArray(ret, seed);
     } else {
       let sortField;
       let sortValLt;
