@@ -49,6 +49,11 @@ Append this to the bottom of /etc/xdg/labwc/autostart:
     systemctl --user import-environment WAYLAND_DISPLAY XDG_RUNTIME_DIR
     systemctl --user start photos-on.service
 
+An older 10.1" screen that I have requires the following to be added to `/boot/firmware/cmdline.txt`
+with Wayland:
+
+    video=HDMI-A-1:1280x800@60D
+
 ## Scripts to start/stop Chromium browser
 
 - Script to start the Chromium browser in kiosk mode. Be sure to update your URL in the
