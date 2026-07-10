@@ -3206,11 +3206,11 @@ class SearchUI {
   doShowMedia(pageNumber) {
     let pageSize;
     if (this.state.preferredPageIconSize.includes('small')) {
-      pageSize = 48;
+      pageSize = 64;
     } else if (this.state.preferredPageIconSize.includes('medium')) {
-      pageSize = 36;
+      pageSize = 48;
     } else {
-      pageSize = 12;
+      pageSize = 24;
     }
 
     const lastPageNumber = Math.ceil(this.state.allMedia.length / pageSize);
