@@ -33,6 +33,7 @@ class SearchState {
   fullScreenReinstateSlideshowSecs = 0;
   fullScreenReinstateSlideshowTimer = null;
   preloadedNextImage = null;
+  fullSizeImageLoader = null;
   wakeLock = null;
 
   // Search engine
@@ -1637,6 +1638,7 @@ class SearchUI {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'auto';
+      this.setLoadingSpinnerShown(false);
       document.querySelector('#fullimage').removeAttribute('src');
 
       const videoEle = document.querySelector('#fullvideo');
@@ -1816,6 +1818,10 @@ class SearchUI {
     document.querySelector('#slideshow_videos').style.display = display;
   }
 
+  setLoadingSpinnerShown(shown) {
+    document.querySelector('#loading_spinner').classList.toggle('hidden', !shown);
+  }
+
   isKioskModeEnabled() {
     return getIntQueryParameter('kiosk', 0) === 1;
   }
@@ -1874,6 +1880,9 @@ class SearchUI {
 
     const videoUrl = this.getFullscreenVideoUrl(entity);
     if (videoUrl !== null) {
+      this.state.fullSizeImageLoader = null;
+      this.setLoadingSpinnerShown(false);
+
       const imageEle = document.querySelector('#fullimage');
       imageEle.removeAttribute('src');
       imageEle.style.display = 'none';
@@ -1893,11 +1902,15 @@ class SearchUI {
 
       const imageEle = document.querySelector('#fullimage');
       imageEle.onload = () => {
+        if (this.state.fullSizeImageLoader === null) {
+          this.setLoadingSpinnerShown(false);
+        }
         this.updateSlideshowNavigationIcons(entity);
         this.updateMediaDescriptionText(descrEle);
         this.preloadNextImage();
       };
       imageEle.style.display = 'block';
+      this.setLoadingSpinnerShown(true);
       const imageUrl = this.getFullscreenImageUrl(this.state.allMediaFullScreenIndex);
       imageEle.src = imageUrl;
       this.loadFullSizeImageInBackground(imageEle, this.state.allMediaFullScreenIndex, imageUrl);
@@ -1907,19 +1920,32 @@ class SearchUI {
   loadFullSizeImageInBackground(imageEle, index, shownUrl) {
     const media = this.state.allMedia[index];
     if (!SearchEngine.MEDIA_TYPES.includes(media.type) || !media.link || media.link === shownUrl) {
+      this.state.fullSizeImageLoader = null;
       return;
     }
 
     // Keep a reference so that the browser doesn't cancel the request.
     const loader = new Image();
     this.state.fullSizeImageLoader = loader;
+    this.setLoadingSpinnerShown(true);
     loader.onload = () => {
       // Don't swap if the user navigated to other media while this was downloading.
-      if (this.state.fullSizeImageLoader !== loader ||
-          this.state.allMediaFullScreenIndex !== index || !this.isImageFullscreen()) {
+      if (this.state.fullSizeImageLoader !== loader) {
         return;
       }
+      this.state.fullSizeImageLoader = null;
+      if (this.state.allMediaFullScreenIndex !== index || !this.isImageFullscreen()) {
+        return;
+      }
+      this.setLoadingSpinnerShown(false);
       imageEle.src = media.link;
+    };
+    loader.onerror = () => {
+      if (this.state.fullSizeImageLoader !== loader) {
+        return;
+      }
+      this.state.fullSizeImageLoader = null;
+      this.setLoadingSpinnerShown(false);
     };
     loader.src = media.link;
   }
