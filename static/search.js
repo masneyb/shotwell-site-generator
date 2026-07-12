@@ -1971,9 +1971,9 @@ class SearchUI {
       thumb.dataset.index = i;
 
       const img = document.createElement('img');
+      img.loading = 'lazy';
       img.src = thumbUrl;
       img.alt = media.title ?? '';
-      img.loading = 'lazy';
       thumb.appendChild(img);
 
       thumb.addEventListener('click', () => {
