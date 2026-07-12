@@ -4558,6 +4558,26 @@ class MapUI {
         };
       }
 
+      const searchBoundsBtn = document.getElementById('search-bounds');
+      if (searchBoundsBtn) {
+        searchBoundsBtn.style.display = 'block';
+        searchBoundsBtn.onclick = () => {
+          const bounds = mapInstance.getBounds();
+          const center = bounds.getCenter();
+          const corner = bounds.getNorthEast();
+          // Use the radius that circumscribes the visible rectangle so that
+          // everything currently on screen matches the criteria. Round the
+          // radius up so the corners aren't lost to truncation.
+          const radiusKm = this.searchEngine.haversineDistance(
+            [center.lat, center.lng], [corner.lat, corner.lng]);
+          const roundedKm = Math.max(Math.ceil(radiusKm * 100) / 100, 0.01);
+          const criteria = joinCriteriaParts(['GPS Coordinate', 'is within',
+            center.lat.toFixed(6), center.lng.toFixed(6), roundedKm]);
+          window.top.location.href =
+            this.searchEngine.generateSearchUrl([criteria], 'all', 'default', 'none', 'default');
+        };
+      }
+
       const zoomLastBtn = document.getElementById('zoom-last');
       if (zoomLastBtn) {
         const MAX_HISTORY = 50;
