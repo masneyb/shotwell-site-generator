@@ -1638,7 +1638,7 @@ class SearchUI {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'auto';
-      this.setLoadingSpinnerShown(false);
+      this.cancelFullSizeImageLoad();
       document.querySelector('#fullimage').removeAttribute('src');
 
       const videoEle = document.querySelector('#fullvideo');
@@ -1877,12 +1877,10 @@ class SearchUI {
     }
 
     this.updateFilmstrip();
+    this.cancelFullSizeImageLoad();
 
     const videoUrl = this.getFullscreenVideoUrl(entity);
     if (videoUrl !== null) {
-      this.state.fullSizeImageLoader = null;
-      this.setLoadingSpinnerShown(false);
-
       const imageEle = document.querySelector('#fullimage');
       imageEle.removeAttribute('src');
       imageEle.style.display = 'none';
@@ -1917,10 +1915,21 @@ class SearchUI {
     }
   }
 
+  cancelFullSizeImageLoad() {
+    const loader = this.state.fullSizeImageLoader;
+    if (loader !== null) {
+      loader.onload = null;
+      loader.onerror = null;
+      // Abort the download so that it doesn't compete for bandwidth with the next image.
+      loader.src = '';
+      this.state.fullSizeImageLoader = null;
+    }
+    this.setLoadingSpinnerShown(false);
+  }
+
   loadFullSizeImageInBackground(imageEle, index, shownUrl) {
     const media = this.state.allMedia[index];
     if (!SearchEngine.MEDIA_TYPES.includes(media.type) || !media.link || media.link === shownUrl) {
-      this.state.fullSizeImageLoader = null;
       return;
     }
 
