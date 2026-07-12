@@ -1900,7 +1900,28 @@ class SearchUI {
       imageEle.style.display = 'block';
       const imageUrl = this.getFullscreenImageUrl(this.state.allMediaFullScreenIndex);
       imageEle.src = imageUrl;
+      this.loadFullSizeImageInBackground(imageEle, this.state.allMediaFullScreenIndex, imageUrl);
     }
+  }
+
+  loadFullSizeImageInBackground(imageEle, index, shownUrl) {
+    const media = this.state.allMedia[index];
+    if (!SearchEngine.MEDIA_TYPES.includes(media.type) || !media.link || media.link === shownUrl) {
+      return;
+    }
+
+    // Keep a reference so that the browser doesn't cancel the request.
+    const loader = new Image();
+    this.state.fullSizeImageLoader = loader;
+    loader.onload = () => {
+      // Don't swap if the user navigated to other media while this was downloading.
+      if (this.state.fullSizeImageLoader !== loader ||
+          this.state.allMediaFullScreenIndex !== index || !this.isImageFullscreen()) {
+        return;
+      }
+      imageEle.src = media.link;
+    };
+    loader.src = media.link;
   }
 
   preloadNextImage() {
