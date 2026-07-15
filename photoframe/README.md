@@ -79,6 +79,13 @@ Enable the systemd units:
 Use `raspi-config` to configure the system to automatically log in as the
 `pi` username.
 
+Ensure that mouseEmulation is disabled in `~/.config/labwc/rc.xml` so that swipe events work:
+
+    <?xml version="1.0"?>
+    <openbox_config xmlns="http://openbox.org/3.4/rc">
+        <touch deviceName="ILITEK ILITEK-TP" mapToOutput="HDMI-A-1" mouseEmulation="no"/>
+    </openbox_config>
+
 ## photoframe.html
 
 Create a `photoframe.html` file and put it same directory with the `index.html`
