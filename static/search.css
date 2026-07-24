@@ -239,6 +239,12 @@ a {
   #search_controls #icon_size_controls {
     flex-basis: 100%;
   }
+
+  /* Keep the close X, title and Clear/Done buttons on one header row. */
+  .dialog_title {
+    font-size: 100%;
+    white-space: nowrap;
+  }
 }
 
 .dropdown_menu {
@@ -329,8 +335,8 @@ a {
 
 .dialog_header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 8px;
   padding: 14px 18px;
   border-bottom: 1px solid var(--color-button-border);
   background: var(--color-button-hover);
@@ -340,6 +346,7 @@ a {
   font-weight: bold;
   font-size: 115%;
   letter-spacing: 0.2px;
+  margin-right: auto;
 }
 
 .dialog_close {
@@ -359,6 +366,10 @@ a {
 .dialog_close:hover {
   background-color: var(--color-button-selected-bg);
   color: var(--color-button-selected-text);
+}
+
+.dialog_header .button {
+  margin-top: 0;
 }
 
 .dialog_quick_links {
@@ -392,11 +403,6 @@ a {
   padding: 14px 18px 18px;
   margin-top: 12px;
   border-top: 1px solid var(--color-button-border);
-}
-
-/* Push the Clear/Save buttons to the far right, onto the same row as the icon size controls. */
-#clear_search_criteria {
-  margin: 0 0 0 auto;
 }
 
 /* Icon size controls: a "vary by rating" toggle plus a size slider and an
