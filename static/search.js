@@ -3682,11 +3682,6 @@ class SearchUI {
     const dialog = document.querySelector('#advanced_search_dialog');
     this.setupClickHandler('#advanced_search_link', () => {
       dialog.showModal();
-      const input = document.querySelector('#search_criterias .search_criteria .search_values input[type="text"]');
-      if (input) {
-        input.focus();
-        input.select();
-      }
     });
     this.setupClickHandler('#animations_link', () => this.toggleAnimations());
     this.setupClickHandler('#advanced_search_close', () => dialog.close());
