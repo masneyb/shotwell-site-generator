@@ -3935,8 +3935,8 @@ class SearchUI {
 
     for (const m of yearMedia) {
       const month = parseInt(m.exposure_time.split('-')[1], 10) - 1;
-      if (m.type === 'video') { videos++; monthlyVideos[month]++; videoSize += m.filesize || 0; }
-      else { photos++; monthlyPhotos[month]++; photoSize += m.filesize || 0; }
+      if (m.type === 'video') { videos++; monthlyVideos[month]++; videoSize += m.artifact_filesize || m.filesize || 0; }
+      else { photos++; monthlyPhotos[month]++; photoSize += m.artifact_filesize || m.filesize || 0; }
       if (m.lat && m.lon) withGPS++;
       if (m.title?.trim()) withTitle++;
       if (m.comment?.trim()) withComment++;
