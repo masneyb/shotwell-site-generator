@@ -3838,10 +3838,10 @@ class SearchUI {
   }
 
   static _fmtBytes(b) {
-    return b >= 1e12 ? `${(b / 1e12).toFixed(1)} TB`
-      : b >= 1e9 ? `${(b / 1e9).toFixed(1)} GB`
-        : b >= 1e6 ? `${(b / 1e6).toFixed(1)} MB`
-          : `${Math.round(b / 1e3)} KB`;
+    return b >= 1024 ** 4 ? `${(b / 1024 ** 4).toFixed(1)} TiB`
+      : b >= SearchUI.FILE_SIZE_UNITS.GB ? `${(b / SearchUI.FILE_SIZE_UNITS.GB).toFixed(1)} GiB`
+        : b >= SearchUI.FILE_SIZE_UNITS.MB ? `${(b / SearchUI.FILE_SIZE_UNITS.MB).toFixed(1)} MiB`
+          : `${Math.round(b / SearchUI.FILE_SIZE_UNITS.KB)} KiB`;
   }
 
   // Renders a titled list of horizontal bars (title div + svg) shared by the calendar
